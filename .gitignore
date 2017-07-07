@@ -1,0 +1,11 @@
+bin/
+build/
+coverage.out
+ca-certificates.crt
+.vscode
+.history
+node_modules/
+/*.pem
+/*.tsv
+src/**/*.css
+Dockerfile.test

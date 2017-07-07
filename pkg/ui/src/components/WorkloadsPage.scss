@@ -1,0 +1,30 @@
+td.resource-actions {
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+/* generated using http://www.cssarrowplease.com/ */
+.actions-popover:after, .actions-popover:before {
+	right: 100%;
+	top: 50%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.actions-popover:after {
+	border-color: rgba(0, 0, 0, 0);
+	border-right-color: #BBB;
+	border-width: 20px;
+	margin-top: -20px;
+}
+.actions-popover:before {
+	border-color: rgba(0, 0, 0, 0);
+	border-right-color: #000000;
+	border-width: 21px;
+	margin-top: -21px;
+}

@@ -1,0 +1,27 @@
+@import 'xterm/dist/xterm';
+
+.xterm-react {
+    .terminal {
+        .xterm-viewport {
+            background-color: rgb(33,33,33);
+            // overflow-y: auto;
+        }
+    }
+
+    &.xterm-react-disabled {
+        .terminal {
+            background-color: inherit;
+            
+            &.xterm {
+                visibility: hidden;
+            }
+            .xterm-viewport {
+                background-color: inherit;
+            }
+            .xterm-rows {
+                visibility: hidden;
+            }
+
+        }
+    }
+}

@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: ${app}
+  name: ${name}
+  namespace: ${namespace}
+spec:
+  selector:
+    matchLabels:
+      app: ${app}
+  template:
+    metadata:
+      labels:
+        app: ${app}
+    spec:
+      containers:
+        - image: ${docker_image}
+          imagePullPolicy: IfNotPresent
+          name: ${app}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

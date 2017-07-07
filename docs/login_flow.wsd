@@ -1,0 +1,26 @@
+@startuml
+
+scale 1
+hide footbox
+
+participant "Kapow UI" as b
+participant "Kapow Server" as k
+participant "OIDC Provider" as o
+activate b
+b -> k: /login
+activate k
+k -> b: OIDC redirect\n + set_cookie(state)
+deactivate k
+b -> o: OIDC exchange
+activate o
+o -> b: creds challenge
+b -> o: answer with creds
+o -> b: redirect with oauth2 response
+deactivate o
+b -> k: /auth/callback
+activate k
+k -> b: redirect\n + set_cookie(jwt)
+deactivate k
+deactivate b
+
+@enduml
