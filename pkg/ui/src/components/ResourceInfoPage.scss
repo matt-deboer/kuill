@@ -1,0 +1,15 @@
+
+.resource-info > div > div::after {
+  content: "";
+  opacity: 0.5;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  // position: absolute;
+  // z-index: -1;   
+  background: url('../images/Blue-Hexagon.svg') -190px -70px / 300px 300px no-repeat ;
+  // background-repeat: 'no-repeat';
+  // background-size: '300px';
+  // background-position: '-190px -70px';
+}

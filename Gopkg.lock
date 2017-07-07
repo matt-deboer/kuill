@@ -1,0 +1,74 @@
+memo = "01ba5461e09e7676cdae5b52a5f39f2bedb34c8e0e0ae31201c32420c7b4ce1f"
+
+[[projects]]
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  revision = "4b6ea7319e214d98c938f12692336f7ca9348d6b"
+  version = "v0.10.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/coreos/go-oidc"
+  packages = ["."]
+  revision = "c797a55f1c1001ec3169f1d0fbb4c5523563bec6"
+
+[[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "d2709f9f1f31ebcda9651b03077758c1f3a0018c"
+  version = "v3.0.0"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "f592bd283e9ef86337a432eb50e592278c3d534d"
+
+[[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "3ab3a8b8831546bd18fd182c20687ca853b2bb13"
+  version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/nu7hatch/gouuid"
+  packages = ["."]
+  revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/pquerna/cachecontrol"
+  packages = [".","cacheobject"]
+  revision = "9299cc36e57c32f83e47ffb3c25d8a3dec10ea0b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  revision = "0bdeddeeb0f650497d603c4ad7b20cfe685682f6"
+
+[[projects]]
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+
+[[projects]]
+  name = "golang.org/x/oauth2"
+  packages = [".","internal"]
+  revision = "3b966c7f301c0c71c53d94dc632a62df0a682cd7"
+
+[[projects]]
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "98fc11432b951eb53c62602ba4ae99d03c1fb7e2"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = ["internal","internal/base","internal/datastore","internal/log","internal/remote_api","internal/urlfetch","urlfetch"]
+  revision = "e951d3868b377b14f4e60efa3a301532ee3c1ebf"
+
+[[projects]]
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [".","cipher","json"]
+  revision = "af13e1fbc7ac2df7f7eab54e5177104d546d0e9c"
+  version = "v2.1.1"

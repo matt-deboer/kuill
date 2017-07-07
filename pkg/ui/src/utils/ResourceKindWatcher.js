@@ -1,0 +1,122 @@
+import Kinds from '../kube-kinds'
+import { putResource, removeResource } from '../state/actions/workloads'
+import { addError } from '../state/actions/errors'
+import { keyForResource } from '../comparators'
+
+const throttles = {
+  'Endpoints/MODIFIED': 10000,
+}
+const throttlePurgeInterval = 2 * 60 * 1000
+const aggregationInterval = 1000
+
+
+export default class ResourceKindWatcher {
+
+  constructor(props) {
+
+    this.props = props
+
+    if (!!props.kind && !!props.dispatch && !!props.resourceGroup) {
+      this.initialize()
+    }
+  }
+
+  initialize = () => {
+    let { props } = this
+    let dispatch = this.dispatch = props.dispatch
+    let kind = this.kind = Kinds[props.resourceGroup][props.kind]
+    let resourceVersion = props.resourceVersion || 0
+    let loc = window.location
+    let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
+    
+    let url = `${scheme}://${loc.host}/proxy`
+    url += `/${kind.base}/watch/${this.kind.plural}`
+    url += `?watch=true&resourceVersion=${resourceVersion}`
+    
+    this.socket = new WebSocket(url)
+    this.socket.onerror = function (e) {
+      console.error(`ResourceKindWatcher(${kind.plural})`, e)
+      dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
+        'Try Again', () => { this.initialize() }))
+    }
+    this.socket.onmessage = this.onEvent.bind(this)
+    console.log(`ResourceKindWatcher<${this.kind.plural}> created`)
+    this.throttled = {}
+    this.lastPurge = Date.now()
+    this.events = {}
+    this.interval = window.setInterval(this.processEvents.bind(this), props.interval || aggregationInterval)
+  }
+
+  processEvents = () => {
+    if (Object.keys(this.events).length) {
+      for (let key in this.events) {
+        let data = this.events[key]
+        let isNew = false
+        switch(data.type) {
+          case 'ADDED':
+            isNew = true
+          case 'MODIFIED': 
+            this.dispatch(putResource(data.object, isNew))
+            break
+          case 'DELETED':
+            this.dispatch(removeResource(data.object))
+            break
+          default:
+            return 
+        }
+      }
+      this.events = {}
+    }
+  }
+
+  closed = () => {
+    return !this.socket || this.socket.readyState === 3 || this.socket.readyState === 2
+  }
+
+  onEvent = (event) => {
+    let data = this.applyThrottles(JSON.parse(event.data))
+    if (!!data) {
+      let key = keyForResource(data.object)
+      this.events[key] = data
+    }
+  }
+
+  destroy = () => {
+    window.clearInterval(this.interval)
+    this.socket && this.socket.close()
+  }
+
+  /**
+   * 
+   */
+  applyThrottles = (data) => {
+    let resource = data.object
+    let throttle = throttles[`${resource.kind}/${data.type}`]
+    if (!!throttle) {
+      let key = `${resource.metadata.namespace}/${resource.kind}/${resource.metadata.name}/${data.type}`
+      let lastSeen = this.throttled[key] || 0
+      let now = Date.now()
+      this.purgeThrottles(now)
+      if ((now - lastSeen) > throttle) {
+        this.throttled[key] = now
+        return data
+      }
+      return null
+    }
+    return data
+  }
+
+  purgeThrottles = (now) => {
+    if ((now - this.lastPurge) > throttlePurgeInterval) {
+      for (let t in this.throttled) {
+        let throttle = throttles[t]
+        let lastSeen = this.throttled[t]
+        if (now - lastSeen > throttle) {
+          delete this.throttled[t]
+        }
+      }
+      this.lastPurge = now
+    }
+  }
+  
+}
