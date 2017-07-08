@@ -9,3 +9,4 @@ node_modules/
 /*.tsv
 src/**/*.css
 Dockerfile.test
+/pkg/server/ui.go
