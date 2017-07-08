@@ -205,8 +205,10 @@ class ConfigurationPane extends React.Component {
             anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
             targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
             onRequestClose={this.handleRequestCloseAnnotations}
+            style={{backgroundColor: 'rgb(240,240,240)'}}
           >
             <Paper style={{
+              background: 'transparent',
               padding: 20, fontSize: 13,
               maxWidth: `${window.innerWidth - 200}px`,
               maxHeight: `${window.innerHeight - 300}px`,
