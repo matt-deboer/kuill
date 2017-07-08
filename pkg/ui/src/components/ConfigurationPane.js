@@ -9,7 +9,10 @@ import {
 } from 'material-ui/Table'
 import KubeKinds from '../kube-kinds'
 import sizeMe from 'react-sizeme'
+import IconButton from 'material-ui/IconButton'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
+import Popover from 'material-ui/Popover'
+import Paper from 'material-ui/Paper'
 
 const styles = {
   tabs: {
@@ -102,53 +105,141 @@ const containersTable = {
 
 // use functional component style for representational components
 export default sizeMe({ monitorHeight: true, monitorWidth: true }) (
-function ConfigurationPane(props) {
+class ConfigurationPane extends React.Component {
   
-  let { resource } = props
-  let kind = KubeKinds[props.resourceGroup][resource.kind]
-  let { getData } = kind
-  let data = (typeof getData === 'function' && getData(resource)) || []
-  let cols = []
+  constructor(props) {
+    super(props)
+    this.state = {
+      annotationsOpen: false,
+      annotationsText: '',
+    }
+  }
+
+  handleAnnotationsTouchTap = (event) => {
+    // This prevents ghost click.
+    event.preventDefault();
+
+    this.setState({
+      annotationsOpen: true,
+      annotationsAnchorEl: event.currentTarget,
+      annotationsText: event.currentTarget.dataset.text,
+    })
+  }
+
+  handleRequestCloseAnnotations = () => {
+    this.setState({
+      annotationsOpen: false,
+      annotationsText: '',
+    })
+  }
+
+  render() {
   
-  for (let table of data) {
-    cols.push(
-      <div key={table.name} className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <Card style={{...styles.cards, padding: '0 16px'}}>
-          {!!table.name && <CardHeader 
-            style={styles.cardHeader}
-            title={table.name}
-            titleStyle={styles.cardHeaderTitle}
-          />}
-          <CardText>
-            { renderData(table) }
-          </CardText>
-        </Card>
+    let { props } = this
+    let { resource } = props
+    let kind = KubeKinds[props.resourceGroup][resource.kind]
+    let { getData } = kind
+    let data = (typeof getData === 'function' && getData(resource)) || []
+    let cols = []
+    
+    for (let table of data) {
+      cols.push(
+        <div key={table.name} className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+          <Card style={{...styles.cards, padding: '0 16px'}}>
+            {!!table.name && <CardHeader 
+              style={styles.cardHeader}
+              title={table.name}
+              titleStyle={styles.cardHeaderTitle}
+            />}
+            <CardText>
+              { renderData(table) }
+            </CardText>
+          </Card>
+        </div>
+      )
+    }
+    if (!!resource.metadata.annotations) {
+      cols.push(this.renderAnnotations(resource.metadata.annotations))
+    }
+
+    return (
+      <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
+        {cols}
       </div>
     )
   }
-  if (!!resource.metadata.annotations) {
-    cols.push(renderAnnotations(resource.metadata.annotations)
-      // <div key={'annotations'} className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      //   <Card style={styles.cards}>
-      //     <CardHeader 
-      //       style={styles.cardHeader}
-      //       title="annotations"
-      //       titleStyle={styles.cardHeaderTitle}
-      //     />
-      //     <CardText>
-      //       { renderTable({...annotationsTable, data: Object.entries(resource.metadata.annotations)}) }
-      //     </CardText>
-      //   </Card>
-      // </div>
-    )
-  }
 
-  return (
-    <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
-      {cols}
-    </div>
-  )
+  renderAnnotations = (annotations) => {
+    if (!!annotations) {
+      let entries = []
+      for (let key in annotations) {
+        let value = annotations[key]
+        if (value.length <= 50) {
+          entries.push([key, value])
+        } else {
+          entries.push([key,
+            <div style={{
+              textOverflow: 'ellipsis', 
+              overflow: 'hidden', 
+              height: 'inherit',
+              paddingRight: 50,
+              position: 'relative',
+            }}>
+              {value}
+              <IconButton 
+                style={{position: 'absolute', right: 0, top: 0, padding: 0, height: 24, width: 24}} 
+                onTouchTap={this.handleAnnotationsTouchTap}
+                data-text={value}
+                >
+                <IconMore />
+              </IconButton>
+            </div>
+          ])
+        }
+      }
+      return (
+        <div key={'annotations'} className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <Popover
+            open={this.state.annotationsOpen}
+            anchorEl={this.state.annotationsAnchorEl}
+            anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
+            targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
+            onRequestClose={this.handleRequestCloseAnnotations}
+          >
+            <Paper style={{
+              padding: 20, fontSize: 13,
+              maxWidth: `${window.innerWidth - 200}px`,
+              maxHeight: `${window.innerHeight - 300}px`,
+              overflow: 'scroll',
+              }}>
+              <pre>
+                {safePrettyPrint(this.state.annotationsText)}
+              </pre>
+            </Paper>
+          </Popover>
+          <Card style={styles.cards}>
+            <CardHeader 
+              style={styles.cardHeader}
+              title="annotations"
+              titleStyle={styles.cardHeaderTitle}
+            />
+            <CardText>
+              { renderTable({...annotationsTable, data: entries}) }
+            </CardText>
+          </Card>
+        </div>
+      )
+    }
+  }
 })
+
+function safePrettyPrint(value) {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2)
+  } catch (e) {
+    return value
+  }
+}
 
 function renderData(table, depth=0) {
   
@@ -217,44 +308,4 @@ function renderTable(table, depth=0) {
       </TableBody>
     </Table>
   )
-}
-
-function renderAnnotations(annotations) {
-  if (!!annotations) {
-    let entries = []
-    for (let key in annotations) {
-      let value = annotations[key]
-      if (value.length <= 50) {
-        entries.push([key, value])
-      } else {
-        entries.push([key,
-          <Card>
-            <CardHeader
-              title={value.substr(0,45) + '...'}
-              actAsExpander={true}
-              showExpandableButton={true}
-              openIcon={<IconMore/>}
-            />
-            <CardText expandable={true}>
-              {value}
-            </CardText>
-          </Card>
-        ])
-      }
-    }
-    return (
-      <div key={'annotations'} className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <Card style={styles.cards}>
-          <CardHeader 
-            style={styles.cardHeader}
-            title="annotations"
-            titleStyle={styles.cardHeaderTitle}
-          />
-          <CardText>
-            { renderTable({...annotationsTable, data: entries}) }
-          </CardText>
-        </Card>
-      </div>
-    )
-  }
 }
