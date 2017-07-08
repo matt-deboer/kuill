@@ -20,7 +20,6 @@ export default (state = initialState, action) => {
   }
 }
 
-
 function doAddError(state, error, severity, message, retryText, retryAction) {
   let err = {
     id: ++errorId,
