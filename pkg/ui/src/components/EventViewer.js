@@ -8,9 +8,9 @@ import {
 } from 'material-ui/Table'
 import * as moment from 'moment'
 import sizeMe from 'react-sizeme'
-import IconModified from 'material-ui/svg-icons/image/adjust'
-import IconAdded from 'material-ui/svg-icons/image/control-point'
-import IconDeleted from 'material-ui/svg-icons/content/remove-circle-outline'
+import IconModified from 'material-ui/svg-icons/action/done'
+import IconAdded from 'material-ui/svg-icons/content/add'
+import IconDeleted from 'material-ui/svg-icons/content/remove'
 import IconError from 'material-ui/svg-icons/content/report'
 import { grey500 } from 'material-ui/styles/colors'
 
@@ -48,8 +48,12 @@ function EventViewer(props) {
         <TableBody displayRowCheckbox={false}>
           {props.events.map((event, index)=>
             <TableRow key={event.object.metadata.uid} displayBorder={true} style={{height: 28}}>
-              <TableRowColumn style={{ width: 70, height: 28, padding: 4}}>{toHumanizedAge(event.object.lastTimestamp)}</TableRowColumn>
-              <TableRowColumn style={{ width: 28, height: 28, padding: 4}}>{stateIcons[event.type]}</TableRowColumn>
+              <TableRowColumn style={{ width: 85, height: 28, padding: 4}} data-rh={event.object.lastTimestamp}>
+                {'100 months'/*toHumanizedAge(event.object.lastTimestamp)*/}
+              </TableRowColumn>
+              <TableRowColumn style={{ width: 28, height: 28, padding: 4}} data-rh={event.type}>
+                {stateIcons[event.type]}
+              </TableRowColumn>
               <TableRowColumn style={{ width: 80, height: 28, padding: 4}}>{event.object.involvedObject.kind}</TableRowColumn>
               <TableRowColumn style={{ height: 28, padding: 4}}>
                 <span style={styles.message}>{event.object.message}</span>
@@ -64,6 +68,7 @@ function EventViewer(props) {
 
 function toHumanizedAge(timestamp) {
   let age = Date.now() - Date.parse(timestamp)
-  return moment.duration(age).humanize()
+  let humanized = moment.duration(age).humanize()
+  return humanized.replace("a few ", "")
 }
 
