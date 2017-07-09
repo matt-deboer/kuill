@@ -313,6 +313,7 @@ class WorkloadsPage extends React.Component {
           stripedRows={false}
           />
 
+        {this.state.hoveredResource &&
         <Popover
           className="actions-popover"
           style={styles.popover}
@@ -323,26 +324,30 @@ class WorkloadsPage extends React.Component {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
         >
-
+          {KubeKinds.workloads[this.state.hoveredResource.kind].hasLogs &&
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
             data-rh="View Logs...">  
             <IconLogs/>
           </FloatingActionButton>
+          }
 
+          {KubeKinds.workloads[this.state.hoveredResource.kind].hasTerminal &&
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
             data-rh="Open Terminal...">
             <IconShell/>
           </FloatingActionButton>
+          }
 
+          {/* TODO: need to check whether this resource can actually be edited by the user */}
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
             data-rh="Edit...">
             <IconEdit/>
           </FloatingActionButton >
         </Popover>
-
+        }
         <Link to="/workloads/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />

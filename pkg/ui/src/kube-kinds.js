@@ -3,6 +3,8 @@ let kinds = {
     Deployment: {
       base: 'apis/apps/v1beta1', 
       plural: 'deployments',
+      hasLogs: true,
+      hasTerminal: true,
       getData: ({status, spec, metadata }) => {
         return [{
           name: '',
@@ -18,6 +20,8 @@ let kinds = {
     DaemonSet: {
       base: 'apis/extensions/v1beta1',
       plural: 'daemonsets',
+      hasLogs: true,
+      hasTerminal: true,
       getData: ({status, spec, metadata }) => {
         return [{
           name: '',
@@ -34,6 +38,8 @@ let kinds = {
       base: 'apis/apps/v1beta1',
       plural: 'statefulsets',
       abbrev: 'Ss',
+      hasLogs: true,
+      hasTerminal: true,
     },
     ReplicaSet: {
       base: 'apis/extensions/v1beta1',
@@ -49,6 +55,8 @@ let kinds = {
       },
       image: 'replicaset.png',
       abbrev: 'Rs',
+      hasLogs: true,
+      hasTerminal: true,
     },
     ReplicationController: {
       base: 'api/v1',
@@ -62,17 +70,23 @@ let kinds = {
         ]
       },
       abbrev: 'Rc',
+      hasLogs: true,
+      hasTerminal: true,
     },
     Job: {
       base: 'apis/batch/v1',
       plural: 'jobs',
       image: 'job.png',
       abbrev: 'Jb',
+      hasLogs: true,
+      hasTerminal: true,
     },
     CronJob: {
       base: 'apis/batch/v2alpha1',
       plural: 'cronjobs',
       abbrev: 'Cj',
+      hasLogs: true,
+      hasTerminal: true,
     },
     Pod: {
       base: 'api/v1',
@@ -105,6 +119,8 @@ let kinds = {
         }]
       },
       abbrev: 'Po',
+      hasLogs: true,
+      hasTerminal: true,
     },
     Service: {
       base: 'api/v1',
