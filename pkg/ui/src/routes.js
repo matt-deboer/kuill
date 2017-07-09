@@ -8,6 +8,8 @@ import WorkloadInfo from './containers/WorkloadInfo'
 import ClusterInfo from './containers/ClusterInfo'
 import Home from 'material-ui/svg-icons/action/home'
 import Tune from 'material-ui/svg-icons/image/tune'
+import IconAccessControls from 'material-ui/svg-icons/hardware/security'
+import IconCluster from 'material-ui/svg-icons/image/grain'
 import Apps from 'material-ui/svg-icons/navigation/apps'
 import KubeKinds from './kube-kinds'
 
@@ -41,7 +43,7 @@ const routes = [
     path: '/cluster',
     name: 'Cluster',
     component: Cluster,
-    icon: <Tune/>,
+    icon: <IconCluster/>,
     inMenu: true,
     exact: true,
   },
@@ -53,7 +55,7 @@ const routes = [
     path: '/access',
     name: 'Access Controls',
     component: AccessControls,
-    icon: <Tune/>,
+    icon: <IconAccessControls/>,
     inMenu: true,
   },
 ]
