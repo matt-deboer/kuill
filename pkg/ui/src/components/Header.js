@@ -3,7 +3,7 @@ import AppBar from 'material-ui/AppBar'
 import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar'
 import MenuItem from 'material-ui/MenuItem'
 import DropDownMenu from 'material-ui/DropDownMenu'
-import {grey200, grey500, grey700, grey800, grey900, blueA200, red900, white} from 'material-ui/styles/colors'
+import {grey200, grey300, grey500, grey700, grey800, grey900, blueA200, red900, white} from 'material-ui/styles/colors'
 import {spacing, typography} from 'material-ui/styles'
 import {Link} from 'react-router-dom'
 import { connect } from 'react-redux'
@@ -22,6 +22,7 @@ import {
   TableRow,
   TableRowColumn,
 } from 'material-ui/Table'
+import Breadcrumbs from './Breadcrumbs'
 
 const mapStateToProps = function(store) {
   return {
@@ -51,18 +52,8 @@ class Header extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      value: this.setMenuFromUrl(),
       open: false,
     }
-  }
-
-  setMenuFromUrl = () => {
-    for (let item of this.props.menu) {
-      if (this.props.location.pathname.startsWith(item.path)) {
-        return item.name
-      }
-    }
-    return this.props.menu[0].name
   }
 
   handleOpen = () => {
@@ -72,8 +63,6 @@ class Header extends React.Component {
   handleClose = () => {
     this.setState({open: false})
   }
-
-  handleChange = (event, index, value) => this.setState({value})
 
   render() {
 
@@ -88,24 +77,6 @@ class Header extends React.Component {
         paddingRight: 15,
         backgroundColor: grey800,
       },
-      dropdownMenu: {
-        overflowX: 'hidden',
-        paddingTop: 0,
-        paddingBottom: 0,
-        backgroundColor: grey900,
-      },
-      dropdownMenuItems: {
-        fontSize: 18,
-        padding: 8,
-        color: grey200,
-        fontWeight: 600,
-      },
-      dropdownSelectedItem: {
-        fontSize: 18,
-        padding: 8,
-        color: '#326DE6',
-        fontWeight: 600,
-      },
       menu: {
         backgroundColor: 'transparent',
         color: grey200,
@@ -113,22 +84,22 @@ class Header extends React.Component {
         fontWeight: 600,
       },
       menuButton: {
-        marginLeft: 0
+        marginLeft: 0,
+        backgroundColor: grey700,
+        marginRight: 10,
+      },
+      menuButtonLabel: {
+        textTransform: 'none',
+        color: grey300,
       },
       iconsRightContainer: {
         marginLeft: 20
       },
-      logo: {
-        cursor: 'pointer',
-        fontSize: 22,
+      name: {
+        fontSize: '2vw',
         color: typography.textFullWhite,
-        lineHeight: `${spacing.desktopKeylineIncrement}px`,
+        lineHeight: '58px',
         backgroundColor: grey800,
-        backgroundImage: 'url(' + require('../images/kubernetes-logo.svg') + ')',
-        backgroundSize: '36px 36px',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'left center',
-        paddingLeft: 50,
         height: 56,
         overflow: 'none',
       },
@@ -150,31 +121,29 @@ class Header extends React.Component {
     let { props } = this
     return (
       <AppBar
-        iconElementLeft={null}
+        iconElementLeft={<Avatar
+          src={require('../images/kubernetes-logo.svg')}
+          size={30}
+          style={{background: 'transparent', marginLeft: 10, marginTop: 8}}
+        />}
         style={{...props.styles, ...styles.appBar}}
         title={
         <Toolbar style={{...styles.menu}}>
           <ToolbarGroup firstChild={true}>
-            <div style={styles.logo}>Kubernetes</div>
-            <ToolbarSeparator style={{backgroundColor: grey500, marginRight: 24}}/>
-            <DropDownMenu
-              style={{backgroundColor: grey900}}
-              selectedMenuItemStyle={styles.dropdownSelectedItem}
-              menuItemStyle={styles.dropdownMenuItems} 
-              listStyle={styles.dropdownMenu}
-              value={this.state.value}
-              onChange={this.handleChange}
-              labelStyle={styles.menu}>
-              {props.menu.map((menuItem, index) =>
-                <MenuItem
-                  key={index}
-                  value={menuItem.name}
-                  style={styles.menuItem}
-                  primaryText={menuItem.name}
-                  containerElement={<Link to={menuItem.link}/>}
-                />
-              )}
-            </DropDownMenu>
+            <div style={styles.name}>Kubernetes</div>
+            <ToolbarSeparator style={{backgroundColor: grey500, marginRight: 18, marginLeft: 18}}/>
+            {props.location.pathname === '/' ?
+              props.menu.map(menuItem =>
+                <Link to={menuItem.link}>
+                  <RaisedButton
+                    label={menuItem.name}
+                    icon={menuItem.icon}
+                    style={styles.menuButton}
+                    labelStyle={styles.menuButtonLabel}
+                  />
+                </Link>)
+              : <Breadcrumbs location={props.location}/>
+            }
           </ToolbarGroup>
           
           <ToolbarGroup lastChild={true}>
