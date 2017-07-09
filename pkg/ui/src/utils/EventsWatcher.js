@@ -1,5 +1,5 @@
 import { receiveEvents } from '../state/actions/events'
-import { keyForResource } from '../comparators'
+import { keyForResource } from '../resource-utils'
 
 export default class EventsWatcher {
 

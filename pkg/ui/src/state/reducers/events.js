@@ -1,5 +1,6 @@
 import { types } from '../actions/events'
-import { keyForResource, objectEmpty, ownersForResource } from '../../comparators'
+import { objectEmpty } from '../../comparators'
+import { keyForResource, ownersForResource } from '../../resource-utils'
 
 const initialState = {
   watches: [],
