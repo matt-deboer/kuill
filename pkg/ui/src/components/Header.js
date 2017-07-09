@@ -169,7 +169,7 @@ class Header extends React.Component {
         </Toolbar>
       }>
         <Dialog
-          title={<div>Dashboard Errors
+          title={<div>{`Dashboard Errors: ${this.props.errors.length}`}
             <RaisedButton label="Clear All" 
               backgroundColor={grey700} 
               labelColor={white}
