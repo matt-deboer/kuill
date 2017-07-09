@@ -23,7 +23,7 @@ const DashboardPage = () => {
     <div>
       <div className="row">
 
-        <div className="col-xs-6 col-sm-4 col-md-3 col-lg-3 m-b-15 ">
+        <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
           <InfoBox Icon={IconCPU}
                    color={blueA700}
                    title="cpu"
@@ -34,7 +34,7 @@ const DashboardPage = () => {
         </div>
 
 
-        <div className="col-xs-6 col-sm-4 col-md-3 col-lg-3 m-b-15 ">
+        <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
           <InfoBox Icon={IconMemory}
                    color={blueA200}
                    title="mem"
@@ -44,7 +44,7 @@ const DashboardPage = () => {
           />
         </div>
 
-        <div className="col-xs-6 col-sm-4 col-md-3 col-lg-3 m-b-15 ">
+        <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
           <InfoBox Icon={IconDisk}
                    color={lightBlueA400}
                    title="disk"
@@ -54,7 +54,7 @@ const DashboardPage = () => {
           />
         </div>
 
-        <div className="col-xs-6 col-sm-4 col-md-3 col-lg-3 m-b-15 ">
+        <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
           <InfoBox Icon={IconNodes}
                    color={lightBlue900}
                    title="nodes"

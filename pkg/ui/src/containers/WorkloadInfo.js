@@ -9,7 +9,7 @@ import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import EditorPage from '../components/EditorPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResource } from '../comparators'
+import { sameResource } from '../resource-utils'
 import { applyResourceChanges } from '../state/actions/workloads'
 
 const mapStateToProps = function(store) {

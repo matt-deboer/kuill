@@ -137,7 +137,7 @@ class ResourceInfoPage extends React.Component {
 
     let { resourceGroup, resource, logs, activeTab } = this.props
 
-    const tabs = [
+    let tabs = [
       {
         name: 'configuration',
         component: ConfigurationPane,
@@ -148,20 +148,24 @@ class ResourceInfoPage extends React.Component {
         name: 'events',
         component: EventViewer,
         icon: <IconEvents/>,
-      },
-      {
+      }
+    ]
+    if (this.kubeKind.hasLogs) {
+      tabs.push({
         name: 'logs',
         component: LogViewer,
         icon: <IconLogs/>,
         props: {logs: logs},
-      },
-      {
+      })
+    }
+    if (this.kubeKind.hasTerminal) {
+      tabs.push({
         name: 'terminal',
         component: TerminalViewer,
         icon: <IconTerminal/>,
         props: {logs: logs},
-      }
-    ]
+      })
+    }
 
     /*avatar={<Avatar src={require(`../images/${this.kubeKind.image || 'resource.png'}`)} style={{backgroundColor: 'transparent'}} />}*/
 

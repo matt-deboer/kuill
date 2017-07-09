@@ -2,7 +2,8 @@ import { types } from '../actions/workloads'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
-import { arraysEqual, keyForResource, statusForResource } from '../../comparators'
+import { arraysEqual } from '../../comparators'
+import { keyForResource, statusForResource } from '../../resource-utils'
 
 const initialState = {
   // the filter names in string form
