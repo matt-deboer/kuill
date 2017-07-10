@@ -71,7 +71,7 @@ export default class Breadcrumbs extends React.Component {
     }
 
     return (
-      <div style={{display: 'inline-block', fontSize: '1.8vw'}}>
+      <div style={{display: 'inline-block', fontSize: '15px'}}>
         {renderedCrumbs}
       </div>
     )

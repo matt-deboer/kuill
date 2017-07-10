@@ -64,6 +64,12 @@ class Header extends React.Component {
     this.setState({open: false})
   }
 
+  componentWillReceiveProps = (props) => {
+    if (this.state.open && props.errors.length === 0) {
+      this.setState({open: false})
+    }
+  }
+
   render() {
 
     const styles = {
@@ -96,7 +102,7 @@ class Header extends React.Component {
         marginLeft: 20
       },
       name: {
-        fontSize: '2vw',
+        fontSize: '18px',
         color: typography.textFullWhite,
         lineHeight: '58px',
         backgroundColor: grey800,
@@ -180,7 +186,7 @@ class Header extends React.Component {
           titleStyle={{backgroundColor: red900, color: grey200}}
           actions={actions}
           modal={false}
-          open={this.state.open && this.props.errors.length > 0}
+          open={this.state.open}
           onRequestClose={this.handleClose}
           autoScrollBodyContent={true}
         >
