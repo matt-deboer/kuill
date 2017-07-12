@@ -6,7 +6,7 @@ import { routerActions } from 'react-router-redux'
 import { editResource, removeResource } from '../state/actions/workloads'
 
 import {Card, CardHeader} from 'material-ui/Card'
-import ConfigurationPane from './ConfigurationPane'
+import ConfigurationPane from './configuration-pane/ConfigurationPane'
 import LogViewer from './LogViewer'
 import EventViewer from './EventViewer'
 import TerminalViewer from './TerminalViewer'
@@ -35,9 +35,12 @@ import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import queryString from 'query-string'
 
+import { resourceStatus as resourceStatusIcons } from './icons'
+
 const mapStateToProps = function(store) {
   return {
     filterNames: store.workloads.filterNames,
+    pods: store.workloads.pods,
   }
 }
 
@@ -135,7 +138,7 @@ class ResourceInfoPage extends React.Component {
 
   render() {
 
-    let { resourceGroup, resource, logs, activeTab } = this.props
+    let { resourceGroup, resource, logs, activeTab, enableLogsTab, enableTerminalTab } = this.props
 
     let tabs = [
       {
@@ -150,7 +153,7 @@ class ResourceInfoPage extends React.Component {
         icon: <IconEvents/>,
       }
     ]
-    if (this.kubeKind.hasLogs) {
+    if (enableLogsTab) {
       tabs.push({
         name: 'logs',
         component: LogViewer,
@@ -158,7 +161,7 @@ class ResourceInfoPage extends React.Component {
         props: {logs: logs},
       })
     }
-    if (this.kubeKind.hasTerminal) {
+    if (enableTerminalTab) {
       tabs.push({
         name: 'terminal',
         component: TerminalViewer,
@@ -191,6 +194,7 @@ class ResourceInfoPage extends React.Component {
             }
             avatar={<KindAbbreviation text={this.kubeKind.abbrev} color={this.kubeKind.color}/>}
             titleStyle={{fontSize: '24px', fontWeight: 600, paddingLeft: 10}}
+            style={{minHeight: '125px'}}
           >
             
             <RaisedButton
@@ -224,11 +228,13 @@ class ResourceInfoPage extends React.Component {
                   />
               </Menu>
             </Popover>
+            <div style={{top: 85, left: 32, position: 'absolute'}}>{resourceStatusIcons[resource.statusSummary]}</div>
+
           </CardHeader>
         
           <Tabs 
             tabItemContainerStyle={styles.tabs}
-            contentContainerStyle={{overflowX: 'hidden'}}
+            contentContainerStyle={{overflow: 'hidden'}}
             inkBarStyle={styles.tabsInkBar}
             className={'resource-tabs'}
             value={activeTab}

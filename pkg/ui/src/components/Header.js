@@ -140,7 +140,7 @@ class Header extends React.Component {
             <ToolbarSeparator style={{backgroundColor: grey500, marginRight: 18, marginLeft: 18}}/>
             {props.location.pathname === '/' ?
               props.menu.map(menuItem =>
-                <Link to={menuItem.link}>
+                <Link to={menuItem.link} key={menuItem.name}>
                   <RaisedButton
                     label={menuItem.name}
                     icon={menuItem.icon}
@@ -178,7 +178,6 @@ class Header extends React.Component {
           title={<div>{`Dashboard Errors: ${this.props.errors.length}`}
             <RaisedButton label="Clear All" 
               backgroundColor={grey700} 
-              labelColor={white}
               style={{float: 'right', color: white}}
               onTouchTap={this.props.clearAllErrors.bind(this, this.props.errors)}
               />

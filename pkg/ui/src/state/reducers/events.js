@@ -2,11 +2,15 @@ import { types } from '../actions/events'
 import { objectEmpty } from '../../comparators'
 import { keyForResource, ownersForResource } from '../../resource-utils'
 
+const maxRecentEvents = 20
+
 const initialState = {
-  watches: [],
+  watch: null,
   // events are stored as a map of arrays
   //  map[`kind/namespace/name`] => [events]
   events: {},
+  // the N most recent events, sorted by most recent
+  recentEvents: [],
   // events that cannot be directly or transitively associated
   // to any specific resource
   detachedEvents: [],
@@ -33,6 +37,8 @@ export default (state = initialState, action) => {
 function doReceiveEvents(state, resources, events) {
   let stateEvents = {...state.events}
   let detachedEvents = state.detachedEvents.slice(0)
+  let recentEvents = state.recentEvents.slice(0)
+
   for (let event of events) {
     if ('metadata' in event) {
       event = {
@@ -43,13 +49,15 @@ function doReceiveEvents(state, resources, events) {
       event.type = guessEventType(event)
     }
     let object = event.object.involvedObject
-    let key = keyForResource(object)
-    if (key in resources) {
-      let eventsForObject = stateEvents[key] = (stateEvents[key] || {})
+    event.key = keyForResource(object)
+    
+    if (event.key in resources) {
+      let eventsForObject = stateEvents[event.key] = (stateEvents[event.key] || {})
       eventsForObject[event.object.metadata.name] = event
+      recentEvents.push(event)
     } else {
       let attached = false
-      for (let ownerKey of ownersForResource(resources, key)) {
+      for (let ownerKey of ownersForResource(resources, event.key)) {
         if (ownerKey in resources) {
           let eventsForObject = stateEvents[ownerKey] = (stateEvents[ownerKey] || {})
           eventsForObject[event.object.metadata.name] = event
@@ -59,10 +67,18 @@ function doReceiveEvents(state, resources, events) {
       }
       if (!attached) {
         detachedEvents.push(event)
+        recentEvents.push(event)
       }
     }
   }
-  let newState = {...state, events: stateEvents, detachedEvents: detachedEvents}
+  recentEvents.sort((a,b) => {
+    let aVal = a.object.lastTimestamp + a.object.metadata.uid
+    let bVal = b.object.lastTimestamp + b.object.metadata.uid
+    return aVal.localeCompare(bVal) 
+  })
+  recentEvents.length = Math.min(recentEvents.length, maxRecentEvents)
+
+  let newState = {...state, events: stateEvents, detachedEvents: detachedEvents, recentEvents: recentEvents}
   if (!!state.selectedResource) {
     newState = doSelectEventsFor(newState, resources, state.selectedResource)
   } else {

@@ -11,7 +11,7 @@ import * as moment from 'moment'
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
-import { forResource } from '../routes'
+import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
@@ -36,23 +36,6 @@ const mapStateToProps = function(store, ownProps) {
     possibleFilters: store[ownProps.resourceGroup].possibleFilters,
   }
 }
-
-// const mapDispatchToProps = function(dispatch, ownProps) {
-//   return {
-//     addFilter: function(filterName) {
-//       dispatch(addFilter(filterName))
-//     },
-//     removeFilter: function(filterName, index) {
-//       dispatch(removeFilter(filterName, index))
-//     },
-//     viewResource: function(resource, view='configuration') {
-//       dispatch(routerActions.push(forResource(resource,view)))
-//     },
-//     removeResource: function(...resources) {
-//       dispatch(removeResource(...resources))
-//     }
-//   } 
-// }
 
 const styles = {
   newResourceButton: {

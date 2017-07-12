@@ -7,7 +7,7 @@ import typography from 'material-ui/styles/typography';
 class InfoBox extends React.Component {
 
   render() {
-    const {color, title, total, allocated, units, Icon} = this.props;
+    const {color, title, total, units, Icon} = this.props;
 
     const styles = {
       content: {
@@ -18,11 +18,7 @@ class InfoBox extends React.Component {
         fontSize: 60,
         textAlign: 'right',
         color: 'rgba(0,0,0,.7)',
-      },
-      units: {
-        fontSize: 24,
-        color: 'rgba(0,0,0,.3)',
-        padding: 10,
+        position: 'relative'
       },
       number: {
         display: 'block',
@@ -33,10 +29,26 @@ class InfoBox extends React.Component {
       total: {
         display: 'block',
         fontWeight: 600,
-        fontSize: 32,
-        lineHeight: '34px',
-        textShadow: `rgb(158, 158, 158) -1px -1px 0px, rgb(158, 158, 158) 1px -1px 0px, rgb(158, 158, 158) -1px 1px 0px, rgb(158, 158, 158) 1px 1px 0px`,
+        fontSize: 48,
+        lineHeight: '80px',
+        height: 90,
         color: grey800,
+        width: '100%',
+        right: 0,
+        top: 0,
+      },
+      units: {
+        fontSize: 24,
+        lineHeight: '24px',
+        color: 'rgba(0,0,0,.3)',
+        paddingTop: 65,
+        paddingRight: 10,
+        position: 'absolute',
+        height: 80,
+        textAlign: 'right',
+        width: '100%',
+        right: 0,
+        top: 0,
       },
       remains: {
         display: 'block',
@@ -52,7 +64,6 @@ class InfoBox extends React.Component {
         position: 'absolute',
         textAlign: 'center',
         width: '100%',
-
       },
       iconSpan: {
         position: 'relative',
@@ -81,7 +92,8 @@ class InfoBox extends React.Component {
         </span>
 
         <div style={styles.content}>
-          {total}<span style={styles.units}>{units}</span>
+          <div style={styles.total}>{total}</div>
+          <div style={styles.units}>{units}</div>
           {/*<span style={styles.negative}>-</span><span style={styles.total}>{allocated}</span>
           <hr/>
           <span style={styles.remains}>{total - allocated}</span>*/}
@@ -95,8 +107,7 @@ InfoBox.propTypes = {
   Icon: PropTypes.any, // eslint-disable-line
   color: PropTypes.string,
   title: PropTypes.string,
-  total: PropTypes.number.isRequired,
-  allocated: PropTypes.number.isRequired,
+  total: PropTypes.number,
   units: PropTypes.string,
 };
 

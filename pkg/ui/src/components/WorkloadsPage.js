@@ -11,7 +11,7 @@ import * as moment from 'moment'
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
-import { forResource } from '../routes'
+import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
@@ -24,7 +24,8 @@ import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
-import { statusIcons } from './status-icons'
+import { resourceStatus as resourceStatusIcons } from './icons'
+
 import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import './WorkloadsPage.css'
@@ -46,7 +47,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='configuration') {
-      dispatch(routerActions.push(forResource(resource,view)))
+      dispatch(routerActions.push(linkForResource(resource,view)))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
@@ -201,7 +202,7 @@ class WorkloadsPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '36px',
+          width: '60px',
         }
       },
       {
@@ -259,14 +260,14 @@ class WorkloadsPage extends React.Component {
         } else {
           return ''
         }
-      } else if (column.id === 'kind') {
-        let kind = KubeKinds.workloads[row[column.id]]
-        if (!kind) {
-          console.error(`couldn't find KubeKind for ${row[column.id]}`)
-        } else {
-          return <KindAbbreviation noBackground={true} text={kind.abbrev} color={kind.color} size={36} 
-            style={{marginTop: 5, marginBottom: -5}}/>
-        }
+      // } else if (column.id === 'kind') {
+      //   let kind = KubeKinds.workloads[row[column.id]]
+      //   if (!kind) {
+      //     console.error(`couldn't find KubeKind for ${row[column.id]}`)
+      //   } else {
+      //     return <KindAbbreviation noBackground={true} text={kind.abbrev} color={kind.color} size={36} 
+      //       style={{marginTop: 5, marginBottom: -5}}/>
+      //   }
       } else {
         return row[column.id]
       }
@@ -288,7 +289,7 @@ class WorkloadsPage extends React.Component {
           kind: resource.kind,
           actions: <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>,
           age: this.renderAge(resource),
-          status: statusIcons[resource.statusSummary],
+          status: resourceStatusIcons[resource.statusSummary],
         })
       }
     }
