@@ -1,5 +1,5 @@
 import React from 'react'
-import Dashboard from './containers/DashboardPage'
+import Overview from './containers/Overview'
 import Workloads from './containers/Workloads'
 import NewWorkload from './containers/NewWorkload'
 import Cluster from './containers/Cluster'
@@ -9,7 +9,7 @@ import ClusterInfo from './containers/ClusterInfo'
 import Home from 'material-ui/svg-icons/action/home'
 import Tune from 'material-ui/svg-icons/image/tune'
 import IconAccessControls from 'material-ui/svg-icons/hardware/security'
-import IconCluster from 'material-ui/svg-icons/image/grain'
+import IconCluster from 'material-ui/svg-icons/maps/layers'
 import Apps from 'material-ui/svg-icons/navigation/apps'
 import KubeKinds from './kube-kinds'
 
@@ -17,7 +17,7 @@ const routes = [
   { 
     path: '/',
     name: 'Overview',
-    component: Dashboard,
+    component: Overview,
     icon: <Home/>,
     inMenu: false,
     exact: true,
@@ -80,16 +80,30 @@ for (; stack.length > 0;) {
 export const menu = _menu
 export default routes
 
-export function forResource(resource, view='configuration') {
-  let ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
-  let name = resource.name || resource.metadata.name
+/**
+ * Returns a link to the specified resource, which can either be a resource object, or a [kind/namespace/name] key
+ * to a resource 
+ * 
+ * @param {*} resource 
+ * @param {*} view 
+ */
+export function linkForResource(resource, view='configuration') {
+  var ns, name, kind
+  if (typeof resource === 'string') {
+    [ kind, ns, name ] = resource.split('/')
+  } else {
+    ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
+    name = resource.name || resource.metadata.name
+    kind = resource.kind
+  }
+  
   let path = "workloads"
   for (let group in KubeKinds) {
-    if (resource.kind in KubeKinds[group]) {
+    if (kind in KubeKinds[group]) {
       path = group
       break
     }
   }
   let query = view === '' ? '' : `?view=${view}`
-  return `/${path}/${ns}/${resource.kind}/${name}${query}`
+  return `/${path}/${ns}/${kind}/${name}${query}`
 }

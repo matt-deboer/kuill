@@ -57,28 +57,31 @@ export function watchEvents() {
 
 async function setEventWatches(dispatch, getState) {
   
-  let eventsUrl = `/proxy/api/v1/events`
-  let resourceVersion = 0
-  // Need to fetch current events in order to find latest resourceVersion
-  let result = await fetch(eventsUrl, defaultFetchParams
-      ).then(resp => {
-        if (!resp.ok) {
-          if (resp.status === 401) {
-            dispatch(invalidateSession())
+  let { watch } = getState().events
+  if (!watch) {
+    let eventsUrl = `/proxy/api/v1/events`
+    let resourceVersion = 0
+    // Need to fetch current events in order to find latest resourceVersion
+    let result = await fetch(eventsUrl, defaultFetchParams
+        ).then(resp => {
+          if (!resp.ok) {
+            if (resp.status === 401) {
+              dispatch(invalidateSession())
+            }
+          } else {
+            return resp.json()
           }
-        } else {
-          return resp.json()
-        }
-      })
+        })
 
-  if (!!result && result.kind === 'EventList') {
-    resourceVersion = result.metadata.resourceVersion
-    dispatch(receiveEvents(...result.items))  
+    if (!!result && result.kind === 'EventList') {
+      resourceVersion = result.metadata.resourceVersion
+      dispatch(receiveEvents(...result.items))  
+    }
+
+    watch = new EventsWatcher({
+      dispatch: dispatch, 
+      resourceVersion: resourceVersion,
+    })
+    dispatch(setWatch(watch))
   }
-
-  let watch = new EventsWatcher({
-    dispatch: dispatch, 
-    resourceVersion: resourceVersion,
-  })
-  dispatch(setWatch(watch))
 }

@@ -128,9 +128,10 @@ class TerminalViewer extends React.Component {
       url += `/exec?container=${selectedContainer}`
       url += `&tty=1&stdout=1&stderr=1&stdin=1`
 
+      let commandString = this.commandInput.input.value || '/bin/sh'
       var command = props.command
       if (!command) {
-        command = [ "/bin/sh", "-i", "-c", "TERM=xterm-256color /bin/sh" ]
+        command = [ "/bin/sh", "-i", "-c", `TERM=xterm-256color ${commandString}` ]
       }
       if (typeof (command) === "string") {
         command = [ command ]
@@ -151,6 +152,12 @@ class TerminalViewer extends React.Component {
         this.setState({
           selectedContainer: props.selectedContainer,
           terminalOpen: true,
+        })
+      }
+      this.socket.onclose = () => {
+        this.setState({
+          selectedContainer: null,
+          terminalOpen: false,
         })
       }
     }
@@ -252,7 +259,7 @@ class TerminalViewer extends React.Component {
     let { props } = this
 
     return (
-      <div>
+      <div style={{overflow: 'hidden'}}>
         <Toolbar style={{height: '36px', padding: 6, backgroundColor: grey900, margin: 0}}>
           <ToolbarGroup>
             <span style={styles.label}>container:</span>,

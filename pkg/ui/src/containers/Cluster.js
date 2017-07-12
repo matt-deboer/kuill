@@ -12,7 +12,7 @@ const mapStateToProps = function(store) {
     possibleFilters: store.cluster.possibleFilters,
     isFetching: store.cluster.isFetching,
     user: store.session.user,
-  };
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {

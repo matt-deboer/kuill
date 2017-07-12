@@ -4,6 +4,7 @@ import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../resource-utils'
+import math from 'mathjs'
 
 const initialState = {
   // the filter names in string form
@@ -16,8 +17,6 @@ const initialState = {
   possibleFilters: [],
   // the currently selected resource
   resource: null,
-  // pods that are transitively owned by the currently selected resource
-  pods: {},
   // resources are stored as a nested set of maps:
   //  map[kind] => map[namespace] => map[name] => resource
   resources: {},
@@ -27,6 +26,10 @@ const initialState = {
   isFetching: false,
   fetchBackoff: 0,
   fetchError: null,
+  cores: 0,
+  memory: 0,
+  memoryUnits: '',
+  nodes: 0,
   // the maximum resourceVersion value seen across all resource fetches
   // this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -234,7 +237,14 @@ function incrementBackoff(backoff) {
 
 
 function doReceiveResources(state, resources) {
-  let newState = {...state, possibleFilters: [], resources: resources}
+  let newState = {...state, 
+      possibleFilters: [], 
+      resources: resources,
+      cores: 0,
+      memory: 0,
+      disk: 0,
+      nodes: 0,
+  }
   
 
   let possible = null
@@ -248,7 +258,14 @@ function doReceiveResources(state, resources) {
     registerOwned(newState.resources, resource)
     newState.maxResourceVersion = Math.max(newState.maxResourceVersion, resource.metadata.resourceVersion)
     resource.statusSummary = statusForResource(resource)
+    updateComputeResources(newState, resource)
   })
+
+  let [number, units] = newState.memory.toString().split(' ')
+
+  newState.memoryUnits = units.replace("bibytes", "").toUpperCase().replace("I","i")
+  newState.memory = parseInt(number)
+  
 
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
@@ -270,6 +287,18 @@ function visitResources(resources, ...visitors) {
     for (let visitor of visitors) {
       visitor(resource)
     }
+  }
+}
+
+function updateComputeResources(state, resource) {
+  if (resource.kind === 'Node') {
+    state.cores += parseInt(resource.status.allocatable.cpu)
+    if (state.memory == 0) {
+      state.memory = math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes'))
+    } else {
+      state.memory = math.add(math.unit(state.memory), math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes')))
+    }
+    ++state.nodes
   }
 }
 

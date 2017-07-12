@@ -6,13 +6,10 @@ let kinds = {
       hasLogs: true,
       hasTerminal: true,
       getData: ({status, spec, metadata }) => {
-        return [{
-          name: '',
-          data : [
-            ['Replicas:',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
-            ['Update Strategy:', spec.strategy.type],
-          ],
-        }]
+        return [
+          ['Replicas:',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
+          ['Update Strategy:', spec.strategy.type],
+        ]
       },
       image: 'deployment.png',
       abbrev: 'De',
@@ -23,13 +20,10 @@ let kinds = {
       hasLogs: true,
       hasTerminal: true,
       getData: ({status, spec, metadata }) => {
-        return [{
-          name: '',
-          data: [
-            ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
-            ['Update Strategy', spec.updateStrategy.type],
-          ],
-        }]
+        return [
+          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
+          ['Update Strategy', spec.updateStrategy.type],
+        ]
       },
       image: 'daemonset.png',
       abbrev: 'Ds',
@@ -45,13 +39,11 @@ let kinds = {
       base: 'apis/extensions/v1beta1',
       plural: 'replicasets',
       getData: ({status, spec, metadata}) => {
-        return [{
-          name: '',
-          data: [
-            ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
-            ['Label Selector', Object.entries(spec.selector.matchLabels).map(([key, val])=>`${key}=${val}`).join(', ')],
-          ],
-        }]
+        return [
+          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
+          // ['Pods Status',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
+          ['Label Selector', Object.entries(spec.selector.matchLabels).map(([key, val])=>`${key}=${val}`).join(', ')],
+        ]
       },
       image: 'replicaset.png',
       abbrev: 'Rs',
@@ -64,9 +56,7 @@ let kinds = {
       image: 'replicationcontroller.png',
       getData: ({status, spec, metadata }) => {
         return [
-          {data: [
-            ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready,  ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
-          ]},
+          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready,  ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
         ]
       },
       abbrev: 'Rc',
@@ -93,30 +83,16 @@ let kinds = {
       plural: 'pods',
       image: 'pod.png',
       getData: ({status, spec, metadata }) => {
-        let containers = []
-        for (let c of spec.containers) {
-          containers.push(['',
-            {data: [
-              ['Name:', c.name],
-              ['Image:', c.image],
-              ['Pull Policy:', c.imagePullPolicy],
-              ['Ports: ', (c.ports ? c.ports.map(port=>`${port.containerPort}:${port.name}:${port.protocol}`).join(', '): '')],
-            ]}
-          ])
-        }
-
-        return [{
-          name: '',
-          data: [
+        return [
+            ['Node:', spec.nodeName],
+            ['Start Time:', status.startTime],
             ['Status:', status.phase],
             ['Pod IP:',status.podIP],
             ['Host IP:', status.hostIP],
+            ['Conditions:', (status.conditions ? status.conditions.map(cond => `${cond.type}`).join(', '): '')],
+            ['QoS Class:', status.qosClass],
+            ['Node-Selectors:', spec.nodeSelector ? spec.nodeSelector : '< none >'],
           ]
-        },
-        {
-          name: 'containers',
-          data: containers,
-        }]
       },
       abbrev: 'Po',
       hasLogs: true,
@@ -126,11 +102,32 @@ let kinds = {
       base: 'api/v1',
       plural: 'services',
       abbrev: 'Sv',
+      getData: ({status, spec, metadata }) => {
+        return [
+            ['Type:', spec.type],
+            ['IP:', spec.clusterIP],
+            ['Port:', spec.ports[0].port],
+            ['NodePort:', spec.ports[0].nodePort || 'n/a'],
+            ['Session Affinity:', spec.sessionAffinity],
+          ]
+      },
     },
     Endpoints: {
       base: 'api/v1',
       plural: 'endpoints',
       abbrev: 'Ep',
+      // getData: ({status, spec, metadata }) => {
+      //   return [{
+      //     name: '',
+      //     data: [
+      //       ['Type:', spec.type],
+      //       ['IP:', spec.clusterIP],
+      //       ['Port:', spec.ports[0].port],
+      //       ['NodePort:', spec.ports[0].nodePort || 'n/a'],
+      //       ['Session Affinity:', spec.sessionAffinity],
+      //     ]
+      //   }]
+      // },
     },
     Ingress: {
       base: 'apis/extensions/v1beta1',

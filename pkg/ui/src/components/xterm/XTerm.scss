@@ -2,7 +2,15 @@
 
 .xterm-react {
     .terminal {
+        font-family: Monaco, MonoSpace;
         .xterm-viewport {
+            &::-webkit-scrollbar, &::-webkit-scrollbar-track {
+                background-color: rgb(33, 33, 33);
+            }
+            &::-webkit-scrollbar-thumb {
+                background-color: rgb(55, 55, 55);
+                border-radius: 10px;
+            }
             background-color: rgb(33,33,33);
             // overflow-y: auto;
         }
