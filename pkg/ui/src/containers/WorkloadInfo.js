@@ -180,6 +180,8 @@ class ResourceInfo extends React.Component {
           resource={this.state.resource}
           logs={logs}
           events={events}
+          enableLogsTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
+          enableTerminalTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
           onLogsActivated={this.onLogsActivated.bind(this)}
           activeTab={(this.props.location.search || 'configuration').replace('?view=','')}
           />
@@ -197,8 +199,8 @@ class ResourceInfo extends React.Component {
           contents={this.state.editor.contents}
           title={!!resource &&
             <div>
-              <span style={{fontStyle: 'italic', paddingRight: 10}}>Editing:</span>
-              <span style={{fontWeight: 600}}>{`${resource.metadata.namespace}/${resource.kind}/${resource.metadata.name}`}</span>
+              <span style={{ paddingRight: 10}}>Editing:</span>
+              <span style={{fontWeight: 600}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
             </div>
           }
           />

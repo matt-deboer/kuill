@@ -13,13 +13,7 @@ import IconAdded from 'material-ui/svg-icons/content/add'
 import IconDeleted from 'material-ui/svg-icons/content/remove'
 import IconError from 'material-ui/svg-icons/content/report'
 import { grey500 } from 'material-ui/styles/colors'
-
-const stateIcons = {
-  ADDED: <IconAdded style={{color: grey500}}/>,
-  DELETED: <IconDeleted style={{color: grey500}}/>,
-  ERROR: <IconError style={{color: grey500}}/>,
-  MODIFIED: <IconModified style={{color: grey500}}/>,
-}
+import { eventType as eventTypeIcons } from './icons'
 
 const mapStateToProps = function(store) {
   
@@ -52,7 +46,7 @@ function EventViewer(props) {
                 {'100 months'/*toHumanizedAge(event.object.lastTimestamp)*/}
               </TableRowColumn>
               <TableRowColumn style={{ width: 28, height: 28, padding: 4}} data-rh={event.type}>
-                {stateIcons[event.type]}
+                {eventTypeIcons[event.type]}
               </TableRowColumn>
               <TableRowColumn style={{ width: 80, height: 28, padding: 4}}>{event.object.involvedObject.kind}</TableRowColumn>
               <TableRowColumn style={{ height: 28, padding: 4}}>

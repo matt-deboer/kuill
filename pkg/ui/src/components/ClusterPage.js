@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import ChipInput from 'material-ui-chip-input';
 import Chip from 'material-ui/Chip';
 import { withRouter } from 'react-router-dom'
-import { forResource } from '../routes'
+import { linkForResource } from '../routes'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/action/system-update-alt'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
@@ -21,6 +21,7 @@ import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
+import { resourceStatus as resourceStatusIcons } from './icons'
 
 import { arraysEqual } from '../comparators'
 import './ClusterPage.css'
@@ -43,8 +44,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='configuration') {
-      console.log(`ClusterPage: pushed new location: ${forResource(resource,view)}`)
-      dispatch(routerActions.push(forResource(resource,view)))
+      console.log(`ClusterPage: pushed new location: ${linkForResource(resource,view)}`)
+      dispatch(routerActions.push(linkForResource(resource,view)))
     }
   } 
 }
@@ -172,7 +173,7 @@ class ClusterPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '15%'
+          width: '60px',
         }
       },
       {

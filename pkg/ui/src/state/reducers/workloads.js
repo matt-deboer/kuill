@@ -20,6 +20,8 @@ const initialState = {
   resourceNotFound: false,
   // pods that are transitively owned by the currently selected resource
   pods: {},
+  // total number of pods seen
+  podCount: 0,
   // resources are stored as a nested set of maps:
   //  map[kind] => map[namespace] => map[name] => resource
   resources: {},
@@ -128,7 +130,7 @@ function doFilterAll(state, resources) {
   return newState
 }
 
-function registerOwned(resources, resource) {
+function registerOwned(resources, unnresolvedOwnership, resource) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
       let resolved = false
@@ -140,7 +142,9 @@ function registerOwned(resources, resource) {
         resolved = true
       }
       if (!resolved) {
-        console.warn(`owner ref ${keyForResource(ref)} for resource ${resource.key} could not be resolved`)
+        unnresolvedOwnership[ownerKey] = unnresolvedOwnership[ownerKey] || []
+        unnresolvedOwnership[ownerKey].push(resource)
+        // console.warn(`owner ref ${keyForResource(ref)} for resource ${resource.key} could not be resolved`)
       }
     }
   }
@@ -162,10 +166,13 @@ function doUpdateResource(state, resource, isNew) {
   if (!(resource.key in state.resources) && !isNew) {
     return state
   }
-  
+
   resource.key = keyForResource(resource)
   resource.statusSummary = statusForResource(resource)
   let newState = {...state}
+  if (isNew && resource.kind === 'Pod') {
+    ++newState.podCount
+  }
   if (resource.metadata.resourceVersion > state.maxResourceVersionByKind[resource.kind]) {
     newState.maxResourceVersionByKind = {...state.maxResourceVersionByKind}
     newState.maxResourceVersionByKind[resource.kind] = resource.metadata.resourceVersion
@@ -188,7 +195,10 @@ function doRemoveResource(state, resource) {
   if (resource.key in state.resources) {
     let resources = { ...state.resources }
     delete resources[resource.key]
-    return { ...state, resources: resources}    
+    return { ...state, 
+      resources: resources,
+      podCount: (state.podCount - 1),
+    }    
   }
   return state
 }
@@ -244,24 +254,39 @@ function incrementBackoff(backoff) {
 
 
 function doReceiveResources(state, resources) {
-  let newState = {...state, possibleFilters: [], resources: resources}
+  let newState = {...state, 
+    possibleFilters: [], 
+    resources: resources,
+    podCount: 0,
+  }
   
-
   let possible = null
   if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
 
+  let unnresolvedOwnership = {}
+
   visitResources(newState.resources, function(resource) {
     updatePossibleFilters(possible, resource)
     applyFiltersToResource(newState.filters, resource)
-    registerOwned(newState.resources, resource)
+    registerOwned(newState.resources, unnresolvedOwnership, resource)
     newState.maxResourceVersionByKind[resource.kind] = Math.max(newState.maxResourceVersionByKind[resource.kind] || 0, resource.metadata.resourceVersion)
     if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
       newState.maxResourceVersionByKind[resource.kind] = parseInt(newState.maxResourceVersionByKind[resource.kind])
     }
+    if (resource.kind === 'Pod') {
+      ++newState.podCount
+    }
     resource.statusSummary = statusForResource(resource)
   })
+
+  for (let ownerKey in unnresolvedOwnership) {
+    let owned = unnresolvedOwnership[ownerKey]
+    for (let resource of owned) {
+      console.warn(`owner ref ${ownerKey} for resource ${resource.key} could not be resolved`)
+    }
+  }
 
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)

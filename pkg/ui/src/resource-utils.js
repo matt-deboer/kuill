@@ -116,32 +116,28 @@ var statuses = [
  * @param {*} resource 
  */
 export function statusForResource(resource) {
-    /*
-        ok/all healthy
-        scaling up
-        scaling down
-        partial unhealthy
-        full unhealthy
-        disabled
-        timed out waiting
-        unknown ?
-        none -- for stateless/immutable resources
-    */
-    if (resource.status && (!resource.status.conditions || resource.status.conditions.length === 0)) {
-        return 'scaling_up'
-    }
-
+    
     switch(resource.kind) {
         case 'ReplicaSet':
+            if (resource.status.readyReplicas === resource.spec.replicas) {
+                return 'ok'
+            } else if (!resource.status.readyReplicas && resource.spec.replicas === 0) {
+                return 'disabled'
+            } else if (resource.status.readyReplicas < resource.spec.replicas) {
+                return 'scaling up'
+            } else if (resource.status.readyReplicas > resource.spec.replicas) {
+                return 'scaling down'
+            }
+            break
         case 'Deployment': 
             if (resource.status.readyReplicas === resource.spec.replicas) {
                 return 'ok'
             } else if (!resource.status.readyReplicas && resource.spec.replicas === 0) {
                 return 'disabled'
             } else if (resource.status.readyReplicas < resource.spec.replicas) {
-                return 'scaling_up'
+                return 'scaling up'
             } else if (resource.status.readyReplicas > resource.spec.replicas) {
-                return 'scaling_down'
+                return 'scaling down'
             }
             break
         case 'Pod':
@@ -149,7 +145,7 @@ export function statusForResource(resource) {
             if (cond.type === 'Initialized' && cond.status === 'True') {
                 return 'ok'
             } else if ((cond.type === 'Ready' || cond.type === 'PodScheduled') && cond.status === 'True') {
-                return 'scaling_up'
+                return 'scaling up'
             } else if (resource.metadata.name === 'alpine') {
                 console.log(`got alpine: status => ${JSON.stringify(resource.status)}`)
             }
@@ -158,13 +154,27 @@ export function statusForResource(resource) {
             if (resource.status.currentNumberScheduled === resource.status.desiredNumberScheduled) {
                 return 'ok'
             } else if (resource.status.currentNumberScheduled > resource.status.desiredNumberScheduled) {
-                return 'scaling_up'
+                return 'scaling up'
             } else if (resource.status.currentNumberScheduled < resource.status.desiredNumberScheduled) {
-                return 'scaling_down'
+                return 'scaling down'
+            }
+            break
+        case 'Service': case 'Endpoints': case 'Secret':
+            return 'none'
+        case 'ReplicationController':
+            if (resource.status.readyReplicas === resource.spec.replicas) {
+                return 'ok'
+            } else if (!resource.status.readyReplicas && resource.spec.replicas === 0) {
+                return 'disabled'
+            } else if (resource.status.readyReplicas < resource.spec.replicas) {
+                return 'scaling up'
+            } else if (resource.status.readyReplicas > resource.spec.replicas) {
+                return 'scaling down'
             }
             break
         default:
-            return 'unknown'
+            //return 'unknown'
+            return ''
             // let status = statuses[(++lastStatus % statuses.length)]
             // return status
     }
