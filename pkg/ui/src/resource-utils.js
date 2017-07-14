@@ -102,12 +102,13 @@ function stripLastSegment(name) {
 var statuses = {
     'ok': 1,
     'none': 2,
-    'scaling up': 3,
-    'scaling down': 4,
-    'disabled': 5,
-    'warning': 6,
-    'error': 7,
-    'timed out': 8,
+    '': 3,
+    'scaling up': 4,
+    'scaling down': 5,
+    'disabled': 6,
+    'warning': 7,
+    'error': 8,
+    'timed out': 9,
 }
 
 /**
