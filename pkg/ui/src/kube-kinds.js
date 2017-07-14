@@ -53,7 +53,6 @@ let kinds = {
       getData: ({status, spec, metadata}) => {
         return [
           ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
-          // ['Pods Status',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
           ['Label Selector', Object.entries(spec.selector.matchLabels).map(([key, val])=>`${key}=${val}`).join(', ')],
         ]
       },
@@ -155,7 +154,12 @@ let kinds = {
       base: 'api/v1',
       plural: 'secrets',
       abbrev: 'Se',
-    }
+    },
+    PersistentVolumeClaim: {
+      base: 'api/v1',
+      plural: 'persistentvolumeclaims',
+      abbrev: 'Pc',
+    },
   },
   cluster: {
     Node: {
@@ -167,6 +171,11 @@ let kinds = {
       base: 'api/v1',
       plural: 'persistentvolumes',
       abbrev: 'Pv',
+    },
+    StorageClass: {
+      base: 'api/v1',
+      plural: 'storageclass',
+      abbrev: 'Sc',
     },
     ComponentStatus: {
       base: 'api/v1',
