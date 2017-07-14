@@ -7,7 +7,7 @@ ca-certificates.crt
 node_modules/
 /*.pem
 /*.tsv
-src/**/*.css
+/pkg/ui/src/**/*.css
 Dockerfile.test
 /pkg/server/ui.go
 certs/
