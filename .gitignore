@@ -10,3 +10,4 @@ node_modules/
 src/**/*.css
 Dockerfile.test
 /pkg/server/ui.go
+certs/

@@ -1,21 +1,11 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
-import {blueA100, blueA400, grey600, grey800} from 'material-ui/styles/colors'
-import {
-  Table,
-  TableBody,
-  TableRow,
-  TableRowColumn,
-} from 'material-ui/Table'
+import {blueA100, blueA400, grey600} from 'material-ui/styles/colors'
 import KubeKinds from '../../kube-kinds'
 import sizeMe from 'react-sizeme'
-import IconButton from 'material-ui/IconButton'
-import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import Popover from 'material-ui/Popover'
-import Paper from 'material-ui/Paper'
 import AnnotationsPanel from './AnnotationsPanel'
 import BasicDetailsPanel from './BasicDetailsPanel'
-import ContainerPanel from './ContainerPanel'
+import PodTemplatePanel from './PodTemplatePanel'
 
 const styles = {
   tabs: {
@@ -81,35 +71,47 @@ class ConfigurationPane extends React.Component {
     let kind = KubeKinds[props.resourceGroup][resource.kind]
     let { getData } = kind
     let data = (typeof getData === 'function' && getData(resource)) || []
-    let cols = []
     
-    return (
-      <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
-        <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-          <Card style={{...styles.cards, paddingRight: 16}}>
-            <CardText>
-                <BasicDetailsPanel data={data}/>
-            </CardText>
-          </Card>
-        </div>
-        {!!resource.spec && !!resource.spec.containers && resource.spec.containers.length > 0 &&
+    let contents = null
+    if (resource.kind === 'Pod') {
+      contents = (
+        <PodTemplatePanel pod={resource}>
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <AnnotationsPanel annotations={resource.metadata.annotations} />
+          </div>
+        </PodTemplatePanel>
+      )
+    } else {
+
+      contents = (
+        <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
           <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-          <Card style={{...styles.cards}}>
-            <CardHeader 
-              style={styles.cardHeader}
-              title={'containers'}
-              titleStyle={styles.cardHeaderTitle}
-            />
-            <CardText>
-              {resource.spec.containers.map(container => <ContainerPanel key={container.name} container={container}/>)}
-            </CardText>
-          </Card>
-        </div>}
-        <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-          <AnnotationsPanel annotations={resource.metadata.annotations} />
+            <Card style={{...styles.cards, paddingRight: 16}}>
+              <CardHeader 
+                style={styles.cardHeader}
+                title={'status'}
+                titleStyle={styles.cardHeaderTitle}
+              />
+              <CardText>
+                  <BasicDetailsPanel data={data}/>
+              </CardText>
+            </Card>
+          </div>
+
+          {/* {!!resource.spec.template && 
+            <PodTemplatePanel pod={resource.spec.template} />
+          } */}
+
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <AnnotationsPanel annotations={resource.metadata.annotations} />
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
+    return <div style={{
+      height: `${window.innerHeight - props.contentTop - 40}px`,
+      overflow: 'auto',
+    }}>{contents}</div>
   }
 
 })

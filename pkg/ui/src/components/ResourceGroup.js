@@ -216,7 +216,7 @@ class ResourceGroupPage extends React.Component {
           </FloatingActionButton >
         </Popover>
 
-        <Link to="/access/new" >
+        <Link to={`/${props.resourceGroup}/new`} >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
           </FloatingActionButton>

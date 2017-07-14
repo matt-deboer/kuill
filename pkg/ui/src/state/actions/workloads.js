@@ -36,6 +36,8 @@ for (let type of [
 
 export const defaultFilterNames = 'namespace:default'
 
+export const maxReloadInterval = 5000
+
 const defaultFetchParams = {
   credentials: 'same-origin',
   timeout: 5000,
@@ -71,7 +73,14 @@ export function putResource(newResource, isNew) {
       if (sameResource(newResource, resource)
       || isResourceOwnedBy(resources, newResource, resource)
       || isResourceOwnedBy(resources, resource, newResource)) {
-        dispatch(selectEventsFor(resources, resource))
+        dispatch({
+          type: types.SELECT_RESOURCE,
+          namespace: resource.metadata.namespace,
+          kind: resource.kind,
+          name: resource.metadata.name,
+        })
+        let { pods } = getState().workloads
+        selectAllForResource(dispatch, resources, resource, pods)
       }
     }
   }
@@ -189,7 +198,7 @@ export function applyResourceChanges(namespace, kind, name, contents) {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       dispatch(routerActions.push({
-        pathname: linkForResource({name: name, namespace: namespace, kind: kind}),
+        pathname: linkForResource({name: name, namespace: namespace, kind: kind}).split('?')[0],
         search: '?view=events',
         hash: '',
       }))
@@ -215,12 +224,12 @@ async function doRequest(dispatch, getState, request) {
 }
 
 /**
- * 
+ * @param {Boolean} force
  */
-export function requestResources() {
+export function requestResources(force) {
   return async function (dispatch, getState) {
       doRequest(dispatch, getState, async () => {
-        await fetchResources(dispatch, getState)
+        await fetchResources(dispatch, getState, force)
       })
   }
 }
@@ -262,7 +271,7 @@ export function createResource(contents) {
       // let workloads = getState().workloads
       if (!!resource) {
         dispatch(routerActions.push({
-          pathname: linkForResource(resource, ''),
+          pathname: linkForResource(resource).split('?')[0],
           search: '?view=events',
         }))
       }
@@ -281,26 +290,24 @@ export function removeResource(...resources) {
 }
 
 
-function shouldFetchResources(getState) {
+function shouldFetchResources(getState, force) {
   let state = getState()
-  let { isFetching, resources } = state.workloads
+  let { resources, lastLoaded } = state.workloads
   let { user } = state.session
 
   // TODO: should also check on resources last loaded time
-  let shouldFetch = (!!user &&
-      (!resources || Object.keys(resources).length === 0))
-  
-  if (!shouldFetch) {
-    console.log(`skipping resource fetch: user: ${user}, isFetching: ${isFetching}, hasResources?: ${resources && Object.keys(resources).length}`)
-  }
+  let shouldRefresh = (!!force && (Date.now() - lastLoaded) > maxReloadInterval)
+  let noResources = (!resources || Object.keys(resources).length === 0)
+
+  let shouldFetch = (!!user) && (noResources || shouldRefresh)    
 
   return shouldFetch
 }
 
 
-async function fetchResources(dispatch, getState) {
+async function fetchResources(dispatch, getState, force) {
   
-  if (shouldFetchResources(getState)) {
+  if (shouldFetchResources(getState, force)) {
 
     let urls = Object.entries(KubeKinds.workloads).map(entry => `/proxy/${entry[1].base}/${entry[1].plural}`)
     let requests = urls.map((url,index) => fetch(url, defaultFetchParams
@@ -405,26 +412,30 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
     let { pods, resource, resources } = getState().workloads
     
     if (!!resource) {
-      if (!!pods) {
-        let podContainers = []
-        for (let name in pods) {
-          
-          let pod = pods[name]
-          if (podContainers.length === 0) {
-            dispatch(selectTerminalFor(`${name}/${pod.spec.containers[0].name}`))
-          }
-          if (!!pod.spec.initContainers) {
-            podContainers.push(...pod.spec.initContainers.map(c=>`${name}/${c.name}`))
-          }
-          podContainers.push(...pod.spec.containers.map(c=>`${name}/${c.name}`))
-        }
-        dispatch(selectLogsFor(podContainers))
-      }
-      dispatch(selectEventsFor(resources, resource))
+      selectAllForResource(dispatch, resources, resource, pods)
     }
   } else {
     console.log(`skipping ${types.SELECT_RESOURCE}`)
   }
+}
+
+function selectAllForResource(dispatch, resources, resource, pods) {
+  if (!!pods) {
+    let podContainers = []
+    for (let name in pods) {
+      
+      let pod = pods[name]
+      if (podContainers.length === 0) {
+        dispatch(selectTerminalFor(`${name}/${pod.spec.containers[0].name}`))
+      }
+      if (!!pod.spec.initContainers) {
+        podContainers.push(...pod.spec.initContainers.map(c=>`${name}/${c.name}`))
+      }
+      podContainers.push(...pod.spec.containers.map(c=>`${name}/${c.name}`))
+    }
+    dispatch(selectLogsFor(podContainers))
+  }
+  dispatch(selectEventsFor(resources, resource))
 }
 
 async function updateResourceContents(dispatch, getState, namespace, kind, name, contents) {
@@ -463,7 +474,7 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
 
 async function createResourceFromContents(dispatch, getState, contents) {
   let resource = createPost(contents)
-  let { namespace, name } = resource.metadata
+  let { namespace } = resource.metadata
   let api = KubeKinds.workloads[resource.kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
   let body = JSON.stringify(resource)
@@ -491,8 +502,9 @@ async function createResourceFromContents(dispatch, getState, contents) {
         dispatch(addError(json,'error',`${json.code} ${json.reason}; ${json.message}`))
       } else {
         let resource = json
+        resource.key = keyForResource(resource)
         dispatch(putResource(resource, true))
-        return resource
+        return getState().workloads.resources[resource.key]
       }
     }
   })
@@ -624,6 +636,7 @@ function createPatch(resource, contents) {
   if (!!resource) {
     patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
   }
+  return patch
 }
 
 function createPost(contents) {

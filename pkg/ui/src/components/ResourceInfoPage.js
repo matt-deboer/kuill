@@ -62,6 +62,13 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search: search,
       }))
     },
+    viewFilters: function(filters) {
+      let search = `?${queryString.stringify({filters: filters})}`
+      dispatch(routerActions.push({
+        pathname: `/${ownProps.resourceGroup}`,
+        search: search,
+      }))
+    },
     selectView: function(tab) {
       if (tab === 'edit') {
         let { params } = ownProps.match
@@ -132,6 +139,10 @@ class ResourceInfoPage extends React.Component {
     })
   }
 
+  handleFilterLabelTouchTap = (filters) => {
+    this.props.viewFilters(filters)
+  }
+
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
   }
@@ -170,7 +181,7 @@ class ResourceInfoPage extends React.Component {
       })
     }
 
-    /*avatar={<Avatar src={require(`../images/${this.kubeKind.image || 'resource.png'}`)} style={{backgroundColor: 'transparent'}} />}*/
+    activeTab = (activeTab || tabs[0].name)
 
     return (
       <div>
@@ -183,12 +194,22 @@ class ResourceInfoPage extends React.Component {
               <div style={{padding: 20}}>
                 <div>
                 {resource.metadata.labels && Object.entries(resource.metadata.labels).map(([key, value]) =>
-                  <FilterChip key={key} prefix={key} suffix={value} />)
+                  <FilterChip 
+                    onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`, `${key}:${value}`])} 
+                    key={key} 
+                    prefix={key} 
+                    suffix={value} />)
                 }
                 </div>
                 <div>
-                  <FilterChip prefixStyle={{fontStyle: 'italic', color: grey700}} prefix={'namespace'} suffix={resource.metadata.namespace} />
-                  <FilterChip prefixStyle={{fontStyle: 'italic', color: grey700}} prefix={'kind'} suffix={resource.kind} />
+                  <FilterChip 
+                    onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`])} 
+                    prefixStyle={{fontStyle: 'italic', color: grey700}} 
+                    prefix={'namespace'} suffix={resource.metadata.namespace} />
+                  <FilterChip 
+                    onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`,`kind:${resource.kind}`])} 
+                    prefixStyle={{fontStyle: 'italic', color: grey700}} 
+                    prefix={'kind'} suffix={resource.kind} />
                 </div>
               </div>
             }

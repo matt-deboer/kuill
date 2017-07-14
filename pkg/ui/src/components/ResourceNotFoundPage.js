@@ -10,8 +10,6 @@ import RaisedButton from 'material-ui/RaisedButton'
 import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconError from 'material-ui/svg-icons/alert/error'
-import Avatar from 'material-ui/Avatar'
 import Chip from 'material-ui/Chip'
 
 const mapStateToProps = function(store) {
@@ -23,22 +21,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     createResource: function(namespace, kind, name) {
       dispatch(routerActions.push(`/workloads/new?kind=${kind}&namespace=${namespace}&name=${name}`))
     },
-  }
-}
-
-const styles = {
-  cards: {
-    margin: 10,
-    boxShadow: 'none',
-  },
-  cardHeader: {
-    borderBottom: '1px solid rgba(0,0,0,0.1)',
-  },
-  cardHeaderTitle: {
-    color: 'rgba(0,0,0,0.4)',
-    fontWeight: 600,
-    fontStyle: 'italic',
-    fontSize: '18px',
   }
 }
 
@@ -59,7 +41,7 @@ class ResourceNotFoundPage extends React.Component {
 
   render() {
 
-    let { resourceGroup, kind, namespace, name } = this.props
+    let { kind, namespace, name } = this.props
 
     return (
       <div>

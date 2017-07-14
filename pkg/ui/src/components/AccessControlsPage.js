@@ -13,11 +13,8 @@ import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
-import IconButton from 'material-ui/IconButton'
 
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
@@ -26,8 +23,6 @@ import Paper from 'material-ui/Paper'
 import { arraysEqual } from '../comparators'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
-import KubeKinds from '../kube-kinds'
-import KindAbbreviation from './KindAbbreviation'
 import './AccessControlsPage.css'
 
 const mapStateToProps = function(store) {

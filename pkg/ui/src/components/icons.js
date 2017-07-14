@@ -30,18 +30,18 @@ const styles = {
 export const resourceStatus = {
   // ok: <IconStatusOK style={{...styles.size, color: 'rgba(0, 150, 61, 0.8)'}} />,
   'ok': <IconStatusOK style={{...styles.size, color: blueA400}} data-rh={`status: ok`}/>,
-  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}}>
+  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling up`}>
     <IconStatusScalingUp style={{
         width: 21, height: 21, 
         color: 'rgba(0, 0,0, 0.3)', 
         marginTop: 2,
-        display: 'table-cell',}} data-rh={`status: scaling up`}/>
+        display: 'table-cell',}} />
     <div className="scaling"/></div>,
-  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}}>
+  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling down`}>
     <IconStatusScalingDown style={{
         width: 21, height: 21, 
         color: 'rgba(0, 0,0, 0.3)',
-        display: 'table-cell',}} data-rh={`status: scaling down`}/>
+        display: 'table-cell',}} />
     <div className="scaling"/></div>,
   'disabled': <IconStatusDisabled style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: disabled`}/>,
   'unknown': <IconStatusUnknown style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: unknown`}/>,

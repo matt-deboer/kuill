@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types'
 import Paper from 'material-ui/Paper';
-import {white, grey800, grey300} from 'material-ui/styles/colors';
+import {white, grey800} from 'material-ui/styles/colors';
 import typography from 'material-ui/styles/typography';
 
 class InfoBox extends React.Component {

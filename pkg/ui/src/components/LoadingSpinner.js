@@ -7,7 +7,7 @@ const spinnerStatusLoading = 'loading'
 const spinnerStatusHidden = 'hide'
 
 export default sizeMe({ monitorHeight: true, monitorWidth: true }) (
-class LoadingSpinner extends React.Component {
+class LoadingSpinner extends React.PureComponent {
 
   constructor(props) {
     super(props);

@@ -1,6 +1,5 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
-import {blueA100, blueA400, grey600, grey800} from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,

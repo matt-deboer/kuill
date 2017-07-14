@@ -21,7 +21,6 @@ import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
-import { resourceStatus as resourceStatusIcons } from './icons'
 
 import { arraysEqual } from '../comparators'
 import './ClusterPage.css'

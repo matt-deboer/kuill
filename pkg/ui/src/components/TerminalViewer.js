@@ -59,7 +59,6 @@ const styles = {
   },
   button: {
     height: '24px',
-    // width: '75%', 
     lineHeight: '24px', 
     textAlign: 'left', 
     color: grey100,
@@ -106,10 +105,6 @@ class TerminalViewer extends React.Component {
       maxLines: props.maxLines || 1500,
       terminalOpen: false,
     }
-  }
-
-  componentDidMount = () => {
-    // this.openTerminal()
   }
 
   openTerminal = () => {
