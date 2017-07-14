@@ -5,7 +5,7 @@ import TableSortLabel from './TableSortLabel'
 import className from 'classnames'
 import './FilterTable.css'
 
-export default class FilterTable extends TableHeader {
+export default class FilterTable extends React.PureComponent {
   
   static propTypes = {
     width: PropTypes.string,
@@ -34,6 +34,7 @@ export default class FilterTable extends TableHeader {
      */
     selectedIds: PropTypes.object,
     hoveredRow: PropTypes.number,
+    getCellValue: PropTypes.func,
   }
 
   static defaultProps = {
@@ -45,9 +46,9 @@ export default class FilterTable extends TableHeader {
     displayRowCheckbox: true,
     displaySelectAll: true,
     adjustForCheckbox: false,
-    onRequestSort: defaultSort,
     fixedHeader: true,
-    onRenderCell: function(column, row) {return row[column.id]},
+    onRenderCell: function(column, row) {return row[column]},
+    getCellValue: function(column, row) {return row[column]},
     onCellClick: function(){},
     onRowSelection: function(){},
     hoveredRow: -1,
@@ -56,9 +57,11 @@ export default class FilterTable extends TableHeader {
   constructor(props) {
     super(props)
     this.state = this.propsToState(props)
+    this.comparators = this.buildComparators(props.columns, props.idColumn, props.getCellValue)
   }
 
   propsToState = (props) => {
+    console.time('filter-table:propsToState')
     let columnIndexbyId = {}
     for (let i=0, len=props.columns.length; i < len; ++i) {
       columnIndexbyId[props.columns[i][props.idColumn]] = i
@@ -67,15 +70,16 @@ export default class FilterTable extends TableHeader {
     let orderBy = (this.state && this.state.orderBy) || props.initialOrderBy
     let order = (this.state && this.state.order) || props.initialOrder
     let data = props.data.slice(0)
+    let sort = props.onRequestSort || this.defaultSort
     if (orderBy && order) {
-      props.onRequestSort(props.columns[columnIndexbyId[orderBy]], order, data)
+      sort(props.columns[columnIndexbyId[orderBy]], order, data)
     }
     if (this.selection) {
       for (let selected of this.selection) {
         data[selected].__selected = true
       }
     }
-    
+    console.timeEnd('filter-table:propsToState')
     return {
       orderBy: orderBy,
       order: order,
@@ -84,13 +88,51 @@ export default class FilterTable extends TableHeader {
     }
   }
 
-  componentWillReceiveProps = (props) => {
-    this.setState(this.propsToState(props))
+  propsChanged = (nextProps) => {
+    return nextProps.width !== this.props.width
+      || nextProps.height !== this.props.height
+      || nextProps.idColumn !== this.props.idColumn
+      || nextProps.showRowHover !== this.props.showRowHover
+      || nextProps.displayRowCheckbox !== this.props.displayRowCheckbox
+      || nextProps.displaySelectAll !== this.props.displaySelectAll
+      || nextProps.multiSelectable !== this.props.multiSelectable
+      || nextProps.adjustForCheckbox !== this.props.adjustForCheckbox
+      || nextProps.initialOrder !== this.props.initialOrder
+      || nextProps.initialOrderBy !== this.props.initialOrderBy
+      || nextProps.fixedHeader !== this.props.fixedHeader
+      || nextProps.stripedRows !== this.props.stripedRows
+      || nextProps.selectedIds !== this.props.selectedIds
+      || nextProps.hoveredRow !== this.props.hoveredRow
+      || nextProps.data.length !== this.props.data.length
   }
 
-  createSortHandler = (columnId) => (order) => {
-    this.setState({orderBy: columnId, order: order})
-    this.props.onRequestSort(this.props.columns[this.columnIndexbyId[columnId]], order, this.state.data)
+  stateChanged = (nextState) => {
+    return nextState.orderBy !== this.state.orderBy
+      || nextState.order !== this.state.order 
+      || nextState.selection.length !== this.state.selection.length
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+
+    if (this.propsChanged(nextProps)) {
+      this.setState(this.propsToState(nextProps))
+    }
+  }
+
+  createSortHandler = (columnId) => {
+    let sort = this.props.onRequestSort || this.defaultSort.bind(this)
+    return (order) => {
+      console.time('filter-table:sort:setState')
+      console.timeEnd('filter-table:sort:setState')
+      console.time('filter-table:sort')
+      sort(this.props.columns[this.columnIndexbyId[columnId]], order, this.state.data)
+      this.setState({orderBy: columnId, order: order})
+      console.timeEnd('filter-table:sort')
+    }
+  }
+
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return this.propsChanged(nextProps) || this.stateChanged(nextState)
   }
 
   handleRowSelection = (selection) => {
@@ -106,6 +148,12 @@ export default class FilterTable extends TableHeader {
     // TODO: need to immediately select the actual row to avoid lag
   }
 
+  handleCellClick = (row, col) => {
+    if (col >= 0) {
+      this.props.onCellClick(row, col, this.state.data[row], this.props.columns[col])
+    }
+  }
+
   render = () => {
 
     const styles = {
@@ -115,84 +163,120 @@ export default class FilterTable extends TableHeader {
     }
 
     let { props } = this;
+    console.log(`(re) rendering filter-table`)
+
+    let headerColumns = 
+        props.columns.map(col => 
+          <TableSortLabel
+            key={col.id}
+            text={col.label}
+            style={{...col.style, ...col.headerStyle}}
+            onRequestSort={this.createSortHandler(col.id)}
+            active={this.state.orderBy === col.id}
+            sortable={!!col.sortable}
+        />)
+
+    let dataRows =
+        this.state.data.map((row, rowIndex) => 
+            <TableRow key={row[props.idColumn]} hovered={props.hoveredRow === rowIndex} selected={row[props.idColumn] in props.selectedIds}>
+              {props.columns.map(col =>
+                <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className}>
+                  {props.onRenderCell(col.id,row)}
+                </TableRowColumn>
+              )}
+            </TableRow>
+          )
 
     return (
       <Table 
+        headerStyle={{width: props.width}}
+        bodyStyle={{width: props.width}}
         className={className('filter-table', props.className)}
         fixedHeader={props.fixedHeader}
         height={props.height}
         multiSelectable={props.multiSelectable}
         onRowSelection={this.handleRowSelection.bind(this)}
-        onCellClick={(row, col) => {
-          if (col >= 0) {
-            props.onCellClick(row, col, this.state.data[row], this.props.columns[col])
-          }
-        }}
+        onCellClick={this.handleCellClick}
         >
-        <TableHeader displaySelectAll={props.displaySelectAll} adjustForCheckbox={props.adjustForCheckbox}>
-          <TableRow>{
-            props.columns.map(col => 
-              <TableSortLabel
-                key={col.id}
-                text={col.label}
-                style={{...col.style, ...col.headerStyle}}
-                onRequestSort={this.createSortHandler(col.id)}
-                active={this.state.orderBy === col.id}
-                sortable={!!col.sortable}
-                />
-            )
-          }</TableRow>
+        <TableHeader displaySelectAll={props.displaySelectAll} adjustForCheckbox={props.adjustForCheckbox} style={{width: 'inherit'}}>
+          <TableRow>{headerColumns}</TableRow>
         </TableHeader>
         <TableBody 
           displayRowCheckbox={props.displayRowCheckbox}
           showRowHover={props.showRowHover}
           stripedRows={!!props.stripedRows}
           ref={(tableBody) => { this.tableBody = tableBody }}
+          style={{width: 'inherit'}}
           >
-          {
-            this.state.data.map((row, rowIndex) => 
-              <TableRow key={row[props.idColumn]} hovered={props.hoveredRow === rowIndex} selected={row[props.idColumn] in props.selectedIds}>
-                {props.columns.map(col =>
-                  <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className}>
-                    {props.onRenderCell(col,row)}
-                  </TableRowColumn>
-                )}
-              </TableRow>
-            )
-          }
+          {dataRows}
         </TableBody>
       </Table>
     )
   }
-} 
 
-function defaultSortNumeric(column, direction) {
-  return function(a, b) {
-    if (a[column] === b[column]) {
-      return (a._pos - b._pos)
+  /**
+   * The default sorting algorithm
+   * 
+   * @param {*} column 
+   * @param {*} order 
+   * @param {*} data 
+   */
+  defaultSort = (column, order, data) => {
+    data.sort(this.comparators[column.id][(order || 'asc')])
+  }
+
+  buildComparators = (columns, idColumn, getCellValue) => {
+    let comparators = {}
+    for (let column of columns) {
+      let comparator = {}
+      if (!column.comparator) {
+        comparator['asc'] = column.isNumeric ? 
+          defaultSortNumeric(column.id, 1, idColumn, getCellValue) : 
+          defaultSortString(column.id, 1, idColumn, getCellValue)
+        comparator['desc'] = column.isNumeric ? 
+          defaultSortNumeric(column.id, -1, idColumn, getCellValue) : 
+          defaultSortString(column.id, -1, idColumn, getCellValue)
+      } else {
+        comparator['asc'] = function(rowA, rowB) {
+          return column.comparator(
+            getCellValue(column.id, rowA),
+            getCellValue(column.id, rowB)
+          )
+        }
+        comparator['desc'] = reverseComparator(comparator['asc'])
+      }
+      comparators[column.id] = comparator
     }
-    return direction * (parseFloat(a[column]) - parseFloat(b[column]))
+    return comparators
   }
+
 }
 
-function defaultSortString(column, direction) {
+function defaultSortNumeric(column, direction, idColumn, getCellValue) {
   return function(a, b) {
-    if (a[column] === b[column]) {
-      return (a._pos - b._pos)
+    let aVal = getCellValue(column, a)
+    let bVal = getCellValue(column, b)
+    if ( aVal === bVal ) {
+      return (getCellValue(idColumn, a) - getCellValue(idColumn, b))
     }
-    return direction * ((a[column] > b[column]) - (a[column] < b[column]))
+    return direction * (parseFloat(aVal) - parseFloat(bVal))
   }
 }
 
-function defaultSort(column, order, data) {
-  let direction = ( order === 'desc' ? -1 : 1 )
-  let comparator = column.isNumeric ? 
-    defaultSortNumeric(column.id, direction) : 
-    defaultSortString(column.id, direction)
-  // record _pos for stable sort
-  let pos = 0
-  for (let row of data) {
-    row._pos = ++pos
+function defaultSortString(column, direction, idColumn, getCellValue) {
+  return function(a, b) {
+    let aVal = getCellValue(column, a)
+    let bVal = getCellValue(column, b)
+    if ( aVal === bVal ) {
+      return (getCellValue(idColumn, a) - getCellValue(idColumn, b))
+    }
+    return direction * aVal.localeCompare(bVal)
   }
-  data.sort(comparator)
 }
+
+function reverseComparator(comparator) {
+  return function(a, b) {
+    return -1 * comparator(a,b)
+  }
+}
+

@@ -201,6 +201,8 @@ func (o *oidcHandler) authenticate(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			http.Error(w, "No id_token field in oauth2 token", http.StatusInternalServerError)
 			return
+		} else if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Received OIDC idToken: %s", rawIDToken)
 		}
 		// Verify the ID Token signature and nonce.
 		idToken, err := o.verifier.Verify(o.httpCtx, rawIDToken)

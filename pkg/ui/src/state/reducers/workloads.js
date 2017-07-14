@@ -25,6 +25,12 @@ const initialState = {
   // resources are stored as a nested set of maps:
   //  map[kind] => map[namespace] => map[name] => resource
   resources: {},
+  // resources whose `statusSummary` field is in ('error', 'warning', or 'timed out')
+  problemResources: {},
+  // last time the full set of resources was loaded; we need to
+  // reload all resources on some regular cadence to account for 
+  // possible missed events
+  lastLoaded: 0,
   editor: {
     format: 'yaml'
   },
@@ -130,7 +136,7 @@ function doFilterAll(state, resources) {
   return newState
 }
 
-function registerOwned(resources, unnresolvedOwnership, resource) {
+function registerOwned(resources, unnresolvedOwnership, resource, problemResources) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
       let resolved = false
@@ -139,6 +145,15 @@ function registerOwned(resources, unnresolvedOwnership, resource) {
       if (!!owner) {
         let owned = owner.owned = owner.owned || {}
         owned[resource.key] = resource
+
+        // problemResources can depend on descendents' status summaries
+        owner.statusSummary = statusForResource(owner)
+        if (!!owner.statusSummary && 'error warning timed out'.includes(owner.statusSummary)) {
+          problemResources[owner.key] = owner
+        } else if (owner.key in problemResources) {
+          delete problemResources[owner.key]
+        }
+
         resolved = true
       }
       if (!resolved) {
@@ -159,17 +174,25 @@ function updatePossibleFilters(possible, resource) {
     if (resource.metadata.labels && 'app' in resource.metadata.labels) {
       possible[`app:${resource.metadata.labels.app}`]=true
     }
+    possible[`status:${resource.statusSummary}`]=true
   }
 }
 
 function doUpdateResource(state, resource, isNew) {
+  resource.key = keyForResource(resource)
   if (!(resource.key in state.resources) && !isNew) {
     return state
   }
-
-  resource.key = keyForResource(resource)
   resource.statusSummary = statusForResource(resource)
+  let unnresolvedOwnership = {}
   let newState = {...state}
+  registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources)
+  if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
+    newState.problemResources[resource.key] = resource
+  } else if (resource.key in newState.problemResources) {
+    delete newState.problemResources[resource.key]
+  }
+  
   if (isNew && resource.kind === 'Pod') {
     ++newState.podCount
   }
@@ -177,7 +200,8 @@ function doUpdateResource(state, resource, isNew) {
     newState.maxResourceVersionByKind = {...state.maxResourceVersionByKind}
     newState.maxResourceVersionByKind[resource.kind] = resource.metadata.resourceVersion
     if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
-      newState.maxResourceVersionByKind[resource.kind] = parseInt(newState.maxResourceVersionByKind[resource.kind])
+      newState.maxResourceVersionByKind[resource.kind] = 
+        parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
   }
   return doFilterResource(newState, resource)
@@ -186,6 +210,9 @@ function doUpdateResource(state, resource, isNew) {
 function doFilterResource(newState, resource) {
   newState.resources = {...newState.resources}
   newState.resources[resource.key] = resource
+  if (newState.resource && newState.resource.key === resource.key) {
+    newState.resource = resource
+  }
   applyFiltersToResource(newState.filters, resource)
   return newState
 }
@@ -258,6 +285,8 @@ function doReceiveResources(state, resources) {
     possibleFilters: [], 
     resources: resources,
     podCount: 0,
+    problemResources: {},
+    lastLoaded: Date.now(),
   }
   
   let possible = null
@@ -268,17 +297,21 @@ function doReceiveResources(state, resources) {
   let unnresolvedOwnership = {}
 
   visitResources(newState.resources, function(resource) {
+    resource.statusSummary = statusForResource(resource)
+    registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources)
+    if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
+      newState.problemResources[resource.key] = resource
+    }
     updatePossibleFilters(possible, resource)
     applyFiltersToResource(newState.filters, resource)
-    registerOwned(newState.resources, unnresolvedOwnership, resource)
     newState.maxResourceVersionByKind[resource.kind] = Math.max(newState.maxResourceVersionByKind[resource.kind] || 0, resource.metadata.resourceVersion)
     if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
-      newState.maxResourceVersionByKind[resource.kind] = parseInt(newState.maxResourceVersionByKind[resource.kind])
+      newState.maxResourceVersionByKind[resource.kind] = 
+        parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
     if (resource.kind === 'Pod') {
       ++newState.podCount
     }
-    resource.statusSummary = statusForResource(resource)
   })
 
   for (let ownerKey in unnresolvedOwnership) {
@@ -480,32 +513,42 @@ function doRemoveFilter(state, filterName, index) {
  * @param {*} resource the resource to update
  */
 function applyFiltersToResource(filters, resource) {
-  resource.isFiltered = false
+  
+  resource.isFiltered = Object.keys(filters).length > 0
   for (var field in filters) {
     var values = filters[field]
     
     if (field === '*') {
       let matched = false
-      for (var m in resource.metadata) {
-        if (resource.metadata[m] in values) {
-          matched = true
-          break
+      for (let m in resource.metadata) {
+        let metaValue = "" + resource.metadata[m]
+        if (metaValue in values) {
+          resource.isFiltered = false
+          return
+        } 
+        for (let v in values) {
+          if (metaValue.includes(v)) {
+            resource.isFiltered = false
+            return
+          }
         }
       }
       if (!matched && 'labels' in resource.metadata) {
         for (var label in resource.metadata.labels) {
           if (resource.metadata.labels[label] in values) {
-            matched = true
-            break
+            resource.isFiltered = false
+            return
           }
         }
       }
-      resource.isFiltered = !matched
-    } else if ( !(resource.metadata[field] in values)
-    && !(resource[field] in values)
-    && !('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
-      resource.isFiltered = true
-      break
+    } else if (field === 'status' && resource.statusSummary in values) {
+      resource.isFiltered = false
+      return
+    } else if ( (resource.metadata[field] in values)
+    || (resource[field] in values)
+    || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
+      resource.isFiltered = false
+      return
     }
   }
 }

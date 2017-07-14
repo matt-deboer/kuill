@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, selectResource, setFilterNames } from '../state/actions/workloads'
+import { requestResources, selectResource, setFilterNames, maxReloadInterval } from '../state/actions/workloads'
 import WorkloadsPage from '../components/WorkloadsPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -30,7 +30,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class Resources extends React.Component {
+class Workloads extends React.Component {
 
   componentDidUpdate = (prevProps, prevState) => {
     if (!!this.props.user && !prevProps.user) {
@@ -42,6 +42,11 @@ class Resources extends React.Component {
     if (!!this.props.user) {
       this.props.requestResources()
     }
+    this.reloadInterval = window.setInterval(this.props.requestResources.bind(this,true), maxReloadInterval + 100)
+  }
+
+  componentWillUnmount = () => {
+    window.clearInterval(this.reloadInterval)
   }
 
   render() {

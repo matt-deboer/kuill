@@ -1,6 +1,4 @@
 import { invalidateSession } from './session'
-import { selectLogsFor } from './logs'
-import { selectTerminalFor } from './terminal'
 import { routerActions } from 'react-router-redux'
 import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
@@ -348,7 +346,7 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
   
     // TODO: this sets defaults and options for terminal and logs viewer;
     // there is probably a better way to do this
-    let { pods, resource, resources } = getState().access
+    let { resource, resources } = getState().access
     if (!!resource) {
       dispatch(selectEventsFor(resources, resource))
     }

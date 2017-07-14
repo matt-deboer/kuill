@@ -1,6 +1,6 @@
 import { types } from '../actions/events'
 import { objectEmpty } from '../../comparators'
-import { keyForResource, ownersForResource } from '../../resource-utils'
+import { keyForResource, ownersForResource, eventsForResource } from '../../resource-utils'
 
 const maxRecentEvents = 20
 
@@ -28,7 +28,7 @@ export default (state = initialState, action) => {
     case types.SET_WATCH:
       return {...state, watch: action.watch}
     case types.SELECT_EVENTS_FOR:
-      return doSelectEventsFor(state, action.resources, action.resource)
+      return doSelectEventsFor(state, action.resource)
     default:
       return state;
   }
@@ -74,13 +74,19 @@ function doReceiveEvents(state, resources, events) {
   recentEvents.sort((a,b) => {
     let aVal = a.object.lastTimestamp + a.object.metadata.uid
     let bVal = b.object.lastTimestamp + b.object.metadata.uid
-    return aVal.localeCompare(bVal) 
+    return -1 * aVal.localeCompare(bVal) 
+  })
+  let seen = {}
+  recentEvents = recentEvents.filter(function(elem) {
+    let exists = !(elem.object.metadata.uid in seen)
+    seen[elem.object.metadata.uid] = true
+    return exists
   })
   recentEvents.length = Math.min(recentEvents.length, maxRecentEvents)
 
   let newState = {...state, events: stateEvents, detachedEvents: detachedEvents, recentEvents: recentEvents}
   if (!!state.selectedResource) {
-    newState = doSelectEventsFor(newState, resources, state.selectedResource)
+    newState = doSelectEventsFor(newState, state.selectedResource)
   } else {
     newState.slectedEvents = []
   }
@@ -100,30 +106,12 @@ function guessEventType(event) {
   }
 }
 
-function doSelectEventsFor(state, resources, resource) {
+function doSelectEventsFor(state, resource) {
   let events = state.events
   if (objectEmpty(events)) {
     return {...state, selectedResource: resource}
   } else {
-    let selected = []
-    let owners = [resource]
-    while (owners.length) {
-      let owner = owners.shift()
-      if (owner.key in events) {
-        let eventsForOwner = events[owner.key]
-        for (let name in eventsForOwner) {
-          selected.push(eventsForOwner[name])
-        }
-      }
-      if (!!owner.owned) {
-        for (let key in owner.owned) {
-          let owned = owner.owned[key]
-          owners.push(owned)
-        }
-      }
-    }
-    // sort by timestamps
-    selected.sort(function(a, b) { return -1*a.object.lastTimestamp.localeCompare(b.object.lastTimestamp) })
+    let selected = eventsForResource(events, resource)
     return {...state, selectedEvents: selected, selectedResource: resource}
   }
 }

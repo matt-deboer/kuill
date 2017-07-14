@@ -20,6 +20,21 @@ import 'flexboxgrid/css/flexboxgrid.css'
 
 injectTapEventPlugin()
 
+// if (process.env.NODE_ENV !== 'production') {
+
+//     {
+//         let createClass = React.createClass;
+//         Object.defineProperty(React, 'createClass', {
+//             set: (nextCreateClass) => {
+//                 createClass = nextCreateClass
+//             }
+//         })
+//     }
+
+//   const {whyDidYouUpdate} = require('why-did-you-update')
+//   whyDidYouUpdate(React, { include: /FilterTable/ })
+// }
+
 const history = createHistory()
 const rootReducer = combineReducers({
   ...reducers,
@@ -36,7 +51,6 @@ const store = createStore(
   middleware
 )
 
-
 const RouteWithSubRoutes = ({component: Component, ...rest}) => (
     <Route {...rest} render={props => (
         <Component {...props} routes={rest.routes}/>
@@ -52,7 +66,6 @@ render(
                         {routes.map((route, i) => (
                             <RouteWithSubRoutes key={i} {...route}/>
                         ))}
-                        {/*<Route component={Notfound} />*/}
                     </Switch>
                 </div>
             </App>
