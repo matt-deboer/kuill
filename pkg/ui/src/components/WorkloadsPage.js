@@ -134,7 +134,7 @@ class WorkloadsPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '80px',
+          width: '100px',
         }
       },
       {
