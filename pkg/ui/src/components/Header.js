@@ -15,6 +15,7 @@ import RaisedButton from 'material-ui/FlatButton'
 import Breadcrumbs from './Breadcrumbs'
 import ErrorsDialog from './ErrorsDialog'
 import Snackbar from 'material-ui/Snackbar'
+import './Header.css'
 
 const mapStateToProps = function(store) {
   return {
@@ -79,6 +80,7 @@ class Header extends React.Component {
     return nextProps.latestError !== this.props.latestError
       || nextProps.errors.length !== this.props.errors.length
       || nextProps.user !== this.props.user
+      || nextProps.location.pathname !== this.props.location.pathname
       || nextState.open !== this.state.open
       || nextState.latestErrorOpen !== this.state.latestErrorOpen
   }
@@ -180,11 +182,14 @@ class Header extends React.Component {
         <ErrorsDialog open={this.state.open}/>
 
         <Snackbar
+          className="error-bar"
           style={{right: 10, top: 65, transform: 'translate3d(0px, 0px, 0px)', transition: '-webkit-transform 225ms cubic-bezier(0, 0, 0.2, 1) 0ms', bottom: 'auto', left: 'auto'}}
           open={this.state.latestErrorOpen}
           message={!!this.props.latestError ? this.props.latestError.message : ''}
-          autoHideDuration={3000}
+          autoHideDuration={5000}
           onRequestClose={this.handleLatestErrorRequestClose}
+          action={!!this.props.latestError ? this.props.latestError.retry.text : ''}
+          onActionTouchTap={!!this.props.latestError ? this.props.latestError.retry.action : ''}
         />
       </AppBar>
     )
