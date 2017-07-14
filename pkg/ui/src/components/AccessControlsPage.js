@@ -5,6 +5,7 @@ import {blueA400, grey500, blueA100, red900 } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../state/actions/access'
+import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 import * as moment from 'moment'
 
@@ -13,6 +14,8 @@ import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
+import IconLogs from 'material-ui/svg-icons/action/receipt'
+import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
@@ -21,9 +24,13 @@ import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
-
 import { resourceStatus as resourceStatusIcons } from './icons'
+import { compareStatuses } from '../resource-utils'
+
+import KubeKinds from '../kube-kinds'
 import './AccessControlsPage.css'
+
+import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
@@ -107,7 +114,8 @@ const styles = {
 }
 
 // use functional component style for representational components
-export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
+export default sizeMe({ monitorWidth: true }) (
+withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class AccessControlsPage extends React.Component {
 
   constructor(props) {
@@ -118,6 +126,69 @@ class AccessControlsPage extends React.Component {
       hoveredResources: null,
     }
     this.selectedIds = {}
+    this.rows = this.resourcesToRows(props.resources)
+    this.columns = [
+      {
+        id: 'kind',
+        label: 'kind',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '100px',
+        }
+      },
+      {
+        id: 'name',
+        label: 'name',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '35%',
+        },
+      },
+      {
+        id: 'namespace',
+        label: 'ns',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 100,
+        }
+      },
+      {
+        id: 'status',
+        label: 'status',
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 48,
+          verticalAlign: 'middle',
+        },
+        sortable: true,
+        comparator: compareStatuses,
+      },
+      {
+        id: 'age',
+        label: 'age',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 100,
+        }
+      },
+      {
+        id: 'actions',
+        label: 'actions ',
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '34px',
+        },
+        className: 'resource-actions',
+      },
+    ]
+  }
+
+  resourcesToRows = (resources) => {
+    return Object.values(resources).filter(el => !el.isFiltered)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -172,122 +243,61 @@ class AccessControlsPage extends React.Component {
     }
   }
 
-  renderAge = (resource) => {
-    let age = ''
-    if (resource.status && resource.status.conditions && resource.status.conditions.length) {
-      let dur = 0
-      for (let cond of resource.status.conditions) {
-        let ago = Date.now() - Date.parse(cond.lastTransitionTime)
-        if (ago > dur) {
-          dur = ago
-        }
-      }
-      age = dur
+  componentWillUpdate = () => {
+    setTimeout(() => {
+      Perf.start()
+    }, 0)
+  }
+
+  componentDidUpdate = () => {
+    Perf.stop()
+    let m = Perf.getLastMeasurements()
+    Perf.printWasted(m)
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    this.rows = this.resourcesToRows(nextProps.resources)
+  }
+
+  renderCell = (column, row) => {
+    switch(column) {
+      case 'name':
+        return row.metadata.name
+      case 'namespace':
+        return row.metadata.namespace
+      case 'kind':
+        return row.kind
+      case 'actions':
+        return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
+      case 'age':
+        let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
+        return moment.duration(age).humanize()
+      case 'status':
+        return resourceStatusIcons[row.statusSummary]
+      default:
+        return ''
     }
-    return age
+  }
+
+  getCellValue = (column, row) => {
+    switch(column) {
+      case 'name':
+        return row.metadata.name
+      case 'namespace':
+        return row.metadata.namespace
+      case 'kind':
+        return row.kind
+      case 'age':
+        return row.metadata.creationTimestamp
+      case 'status':
+        return row.statusSummary
+      default:
+        return ''
+    }
   }
 
   render() {
     let { props } = this
-
-    let columns=[
-      {
-        id: 'kind',
-        label: 'kind',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '60px',
-        }
-      },
-      {
-        id: 'name',
-        label: 'name',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '35%'
-        },
-      },
-      {
-        id: 'namespace',
-        label: 'ns',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '12%'
-        }
-      },
-      // {
-      //   id: 'status',
-      //   label: 'status',
-      //   headerStyle: styles.header,
-      //   style: { ...styles.cell,
-      //     width: '28px',
-      //     verticalAlign: 'middle',
-      //   }
-      // },
-      {
-        id: 'age',
-        label: 'age',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '10%'
-        }
-      },
-      {
-        id: 'actions',
-        label: '',
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '24px',
-        },
-        className: 'resource-actions',
-      },
-    ]
-
-    let renderCell = function(column, row) {
-      if (column.id === 'age') {
-        let age = row[column.id]
-        if (age) {
-          return moment.duration(age).humanize()
-        } else {
-          return ''
-        }
-      // } else if (column.id === 'kind') {
-      //   let kind = KubeKinds.access[row[column.id]]
-      //   if (!kind) {
-      //     console.error(`couldn't find KubeKind for ${row[column.id]}`)
-      //   } else {
-      //     return <KindAbbreviation noBackground={true} text={kind.abbrev} color={kind.color} size={36} 
-      //       style={{marginTop: 5, marginBottom: -5}}/>
-      //   }
-      } else {
-        return row[column.id]
-      }
-    }
-
-    let rows = []
-    for (let entry of Object.entries(props.resources)) {
-      let [ _, resource ] = entry
-      if (!resource.isFiltered) {
-        if (!resource.metadata) {
-          console.warn(`malformed resource`)
-          console.log(resource)
-          continue
-        }
-        rows.push({
-          id: resource.key,
-          name: resource.metadata.name,
-          namespace: resource.metadata.namespace,
-          kind: resource.kind,
-          actions: <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>,
-          age: this.renderAge(resource),
-          status: resourceStatusIcons[resource.statusSummary],
-        })
-      }
-    }
 
     return (
     <div>
@@ -297,17 +307,21 @@ class AccessControlsPage extends React.Component {
 
         <FilterTable
           className={'access'}
-          columns={columns}
-          data={rows}
+          columns={this.columns}
+          data={this.rows}
           height={`${window.innerHeight - 290}px`}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
           hoveredRow={this.state.hoveredRow}
-          onRenderCell={renderCell}
+          onRenderCell={this.renderCell}
+          getCellValue={this.getCellValue}
           selectedIds={this.selectedIds}
+          stripedRows={false}
+          width={'calc(100vw - 110px)'}
           />
 
+        {this.state.hoveredResource &&
         <Popover
           className="actions-popover"
           style={styles.popover}
@@ -318,13 +332,30 @@ class AccessControlsPage extends React.Component {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
         >
+          {KubeKinds.access[this.state.hoveredResource.kind].hasLogs &&
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
+            data-rh="View Logs...">  
+            <IconLogs/>
+          </FloatingActionButton>
+          }
+
+          {KubeKinds.access[this.state.hoveredResource.kind].hasTerminal &&
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
+            data-rh="Open Terminal...">
+            <IconShell/>
+          </FloatingActionButton>
+          }
+
+          {/* TODO: need to check whether this resource can actually be edited by the user */}
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
             data-rh="Edit...">
             <IconEdit/>
           </FloatingActionButton >
         </Popover>
-
+        }
         <Link to="/access/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
@@ -342,7 +373,7 @@ class AccessControlsPage extends React.Component {
     </div>
     )
   }
-}))
+})))
 
 class DeleteButton extends React.Component {
   
