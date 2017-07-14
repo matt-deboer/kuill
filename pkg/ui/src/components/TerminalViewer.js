@@ -17,6 +17,7 @@ import IconButton from 'material-ui/IconButton'
 import Popover from 'material-ui/Popover'
 import { connect } from 'react-redux'
 import { selectTerminalFor } from '../state/actions/terminal'
+import { addError } from '../state/actions/errors'
 
 import XTerm from './xterm/XTerm'
 // import sizeMe from 'react-sizeme'
@@ -39,7 +40,10 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     selectTerminalFor: function(podContainer) {
       dispatch(selectTerminalFor(podContainer))
-    }
+    },
+    addError: function(error, severity, message, retryText, retryAction) {
+      dispatch(addError(error, severity, message, retryText, retryAction))
+    },
   }
 }
 
@@ -105,6 +109,8 @@ class TerminalViewer extends React.Component {
       maxLines: props.maxLines || 1500,
       terminalOpen: false,
     }
+
+    this.openTerminal = this.openTerminal.bind(this)
   }
 
   openTerminal = () => {
@@ -135,9 +141,16 @@ class TerminalViewer extends React.Component {
         url += "&command=" + encodeURIComponent(arg)
       }
 
+      let addError = this.props.addError
+      let openTerminal = this.openTerminal
+
       this.socket = new WebSocket(url, 'base64.channel.k8s.io')
       this.socket.onerror = function (e) {
         console.log(e)
+        addError(e,'error',`WebSocket error occurred attempting to connect to terminal for ${props.selectedContainer}`,
+          'Try Again', () => { 
+            openTerminal() 
+          })
       }
       this.socket.onclose = this.closeTerminal
       this.socket.onmessage = this.onEvent
