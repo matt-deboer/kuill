@@ -524,37 +524,46 @@ function applyFiltersToResource(filters, resource) {
   resource.isFiltered = Object.keys(filters).length > 0
   for (var field in filters) {
     var values = filters[field]
-    
+    let match = false
     if (field === '*') {
       let matched = false
       for (let m in resource.metadata) {
         let metaValue = "" + resource.metadata[m]
         if (metaValue in values) {
-          resource.isFiltered = false
-          return
+          match = true
+          break
         } 
         for (let v in values) {
           if (metaValue.includes(v)) {
-            resource.isFiltered = false
-            return
+            match = true
+          break
           }
+        }
+        if (match) {
+          break
         }
       }
       if (!matched && 'labels' in resource.metadata) {
         for (var label in resource.metadata.labels) {
           if (resource.metadata.labels[label] in values) {
-            resource.isFiltered = false
-            return
+            match = true
+            break
           }
         }
       }
     } else if (field === 'status' && resource.statusSummary in values) {
-      resource.isFiltered = false
-      return
+      match = true
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
+      match = true
+    }
+
+    if (match) {
       resource.isFiltered = false
+    } else {
+      // at least one filter field did not match; exit
+      resource.isFiltered = true
       return
     }
   }
