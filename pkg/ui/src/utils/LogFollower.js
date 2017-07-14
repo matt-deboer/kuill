@@ -1,7 +1,7 @@
 import { TextDecoder } from 'text-encoding'
 
 // const escape = parseInt('033', 8);
-const colorCodes = [22,26,28,30,32,94,102,140,142,215,220,229].map(val => `\x1B[38;5;${val}m`)
+const colorCodes = [153,215,230,147,14,10,11,159,255].map(val => `\x1B[38;5;${val}m`)
 const logSuffix = `\x1B[0m`
 
 export default class LogFollower {

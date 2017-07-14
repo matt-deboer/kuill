@@ -7,7 +7,11 @@ let kinds = {
       hasTerminal: true,
       getData: ({status, spec, metadata }) => {
         return [
-          ['Replicas:',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
+          ['Replicas:',`${status.availableReplicas ? status.availableReplicas + ' available, ': ''}
+            ${status.readyReplicas ? status.readyReplicas + ' ready, ':''}
+            ${status.updatedReplicas ? status.updatedReplicas + ' updated, ':''}
+            ${status.unavailableReplicas ? status.unavailableReplicas + ' unavailable, ':''}
+            ${status.replicas} desired`],
           ['Update Strategy:', spec.strategy.type],
         ]
       },
@@ -21,7 +25,10 @@ let kinds = {
       hasTerminal: true,
       getData: ({status, spec, metadata }) => {
         return [
-          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.updatedReplicas} updated, ${status.replicas} total`],
+          ['Selector', `${spec.selector.matchLabels ? Object.entries(spec.selector.matchLabels).map(e=>e[0]+'='+e[1]).join(', '): ''}`],
+          ['Instances',`${status.desiredNumberScheduled} desired, ${status.currentNumberScheduled} scheduled, 
+            ${status.numberAvailable} available, ${status.numberReady} ready, 
+            ${status.updatedNumberScheduled} updated, ${status.numberMisscheduled} misscheduled`],
           ['Update Strategy', spec.updateStrategy.type],
         ]
       },
@@ -34,6 +41,11 @@ let kinds = {
       abbrev: 'Ss',
       hasLogs: true,
       hasTerminal: true,
+      getData: ({status, spec, metadata}) => {
+        return [
+          ['Replicas',`${status.replicas} current, ${spec.replicas} desired`],
+        ]
+      },
     },
     ReplicaSet: {
       base: 'apis/extensions/v1beta1',

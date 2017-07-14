@@ -2,6 +2,7 @@ import { types } from '../actions/errors'
 
 const initialState = {
   errors: [],
+  latestError: null,
 }
 
 var errorId = 0
@@ -33,7 +34,10 @@ function doAddError(state, error, severity, message, retryText, retryAction) {
   }
   let errors = state.errors.slice(0)
   errors.splice(0, 0, err)
-  return {...state, errors: errors}
+  return {...state, 
+    errors: errors,
+    latestError: err,
+  }
 }
 
 function doClearErrors(state, errors) {

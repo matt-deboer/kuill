@@ -35,13 +35,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     onEditorApply: function(contents) {
       let { namespace, kind, name } = ownProps.match.params
       dispatch(applyResourceChanges(namespace, kind, name, contents))
-      // let { location } = ownProps
-      // let newSearch = '?view=configuration'
-      // dispatch(routerActions.push({
-      //   pathname: location.pathname,
-      //   search: newSearch,
-      //   hash: location.hash,
-      // }))
     },
     requestResource: function(namespace, kind, name) {
       dispatch(requestResource(namespace, kind, name))
@@ -120,7 +113,7 @@ class ResourceInfo extends React.Component {
 
   componentWillReceiveProps = (props) => {
     
-    if (!sameResource(props.resource, this.state.resource) || (props.editor.contents !== this.props.editor.contents)) {
+    if ((props.resource !== this.state.resource) || (props.editor.contents !== this.props.editor.contents)) {
       this.setState({
         resource: props.resource,
         editor: props.editor,
@@ -128,13 +121,15 @@ class ResourceInfo extends React.Component {
     }
   }
 
+  // TODO: consider removing this entirely...
   shouldComponentUpdate = (nextProps, nextState) => {
-    return !sameResource(this.state.resource, nextProps.resource)
+    return (this.state.resource !== nextProps.resource)
         || this.props.isFetching !== nextProps.isFetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
+        || this.props.resourceNotFound !== nextProps.resourceNotFound
   }
 
   componentDidUpdate = () => {

@@ -1,13 +1,6 @@
 import React from 'react'
-import AppBar from 'material-ui/AppBar'
-import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar'
-import MenuItem from 'material-ui/MenuItem'
-import DropDownMenu from 'material-ui/DropDownMenu'
-import {grey200, grey300, grey400, grey500, grey700, grey800, grey900, blueA200, red900, white} from 'material-ui/styles/colors'
-import {spacing, typography} from 'material-ui/styles'
-import {Link} from 'react-router-dom'
-import Avatar from 'react-avatar'
-import Badge from 'material-ui/Badge'
+import { grey300, grey500 } from 'material-ui/styles/colors'
+import { Link } from 'react-router-dom'
 import IconButton from 'material-ui/IconButton'
 import IconHome from 'material-ui/svg-icons/action/home'
 import IconChevronRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
@@ -30,17 +23,20 @@ export default class Breadcrumbs extends React.Component {
     return crumbs
   }
 
-  render() {
+  shouldComponentUpdate = (nextProps) => {
+    return nextProps.location.pathname !== this.props.location.pathname
+  }
 
-    let separator = <IconChevronRight style={{
-      fill: grey500,
-      verticalAlign: 'middle',
-      marginRight: 5,
-    }}/>
+  render() {
 
     const styles = {
       link: {
         color: grey300,
+      },
+      separator: {
+        fill: grey500,
+        verticalAlign: 'middle',
+        marginRight: 5,
       }
     }
 
@@ -49,25 +45,25 @@ export default class Breadcrumbs extends React.Component {
     let renderedCrumbs = []
     
     if (crumbs.length > 0) {
-      renderedCrumbs.push(<Link to={'/'}><IconButton style={{
+      renderedCrumbs.push(<Link key={renderedCrumbs.length} to={'/'}><IconButton style={{
           verticalAlign: 'middle',
           paddingRight: 0,
           paddingLeft: 0,
           marginRight: -5,
           marginLeft: -5,
         }} iconStyle={{fill: grey300}}><IconHome /></IconButton></Link>)
-      renderedCrumbs.push(separator)
+      renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
       for (let i=0, len=crumbs.length; i < len; ++i) {
         let crumb = crumbs[i]
         if (i < (len - 1)) {
-          renderedCrumbs.push(<Link to={crumb.link} style={styles.link}>{crumb.name}</Link>)
-          renderedCrumbs.push(separator)
+          renderedCrumbs.push(<Link key={renderedCrumbs.length} to={crumb.link} style={styles.link}>{crumb.name}</Link>)
+          renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
         } else {
-          renderedCrumbs.push(<div style={{display: 'inline-block'}}>{crumb.name}</div>)
+          renderedCrumbs.push(<div key={renderedCrumbs.length} style={{display: 'inline-block'}}>{crumb.name}</div>)
         }
       }
     } else {
-      renderedCrumbs.push(<div style={{height: 48, width: 48, padding: 12}}><IconHome /></div>)
+      renderedCrumbs.push(<div key={renderedCrumbs.length} style={{height: 48, width: 48, padding: 12}}><IconHome /></div>)
     }
 
     return (

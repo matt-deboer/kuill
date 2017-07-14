@@ -29,9 +29,11 @@ export default class BasicDetailsPanel extends React.Component {
                 padding: '2px 10px 2px 0',
                 color: grey800,
                 fontWeight: 600,
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
+                verticalAlign: 'top',
                 paddingRight: 10,
                 height: rowHeight,
+                maxWidth: '100px',
               }}>
                 {row[0]}
               </TableRowColumn>
@@ -39,6 +41,8 @@ export default class BasicDetailsPanel extends React.Component {
                 width: '99%',
                 padding: 2,
                 height: rowHeight,
+                overflow: 'visible',
+                whiteSpace: 'normal',
               }}>
                 {row[1]}
               </TableRowColumn>

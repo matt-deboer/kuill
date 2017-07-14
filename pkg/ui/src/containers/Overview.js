@@ -5,21 +5,17 @@ import IconMemory from 'material-ui/svg-icons/hardware/memory'
 import IconCPU from 'material-ui/svg-icons/content/select-all'
 import IconNodes from 'material-ui/svg-icons/navigation/apps'
 import IconPods from 'material-ui/svg-icons/image/grain'
-import Assessment from 'material-ui/svg-icons/action/assessment'
 
 
 import InfoBox from '../components/dashboard/InfoBox'
-import NewOrders from '../components/dashboard/NewOrders'
-import MonthlySales from '../components/dashboard/MonthlySales'
-import ResourceUsage from '../components/dashboard/ResourceUsage'
+// import NewOrders from '../components/dashboard/NewOrders'
+// import MonthlySales from '../components/dashboard/MonthlySales'
+// import ResourceUsage from '../components/dashboard/ResourceUsage'
 import RecentUpdates from '../components/dashboard/RecentUpdates'
-import globalStyles from '../styles'
+import ResourceProblems from '../components/dashboard/ResourceProblems'
 import { watchEvents } from '../state/actions/events'
 import { requestResources as requestClusterResources } from '../state/actions/cluster'
 import { requestResources as requestWorkloadsResources } from '../state/actions/workloads'
-
-import Data from '../data'
-
 import { connect } from 'react-redux'
 
 const mapStateToProps = function(store) {
@@ -28,10 +24,12 @@ const mapStateToProps = function(store) {
     nodes: store.cluster.nodes,
     memory: store.cluster.memory,
     podCount: store.workloads.podCount,
+    problemResources: store.workloads.problemResources,
     memoryUnits: store.cluster.memoryUnits,
     isFetching: store.cluster.isFetching,
     user: store.session.user,
     recentEvents: store.events.recentEvents,
+    events: store.events.events,
   }
 }
 
@@ -54,9 +52,22 @@ class Overview extends React.Component {
 
   constructor(props) {
     super(props)
+    if (props.user) {
+      this.fetch()
+    }
+  }
+
+  fetch = () => {
+    let { props } = this
     props.requestWorkloadsResources()
     props.watchEvents()
     props.requestClusterResources()
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    if (!!nextProps.user && !this.props.user) {
+      this.fetch()
+    }
   }
 
   render() {
@@ -112,6 +123,9 @@ class Overview extends React.Component {
         </div>*/}
 
         <div className="row">
+          <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 m-b-15 ">
+            <ResourceProblems problemResources={props.problemResources} events={props.events}/>
+          </div>
           <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 m-b-15 ">
             <RecentUpdates recentEvents={props.recentEvents}/>
           </div>

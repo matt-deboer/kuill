@@ -1,5 +1,5 @@
 import React from 'react'
-import {white, grey600, grey800} from 'material-ui/styles/colors'
+import {white, grey800} from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ const styles = {
     border: '1px solid rgba(0,0,0,0.1)'
   },
   subheader: {
-    backgroundColor: grey600,
+    backgroundColor: '#004d99'/*rgb(13, 64, 109)'/*grey500*/,
     color: white,
     lineHeight: '24px',
   },
@@ -36,6 +36,7 @@ const styles = {
     whiteSpace: 'normal',
     padding: 2,
     height: rowHeight,
+    overflow: 'visible',
   }
 }
 
@@ -64,8 +65,8 @@ export default class ContainerPanel extends React.Component {
             {tableRow('Ports:', (container.ports ? container.ports.map(port=>`${port.containerPort}:${port.name}:${port.protocol}`).join(', '): ''))}
             {tableRow('Image:', container.image)}
             <TableRow style={styles.tableRow} displayBorder={false}>
-              <TableRowColumn style={{...styles.tableRowKeyCol, verticalAlign: 'top'}}>Mounts:</TableRowColumn>
-              <TableRowColumn style={{...styles.tableRowValCol, overflow: 'visible'}}>
+              <TableRowColumn style={styles.tableRowKeyCol}>Mounts:</TableRowColumn>
+              <TableRowColumn style={styles.tableRowValCol}>
                 <div style={{marginLeft: -50, paddingTop: 35}}>
                   {container.volumeMounts.map(mount =>
                   <div>

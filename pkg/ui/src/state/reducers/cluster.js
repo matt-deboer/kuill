@@ -263,10 +263,15 @@ function doReceiveResources(state, resources) {
 
   let [number, units] = newState.memory.toString().split(' ')
 
-  newState.memoryUnits = units.replace("bibytes", "").toUpperCase().replace("I","i")
-  newState.memory = parseInt(number)
+  if (!!units) {
+    if (units.includes('abytes')) {
+      newState.memoryUnits = units.substr(0,1).toUpperCase() + 'B'
+    } else {
+      newState.memoryUnits = units.replace("bibytes", "").toUpperCase().replace("I","i")
+    }
+  }
+  newState.memory = parseInt(number, 10)
   
-
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
   }
@@ -292,11 +297,11 @@ function visitResources(resources, ...visitors) {
 
 function updateComputeResources(state, resource) {
   if (resource.kind === 'Node') {
-    state.cores += parseInt(resource.status.allocatable.cpu)
-    if (state.memory == 0) {
-      state.memory = math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes'))
+    state.cores += parseInt(resource.status.allocatable.cpu, 10)
+    if (state.memory === 0) {
+      state.memory = math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes').replace('Gi','gibibytes'))
     } else {
-      state.memory = math.add(math.unit(state.memory), math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes')))
+      state.memory = math.add(math.unit(state.memory), math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes').replace('Gi','gibibytes')))
     }
     ++state.nodes
   }

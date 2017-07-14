@@ -15,7 +15,7 @@ export default class ResourceKindWatcher {
   constructor(props) {
 
     this.props = props
-
+    this.tries = 0
     if (!!props.kind && !!props.dispatch && !!props.resourceGroup) {
       this.initialize()
     }
@@ -36,8 +36,13 @@ export default class ResourceKindWatcher {
     this.socket = new WebSocket(url)
     this.socket.onerror = function (e) {
       console.error(`ResourceKindWatcher(${kind.plural})`, e)
-      dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
-        'Try Again', () => { this.initialize() }))
+      if (this.tries < 3) {
+        ++this.tries
+        window.setTimeout(this.reset.bind(this), 2000)
+      } else {
+        dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
+          'Try Again', () => { this.initialize() }))
+      }
     }
     this.socket.onmessage = this.onEvent.bind(this)
     console.log(`ResourceKindWatcher<${this.kind.plural}> created`)
@@ -51,12 +56,12 @@ export default class ResourceKindWatcher {
     if (Object.keys(this.events).length) {
       for (let key in this.events) {
         let data = this.events[key]
-        let isNew = false
         switch(data.type) {
           case 'ADDED':
-            isNew = true
+            this.dispatch(putResource(data.object, true))  
+            break
           case 'MODIFIED': 
-            this.dispatch(putResource(data.object, isNew))
+            this.dispatch(putResource(data.object, false))
             break
           case 'DELETED':
             this.dispatch(removeResource(data.object))
@@ -82,8 +87,13 @@ export default class ResourceKindWatcher {
   }
 
   destroy = () => {
-    window.clearInterval(this.interval)
+    this.interval && window.clearInterval(this.interval)
     this.socket && this.socket.close()
+  }
+
+  reset = () => {
+    this.destroy()
+    this.initialize()
   }
 
   /**

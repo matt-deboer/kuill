@@ -36,27 +36,39 @@ export default class TableSortLabel extends React.Component {
     this.state = {
       active: props.active,
       order: props.active ? props.order : '',
-    };
+    }
+    this.onRequestSort = this.onRequestSort.bind(this)
   }
 
   componentWillReceiveProps = (nextProps) => {
-    if (nextProps.active !== this.props.active 
-    || nextProps.order !== this.props.order
-    || nextProps.sortable !== this.sortable) {
-      this.state = {
+    if (nextProps.order !== this.props.order
+      || nextProps.active !== this.props.active) {
+      this.setState({
         active: nextProps.active,
         order: nextProps.active ? nextProps.order : '',
-      }
+      })
     }
   }
 
+  shouldComponentUpdate = (nextProps, nextState) => {
+    let shouldUpdate = (
+      this.state.active !== nextState.active
+      || this.state.order !== nextState.order
+      || this.props.order !== nextProps.order
+      || this.props.active !== nextProps.active
+    )
+    return shouldUpdate
+  }
+
   onRequestSort = () => {
-    let order = this.props.order 
-    if (this.state.active || order === '') {
-      order = (this.state.order === 'asc' ? 'desc' : 'asc')
+    if (this.props.sortable) {
+      let order = this.props.order 
+      if (this.state.active || order === '') {
+        order = (this.state.order === 'asc' ? 'desc' : 'asc')
+      }
+      this.props.onRequestSort(order)
+      this.setState({active: true, order: order})
     }
-    this.setState({active: true, order: order})
-    this.props.onRequestSort(order)
   }
 
   render() {
@@ -104,7 +116,7 @@ export default class TableSortLabel extends React.Component {
         {props.text}
         <IconButton
           style={styles.button}
-          onTouchTap={props.sortable ? this.onRequestSort: function(){}}
+          onTouchTap={this.onRequestSort}
           iconStyle={iconStyle}
           >
           {orderIcons[this.state.order]}

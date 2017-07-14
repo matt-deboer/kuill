@@ -11,6 +11,7 @@
     "font-awesome": "4.7.0",
     "history": "^4.5.1",
     "js-yaml": "^3.8.4",
+    "json-stringify-safe": "^5.0.1",
     "longest-common-subsequence": "^1.0.4",
     "material-ui": "^0.18.0",
     "material-ui-chip-input": "^0.14.0",
@@ -18,12 +19,12 @@
     "moment": "^2.18.1",
     "prop-types": "^15.5.10",
     "query-string": "^4.3.4",
-    "react": "^15.5.4",
+    "react": "^15.6.1",
     "react-ace": "^4.3.0",
     "react-addons-css-transition-group": "^15.5.2",
     "react-avatar": "^2.3.0",
     "react-dimensions": "^1.3.0",
-    "react-dom": "^15.5.4",
+    "react-dom": "^15.6.1",
     "react-hint": "^1.3.1",
     "react-lightweight-tooltip": "0.0.4",
     "react-redux": "^5.0.5",
@@ -36,6 +37,7 @@
     "redux": "^3.6.0",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
+    "shallowequal": "^1.0.2",
     "text-encoding": "^0.6.4",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
     "xterm": "^2.6.0"
@@ -44,7 +46,9 @@
     "concurrently": "^3.4.0",
     "node-sass-chokidar": "0.0.1",
     "npm-run-all": "^4.0.2",
-    "react-scripts": "0.9.5"
+    "react-addons-perf": "^15.4.2",
+    "react-scripts": "0.9.5",
+    "why-did-you-update": "0.0.8"
   },
   "scripts": {
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
@@ -59,6 +63,6 @@
     "eject": "react-scripts eject",
     "release": "npm install && npm run build"
   },
-  "proxy": "http://localhost:3001",
-  "_proxy": "https://localhost:8888"
+  "_proxy": "http://localhost:3001",
+  "proxy": "https://localhost:8888"
 }

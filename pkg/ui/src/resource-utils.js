@@ -99,24 +99,63 @@ function stripLastSegment(name) {
     return ''
 }
 
-var lastStatus = 0
-var statuses = [
-    'ok',
-    'disabled',
-    'scaling_up',
-    'scaling_down',
-    'warning',
-    'error',
-    'none',
-    'timed_out',
-]
+var statuses = {
+    'ok': 1,
+    'none': 2,
+    'scaling up': 3,
+    'scaling down': 4,
+    'disabled': 5,
+    'warning': 6,
+    'error': 7,
+    'timed out': 8,
+}
+
 /**
- * Returns a single status enum for the provided resource
+ * A comparator for status values
+ * @param {*} s1 
+ * @param {*} s2 
+ */
+export function compareStatuses(s1,s2) {
+    return statuses[s1] - statuses[s2]
+}
+
+/**
+ * Selects events from the provided set of events that
+ * either directly or transitively relate to the provided
+ * resource
+ * @param {*} events 
+ * @param {*} resource 
+ */
+export function eventsForResource(events, resource) {
+    let selected = []
+    let owners = [resource]
+    while (owners.length) {
+      let owner = owners.shift()
+      if (owner.key in events) {
+        let eventsForOwner = events[owner.key]
+        for (let name in eventsForOwner) {
+          selected.push(eventsForOwner[name])
+        }
+      }
+      if (!!owner.owned) {
+        for (let key in owner.owned) {
+          let owned = owner.owned[key]
+          owners.push(owned)
+        }
+      }
+    }
+    // sort by timestamps
+    selected.sort(function(a, b) { return -1 * a.object.lastTimestamp.localeCompare(b.object.lastTimestamp) })
+    return selected
+}
+
+/**
+ * Returns a single status summary enum for the provided resource
  * 
  * @param {*} resource 
  */
 export function statusForResource(resource) {
-    
+    // TODO: can this be replaced with direct querys to kube status API?
     switch(resource.kind) {
         case 'ReplicaSet':
             if (resource.status.readyReplicas === resource.spec.replicas) {
@@ -134,20 +173,40 @@ export function statusForResource(resource) {
                 return 'ok'
             } else if (!resource.status.readyReplicas && resource.spec.replicas === 0) {
                 return 'disabled'
-            } else if (resource.status.readyReplicas < resource.spec.replicas) {
+            } else if ((resource.status.readyReplicas || 0) < resource.spec.replicas) {
+                if (!!resource.status.conditions) {
+                    for (let cond of resource.status.conditions) {
+                        if (cond.type === 'Progressing' && cond.status === 'False') {
+                            return 'timed out'
+                        }
+                    }
+                }
+                if (!!resource.status.unavailableReplicas) {
+                     if (resource.status.unavailableReplicas === resource.status.replicas) {
+                        return 'error'
+                     } else {
+                        return 'warning'
+                     }
+                }
                 return 'scaling up'
             } else if (resource.status.readyReplicas > resource.spec.replicas) {
                 return 'scaling down'
             }
             break
         case 'Pod':
-            let cond = resource.status.conditions[0]
-            if (cond.type === 'Initialized' && cond.status === 'True') {
-                return 'ok'
-            } else if ((cond.type === 'Ready' || cond.type === 'PodScheduled') && cond.status === 'True') {
+            if (!resource.status.conditions) {
                 return 'scaling up'
-            } else if (resource.metadata.name === 'alpine') {
-                console.log(`got alpine: status => ${JSON.stringify(resource.status)}`)
+            } else {
+                let cond = resource.status.conditions[0]
+                if (cond.type === 'Initialized' && cond.status === 'True') {
+                    return 'ok'
+                } else if ((cond.type === 'Ready' || cond.type === 'PodScheduled')) {
+                    if (cond.status === 'True') {
+                        return 'scaling up'
+                    } else {
+                        return 'error'
+                    }
+                }
             }
             break
         case 'DaemonSet':
@@ -170,6 +229,33 @@ export function statusForResource(resource) {
                 return 'scaling up'
             } else if (resource.status.readyReplicas > resource.spec.replicas) {
                 return 'scaling down'
+            }
+            break
+        case 'StatefulSet':
+            if (resource.status.replicas === resource.spec.replicas) {
+                return 'ok'
+            } else if (!resource.status.replicas && resource.spec.replicas === 0) {
+                return 'disabled'
+            } else if (resource.status.replicas < resource.spec.replicas) {
+                if (resource.owned) {
+                    let podsInError = 0
+                    for (let podKey in resource.owned) {
+                        let pod = resource.owned[podKey]
+                        if (pod.statusSummary === 'error' || pod.statusSummary === 'warning') {
+                            ++podsInError
+                        }
+                    }
+                    if (podsInError > 0) {
+                        if (podsInError === resource.status.replicas) {
+                            return 'error'
+                        } else {
+                            return 'warning'
+                        }
+                    }
+                }
+                return 'scaling up'
+            } else if (resource.status.replicas > resource.spec.replicas) {
+               return 'scaling down'
             }
             break
         default:
