@@ -1,20 +1,21 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import ContentAdd from 'material-ui/svg-icons/content/add';
-import {blueA400, grey500, blueA100, red900} from 'material-ui/styles/colors';
+import React from 'react'
+import {Link} from 'react-router-dom'
+import FloatingActionButton from 'material-ui/FloatingActionButton'
+import {blueA400, grey500, blueA100, red900 } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
-import { connect } from 'react-redux';
-import { addFilter, removeFilter } from '../state/actions/cluster'
-import FilterTable from './filter-table/FilterTable';
-import * as moment from 'moment';
+import { connect } from 'react-redux'
+import { addFilter, removeFilter, removeResource } from '../state/actions/cluster'
+import sizeMe from 'react-sizeme'
+import FilterTable from './filter-table/FilterTable'
+import * as moment from 'moment'
 
-import ChipInput from 'material-ui-chip-input';
-import Chip from 'material-ui/Chip';
+import ChipInput from 'material-ui-chip-input'
+import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
+import IconAdd from 'material-ui/svg-icons/content/add'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/action/system-update-alt'
+import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
@@ -23,8 +24,13 @@ import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
+import { resourceStatus as resourceStatusIcons } from './icons'
+import { compareStatuses } from '../resource-utils'
+
+import KubeKinds from '../kube-kinds'
 import './ClusterPage.css'
 
+import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
@@ -43,8 +49,10 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='configuration') {
-      console.log(`ClusterPage: pushed new location: ${linkForResource(resource,view)}`)
       dispatch(routerActions.push(linkForResource(resource,view)))
+    },
+    removeResource: function(...resources) {
+      dispatch(removeResource(...resources))
     }
   } 
 }
@@ -91,8 +99,13 @@ const styles = {
   },
   popover: {
     marginTop: -55,
-    marginLeft: -15,
-    backgroundColor: 'transparent',
+    marginLeft: 0,
+    paddingLeft: 15,
+    paddingRight: 15,
+    backgroundColor: '#BBB',
+    border: '1px solid #000',
+    borderRadius: '3px',
+    boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
   },
   paper: {
     padding: 15,
@@ -101,7 +114,8 @@ const styles = {
 }
 
 // use functional component style for representational components
-export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
+export default sizeMe({ monitorWidth: true }) (
+withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class ClusterPage extends React.Component {
 
   constructor(props) {
@@ -111,7 +125,70 @@ class ClusterPage extends React.Component {
       hoveredRow: -1,
       hoveredResources: null,
     }
-    this.rowSelection = []
+    this.selectedIds = {}
+    this.rows = this.resourcesToRows(props.resources)
+    this.columns = [
+      {
+        id: 'kind',
+        label: 'kind',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '100px',
+        }
+      },
+      {
+        id: 'name',
+        label: 'name',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '35%',
+        },
+      },
+      {
+        id: 'namespace',
+        label: 'ns',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 100,
+        }
+      },
+      {
+        id: 'status',
+        label: 'status',
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 48,
+          verticalAlign: 'middle',
+        },
+        sortable: true,
+        comparator: compareStatuses,
+      },
+      {
+        id: 'age',
+        label: 'age',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 100,
+        }
+      },
+      {
+        id: 'actions',
+        label: 'actions ',
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '34px',
+        },
+        className: 'resource-actions',
+      },
+    ]
+  }
+
+  resourcesToRows = (resources) => {
+    return Object.values(resources).filter(el => !el.isFiltered)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -119,6 +196,7 @@ class ClusterPage extends React.Component {
       || !arraysEqual(this.props.possibleFilters, nextProps.possibleFilters)
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
+      || this.props.resources !== nextProps.resources
   }
 
   handleActionsRequestClose = () => {
@@ -129,145 +207,123 @@ class ClusterPage extends React.Component {
     })
   }
 
-  renderAge = (resource) => {
-    let age = ''
-    if (resource.status && resource.status.conditions && resource.status.conditions.length) {
-      let dur = 0
-      for (let cond of resource.status.conditions) {
-        let ago = Date.now() - Date.parse(cond.lastTransitionTime)
-        if (ago > dur) {
-          dur = ago
-        }
-      }
-      age = dur
+  handleRowSelection = (selectedIds) => {
+    if (!this.actionsClicked) {
+      this.selectedIds = selectedIds
+      this.deleteButton.setDisabled(Object.keys(selectedIds).length === 0)
     }
-    return age
+  }
+
+  handleCellClick = (rowId, colId, resource, col) => {
+    this.actionsClicked = false
+    if (col.id === 'actions') {
+      let trs = document.getElementsByClassName('cluster filter-table')[1].children[0].children
+      this.setState({
+        actionsOpen: true,
+        actionsAnchor: trs[rowId].children[colId+1],
+        hoveredRow: rowId,
+        hoveredResource: resource,
+      })
+      this.actionsClicked = true
+      return false
+    } else {
+      this.props.viewResource(resource)
+      return false
+    }
+  }
+
+  handleDelete = () => {
+    if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
+      let resources = []
+      for (let id in this.selectedIds) {
+        resources.push(this.props.resources[id])
+      }
+      this.props.removeResource(...resources)
+      this.handleRowSelection({})
+    }
+  }
+
+  componentWillUpdate = () => {
+    setTimeout(() => {
+      Perf.start()
+    }, 0)
+  }
+
+  componentDidUpdate = () => {
+    Perf.stop()
+    let m = Perf.getLastMeasurements()
+    Perf.printWasted(m)
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    this.rows = this.resourcesToRows(nextProps.resources)
+  }
+
+  renderCell = (column, row) => {
+    switch(column) {
+      case 'name':
+        return row.metadata.name
+      case 'namespace':
+        return row.metadata.namespace
+      case 'kind':
+        return row.kind
+      case 'actions':
+        return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
+      case 'age':
+        let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
+        return moment.duration(age).humanize()
+      case 'status':
+        return resourceStatusIcons[row.statusSummary]
+      default:
+        return ''
+    }
+  }
+
+  getCellValue = (column, row) => {
+    switch(column) {
+      case 'name':
+        return row.metadata.name
+      case 'namespace':
+        return row.metadata.namespace
+      case 'kind':
+        return row.kind
+      case 'age':
+        return row.metadata.creationTimestamp
+      case 'status':
+        return row.statusSummary
+      default:
+        return ''
+    }
   }
 
   render() {
     let { props } = this
 
-    let columns=[
-      {
-        id: 'name',
-        label: 'name',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '35%'
-        },
-      },
-      // {
-      //   id: 'namespace',
-      //   label: 'ns',
-      //   sortable: true,
-      //   headerStyle: styles.header,
-      //   style: { ...styles.cell,
-      //     width: '12%'
-      //   }
-      // },
-      {
-        id: 'kind',
-        label: 'kind',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '60px',
-        }
-      },
-      {
-        id: 'age',
-        label: 'age',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '10%'
-        }
-      },
-      {
-        id: 'actions',
-        label: '',
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '24px',
-        },
-        className: 'resource-actions',
-      },
-      {
-        id: 'status',
-        label: 'status',
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '25%'
-        }
-      },
-    ]
-
-    let renderCell = function(column, row) {
-      if (column.id === 'age') {
-        let age = row[column.id]
-        if (age) {
-          return moment.duration(age).humanize()
-        } else {
-          return ''
-        }
-      } else {
-        return row[column.id]
-      }
-    }
-
-    let rows = []
-    let counter = 0
-    for (let entry of Object.entries(props.resources)) {
-      let [ _, resource ] = entry
-      if (!resource.isFiltered) {
-        rows.push({
-          id: (++counter),
-          name: resource.metadata.name,
-          // namespace: resource.metadata.namespace,
-          kind: resource.kind,
-          actions: <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'}/>,
-          age: this.renderAge(resource),
-          status: resource._status,
-        })
-      }
-    }
-
     return (
+    <div>
       <Paper style={styles.paper}>
         
         {renderFilters(props)}
 
         <FilterTable
           className={'cluster'}
-          columns={columns}
-          data={rows}
+          columns={this.columns}
+          data={this.rows}
           height={`${window.innerHeight - 290}px`}
           multiSelectable={true}
-          onRowSelection={(selection) => {
-            this.rowSelection = selection
-            this.deleteButton.setDisabled(this.rowSelection.length === 0)
-          }}
-          onCellClick={(rowId, colId, resource, col) => {
-            if (col.id === 'actions') {
-              let trs = document.getElementsByClassName('cluster filter-table')[1].children[0].children
-              this.setState({
-                actionsOpen: true,
-                actionsAnchor: trs[rowId].children[colId+1],
-                hoveredRow: rowId,
-                hoveredResource: resource,
-              })
-              return false
-            } else {
-              props.viewResource(resource)
-              return false
-            }
-          }}
+          onRowSelection={this.handleRowSelection.bind(this)}
+          onCellClick={this.handleCellClick.bind(this)}
           hoveredRow={this.state.hoveredRow}
-          onRenderCell={renderCell}
+          onRenderCell={this.renderCell}
+          getCellValue={this.getCellValue}
+          selectedIds={this.selectedIds}
+          stripedRows={false}
+          width={'calc(100vw - 110px)'}
           />
 
+        {this.state.hoveredResource &&
         <Popover
+          className="actions-popover"
           style={styles.popover}
           open={this.state.actionsOpen}
           anchorEl={this.state.actionsAnchor}
@@ -276,36 +332,48 @@ class ClusterPage extends React.Component {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
         >
-          <FloatingActionButton mini={true} style={styles.miniButton} tooltip={'logs'}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}>
+          {KubeKinds.cluster[this.state.hoveredResource.kind].hasLogs &&
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
+            data-rh="View Logs...">  
             <IconLogs/>
           </FloatingActionButton>
-          <FloatingActionButton mini={true} style={styles.miniButton} tooltip={'terminal'}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}>
+          }
+
+          {KubeKinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
+            data-rh="Open Terminal...">
             <IconShell/>
           </FloatingActionButton>
-          <FloatingActionButton mini={true} style={styles.miniButton} tooltip={'edit'}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}>
+          }
+
+          {/* TODO: need to check whether this resource can actually be edited by the user */}
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
+            data-rh="Edit...">
             <IconEdit/>
           </FloatingActionButton >
         </Popover>
-
-        <Link to="/cluster/edit/default/Deployment/::new::" >
+        }
+        <Link to="/cluster/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
-            <ContentAdd />
+            <IconAdd />
           </FloatingActionButton>
         </Link>
 
         <DeleteButton backgroundColor={red900} 
           mini={true} 
           style={styles.deleteResourceButton} 
-          disabled={true} 
+          disabled={Object.keys(this.selectedIds).length === 0}
+          onTouchTap={this.handleDelete}
           ref={(ref)=>{this.deleteButton = ref}}/>
 
       </Paper>
+    </div>
     )
   }
-}))
+})))
 
 class DeleteButton extends React.Component {
   
@@ -331,7 +399,7 @@ class DeleteButton extends React.Component {
 
 
 function renderFilters(props) {
-  console.log(`ClusterPage::renderFilters { filterNames: ${JSON.stringify(props.filterNames)}, possibleFilters.length: ${props.possibleFilters.length}`)
+
   return <ChipInput
     value={props.filterNames}
     onRequestAdd={(filter) => props.addFilter(filter)}
