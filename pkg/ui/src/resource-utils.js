@@ -259,6 +259,14 @@ export function statusForResource(resource) {
                return 'scaling down'
             }
             break
+        case 'PersistentVolumeClaim':
+            if (resource.status.phase === 'Bound') {
+                return 'ok'
+            } else if (resource.status.phase === 'Lost') {
+                return 'error'
+            } else {
+                return 'scaling up'
+            }
         default:
             //return 'unknown'
             return ''

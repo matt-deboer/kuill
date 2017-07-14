@@ -159,6 +159,14 @@ let kinds = {
       base: 'api/v1',
       plural: 'persistentvolumeclaims',
       abbrev: 'Pc',
+      getData: ({status, spec, metadata }) => {
+        return [
+            ['Status:', status.phase],
+            ['Volume:', spec.volumeName],
+            ['Capacity:', `${status.phase === 'Bound' ? status.capacity.storage : 0} bound / ${spec.resources.requests.storage} requested`],
+            ['Access Modes:', `${spec.accessModes.join(', ')}`],
+          ]
+      },
     },
   },
   cluster: {
