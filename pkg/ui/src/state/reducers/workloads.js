@@ -136,7 +136,7 @@ function doFilterAll(state, resources) {
   return newState
 }
 
-function registerOwned(resources, unnresolvedOwnership, resource, problemResources) {
+function registerOwned(resources, unnresolvedOwnership, resource, problemResources, possibleFilters) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
       let resolved = false
@@ -153,6 +153,7 @@ function registerOwned(resources, unnresolvedOwnership, resource, problemResourc
         } else if (owner.key in problemResources) {
           delete problemResources[owner.key]
         }
+        possibleFilters[`status:${owner.statusSummary}`]=true
 
         resolved = true
       }
@@ -184,15 +185,21 @@ function doUpdateResource(state, resource, isNew) {
     return state
   }
   resource.statusSummary = statusForResource(resource)
-  let unnresolvedOwnership = {}
+
   let newState = {...state}
-  registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources)
+  let possible = {}
+  for (let pf of newState.possibleFilters) {
+    possible[pf]=true
+  }
+
+  registerOwned(newState.resources, {}, resource, newState.problemResources, possible)
   if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
     newState.problemResources[resource.key] = resource
   } else if (resource.key in newState.problemResources) {
     delete newState.problemResources[resource.key]
   }
-  
+  newState.possibleFilters = Object.keys(possible)
+
   if (isNew && resource.kind === 'Pod') {
     ++newState.podCount
   }
@@ -298,7 +305,7 @@ function doReceiveResources(state, resources) {
 
   visitResources(newState.resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
-    registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources)
+    registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources, possible)
     if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
       newState.problemResources[resource.key] = resource
     }
