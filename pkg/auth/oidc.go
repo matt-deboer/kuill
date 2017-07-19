@@ -92,6 +92,14 @@ func NewOIDCHandler(authManager *Manager, name, publicURL, oidcProvider, clientI
 		Scopes:       scopes,
 	}
 
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Configured oidcHandler: %#v", struct {
+			IDClaim      string
+			GroupsClaim  string
+			OAuth2Config oauth2.Config
+		}{o.idClaim, o.groupsClaim, o.oauth2Config})
+	}
+
 	return o, nil
 }
 
@@ -114,13 +122,6 @@ func (o *oidcHandler) Type() string {
 func (o *oidcHandler) IconURL() string {
 	return o.iconURL
 }
-
-// // GetHandlers returns the handlers for this authenticator
-// func (o *oidcHandler) GetHandlers() map[string]http.HandlerFunc {
-// 	return map[string]http.HandlerFunc{
-// 		o.LoginURL(): o.authenticate,
-// 	}
-// }
 
 // LoginURL returns the initial login URL for this handler
 func (o *oidcHandler) LoginURL() string {
@@ -257,6 +258,11 @@ func (o *oidcHandler) getUserInfoClaims(claims *map[string]interface{}, oauth2To
 		if _, ok := (*claims)["email"]; !ok {
 			(*claims)["email"] = userInfo.Email
 		}
+
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Resulting UserInfo claims: %v", *claims)
+		}
+
 	}
 	return nil
 }
@@ -301,6 +307,10 @@ func (o *oidcHandler) resolveUserAndGroups(oauth2Token *oauth2.Token, idToken *o
 		if err != nil {
 			return "", nil, err
 		}
+	}
+
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Resulting IDToken claims: %v", idClaims)
 	}
 
 	if g, ok := idClaims[o.groupsClaim]; ok {
