@@ -30,6 +30,7 @@ for (let type of [
   'SELECT_RESOURCE',
   'SET_WATCHES',
   'RECEIVE_TEMPLATES',
+  'DISABLE_KIND',
 ]) {
   types[type] = `workloads.${type}`
 }
@@ -54,6 +55,13 @@ export function replaceAll(resources, error) {
 export function filterAll() {
   return {
     type: types.FILTER_ALL
+  }
+}
+
+export function disableResourceKind(kind) {
+  return {
+    type: types.DISABLE_KIND,
+    kind: kind,
   }
 }
 
@@ -309,12 +317,14 @@ async function fetchResources(dispatch, getState, force) {
   
   if (shouldFetchResources(getState, force)) {
 
-    let urls = Object.entries(KubeKinds.workloads).map(entry => `/proxy/${entry[1].base}/${entry[1].plural}`)
-    let requests = urls.map((url,index) => fetch(url, defaultFetchParams
+    let urls = Object.entries(KubeKinds.workloads).map(entry => [entry[0], `/proxy/${entry[1].base}/${entry[1].plural}`])
+    let requests = urls.map(([kind,url],index) => fetch(url, defaultFetchParams
       ).then(resp => {
           if (!resp.ok) {
             if (resp.status === 401) {
               dispatch(invalidateSession())
+            } else if (resp.status === 404) {
+              dispatch(disableResourceKind(kind))
             } else {
               dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
                 'Try Again', () => { dispatch(requestResources()) } ))
@@ -344,7 +354,7 @@ async function fetchResources(dispatch, getState, force) {
           }
         }
       } else {
-        let url = urls[i]
+        let url = urls[i][1]
         let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
         console.error(msg)
       }
@@ -359,29 +369,34 @@ async function fetchResources(dispatch, getState, force) {
 function watchResources(dispatch, getState) {
   
     let watches = getState().workloads.watches || {}
+    let disabledKinds = getState().workloads.disabledKinds
     let maxResourceVersionByKind = getState().workloads.maxResourceVersionByKind
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.workloads) {
-        let watch = watches[kind]
-        if (!!watch && watch.closed()) {
-          watch.destroy()
+        if (!(kind in disabledKinds)) {
+          let watch = watches[kind]
+          if (!!watch && watch.closed()) {
+            watch.destroy()
+            watches[kind] = new ResourceKindWatcher({
+              kind: kind,
+              dispatch: dispatch,
+              resourceVersion: maxResourceVersionByKind[kind] || 0,
+              resourceGroup: 'workloads',
+            })
+          }
+        }
+      }
+    } else {
+      for (let kind in KubeKinds.workloads) {
+        if (!(kind in disabledKinds)) {
           watches[kind] = new ResourceKindWatcher({
-            kind: kind,
+            kind: kind, 
             dispatch: dispatch,
             resourceVersion: maxResourceVersionByKind[kind] || 0,
             resourceGroup: 'workloads',
           })
         }
-      }
-    } else {
-      for (let kind in KubeKinds.workloads) {
-        watches[kind] = new ResourceKindWatcher({
-          kind: kind, 
-          dispatch: dispatch,
-          resourceVersion: maxResourceVersionByKind[kind] || 0,
-          resourceGroup: 'workloads',
-        })
       }
     }
     dispatch({
