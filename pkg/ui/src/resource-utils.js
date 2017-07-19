@@ -290,8 +290,8 @@ export function statusForResource(resource) {
                         if (cond.status === 'True' && status === 'scaling up') {
                             status = 'ok'
                         }
-                    default:
                         break
+                    default:
                 }
             }
             return status
