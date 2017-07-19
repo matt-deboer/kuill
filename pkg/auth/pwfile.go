@@ -59,13 +59,6 @@ func (p *pwfileHandler) Type() string {
 	return "pwfile"
 }
 
-// GetHandlers returns the handlers for this authenticator
-func (p *pwfileHandler) GetHandlers() map[string]http.HandlerFunc {
-	return map[string]http.HandlerFunc{
-		path.Join("/", "auth", p.Type(), p.Name()): p.authenticate,
-	}
-}
-
 // LoginURL returns the initial login URL for this handler
 func (p *pwfileHandler) LoginURL() string {
 	return path.Join("/", "auth", p.Type(), p.Name())
@@ -81,7 +74,7 @@ func (p *pwfileHandler) IconURL() string {
 	return ""
 }
 
-func (p *pwfileHandler) authenticate(w http.ResponseWriter, r *http.Request) {
+func (p *pwfileHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
 	username := r.FormValue("username")
 	if len(username) == 0 {
 		username = r.URL.Query().Get("username")
@@ -96,12 +89,13 @@ func (p *pwfileHandler) authenticate(w http.ResponseWriter, r *http.Request) {
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Logged in: %s", username)
 			}
-			p.authManager.completeAuthentication(NewSessionToken(username, pw[1:], nil), w, r)
-			return
+			return NewSessionToken(username, pw[1:], nil), nil
 		}
 	}
 	if log.GetLevel() >= log.DebugLevel {
 		log.Debugf("Invalid login; username: '%s', password: '%s'", username, password)
 	}
-	http.Error(w, "Invalid username and/or password", http.StatusUnauthorized)
+	msg := "Invalid username and/or password"
+	http.Error(w, msg, http.StatusUnauthorized)
+	return nil, nil
 }
