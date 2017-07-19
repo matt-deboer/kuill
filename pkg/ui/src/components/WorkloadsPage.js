@@ -318,7 +318,7 @@ class WorkloadsPage extends React.Component {
           className={'workloads'}
           columns={this.columns}
           data={this.rows}
-          height={`${window.innerHeight - 290}px`}
+          height={'calc(100vh - 310px)'}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
@@ -327,7 +327,7 @@ class WorkloadsPage extends React.Component {
           getCellValue={this.getCellValue}
           selectedIds={this.selectedIds}
           stripedRows={false}
-          width={'calc(100vw - 130px)'}
+          width={'calc(100vw - 125px)'}
           />
 
         {this.state.hoveredResource &&
