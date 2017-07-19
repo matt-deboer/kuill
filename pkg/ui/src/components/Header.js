@@ -4,6 +4,7 @@ import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar'
 import {grey200, grey300, grey800, blueA200} from 'material-ui/styles/colors'
 import {typography} from 'material-ui/styles'
 import {Link} from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
 import { clearErrors } from '../state/actions/errors'
 import Avatar from 'react-avatar'
@@ -22,6 +23,7 @@ const mapStateToProps = function(store) {
     user: store.session.user,
     errors: store.errors.errors,
     latestError: store.errors.latestError,
+    location: store.routing.location,
   }
 }
 
@@ -36,7 +38,7 @@ const mapDispatchToProps = function(dispatch) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps) (
+export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class Header extends React.Component {
 
   constructor(props) {
@@ -45,6 +47,7 @@ class Header extends React.Component {
       open: false,
       latestErrorOpen: !!props.latestError,
       latestError: props.latestError,
+      location: props.location,
     }
     this.handleLatestErrorRequestClose = this.handleLatestErrorRequestClose.bind(this)
   }
@@ -64,15 +67,23 @@ class Header extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
+    let nextState = {}
+
     if (this.state.open && props.errors.length === 0) {
-      this.setState({
-        open: false,
-      })
-    } else if (props.latestError !== this.state.latestError) {
-      this.setState({
-        latestError: props.latestError,
-        latestErrorOpen: !!props.latestError,
-      })
+      nextState.open = false
+    }
+
+    if (props.latestError !== this.state.latestError) {
+      nextState.latestError = props.latestError
+      nextState.latestErrorOpen = !!props.latestError
+    }
+
+    if (props.location !== this.state.location) {
+      nextState.previousLocation = this.state.location
+      nextState.location = props.location
+    }
+    if (Object.keys(nextState).length > 0) {
+      this.setState(nextState)
     }
   }
 
@@ -83,6 +94,7 @@ class Header extends React.Component {
       || nextProps.location.pathname !== this.props.location.pathname
       || nextState.open !== this.state.open
       || nextState.latestErrorOpen !== this.state.latestErrorOpen
+      || nextState.previousLocation !== this.state.previousLocation
   }
 
   render() {
@@ -156,7 +168,7 @@ class Header extends React.Component {
               <ToolbarSeparator className="separator-bar"/>
             }
             {props.location.pathname !== '/' &&
-              <Breadcrumbs location={props.location}/>
+              <Breadcrumbs location={props.location} previousLocation={this.state.previousLocation}/>
             }
           </ToolbarGroup>
           
@@ -197,5 +209,5 @@ class Header extends React.Component {
       </AppBar>
     )
   }
-})
+}))
 
