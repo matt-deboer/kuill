@@ -9,8 +9,9 @@ import {
 } from 'material-ui/Table'
 import sizeMe from 'react-sizeme'
 import Volumes from './Volumes'
-import './PodDetailsPanel.css'
 import yaml from 'js-yaml'
+
+import './PodDetailsPanel.css'
 
 const rowHeight = 22
 const styles = {
