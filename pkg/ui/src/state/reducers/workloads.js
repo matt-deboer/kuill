@@ -136,6 +136,17 @@ function doFilterAll(state, resources) {
   return newState
 }
 
+/**
+ * Marks ownership of resources in top-down direction by creating/updating
+ * the 'owned' attribute on the owning resource--based on the presence of
+ * an 'ownerReferences' value in the provided resource.
+ * 
+ * @param {*} resources 
+ * @param {*} unnresolvedOwnership 
+ * @param {*} resource 
+ * @param {*} problemResources 
+ * @param {*} possibleFilters 
+ */
 function registerOwned(resources, unnresolvedOwnership, resource, problemResources, possibleFilters) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
@@ -532,7 +543,7 @@ function applyFiltersToResource(filters, resource) {
         if (metaValue in values) {
           match = true
           break
-        } 
+        }
         for (let v in values) {
           if (metaValue.includes(v)) {
             match = true
@@ -545,18 +556,26 @@ function applyFiltersToResource(filters, resource) {
       }
       if (!matched && 'labels' in resource.metadata) {
         for (var label in resource.metadata.labels) {
-          if (resource.metadata.labels[label] in values) {
+          let labelValue = resource.metadata.labels[label]
+          if (labelValue in values) {
             match = true
             break
           }
         }
       }
-    } else if (field === 'status' && resource.statusSummary in values) {
-      match = true
+    } else if (field === 'status') {
+
+      if (resource.statusSummary in values) {
+        match = true
+      }
+    
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
       match = true
+    } else if ( `!${resource.metadata[field]}` ) {
+      resource.isFiltered = true
+      return
     }
 
     if (match) {
