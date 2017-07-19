@@ -8,8 +8,26 @@
   right: 0;
   // position: absolute;
   // z-index: -1;   
-  background: url('../images/Blue-Hexagon.svg') -190px -70px / 300px 300px no-repeat ;
+  // background: url('../images/Blue-Hexagon.svg') -190px -70px / 300px 300px no-repeat ;
   // background-repeat: 'no-repeat';
   // background-size: '300px';
   // background-position: '-190px -70px';
+}
+
+.resource-tabs[value="config"],
+.resource-tabs[value="events"],
+.resource-tabs[value="pod template"] {
+  .configuration-pane:after {
+    content: "";
+    position: fixed;
+    z-index: 1;
+    bottom: 40px;
+    margin-right: 45px;
+    margin-left: 30px;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255, 1) 60%);
+    height: 30px;
+  }
 }

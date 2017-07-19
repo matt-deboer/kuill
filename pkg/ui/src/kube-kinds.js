@@ -1,3 +1,4 @@
+
 let kinds = {
   workloads: {
     Deployment: {
@@ -5,16 +6,6 @@ let kinds = {
       plural: 'deployments',
       hasLogs: true,
       hasTerminal: true,
-      getData: ({status, spec, metadata }) => {
-        return [
-          ['Replicas:',`${status.availableReplicas ? status.availableReplicas + ' available, ': ''}
-            ${status.readyReplicas ? status.readyReplicas + ' ready, ':''}
-            ${status.updatedReplicas ? status.updatedReplicas + ' updated, ':''}
-            ${status.unavailableReplicas ? status.unavailableReplicas + ' unavailable, ':''}
-            ${status.replicas} desired`],
-          ['Update Strategy:', spec.strategy.type],
-        ]
-      },
       image: 'deployment.png',
       abbrev: 'De',
     },
@@ -23,15 +14,6 @@ let kinds = {
       plural: 'daemonsets',
       hasLogs: true,
       hasTerminal: true,
-      getData: ({status, spec, metadata }) => {
-        return [
-          ['Selector', `${spec.selector.matchLabels ? Object.entries(spec.selector.matchLabels).map(e=>e[0]+'='+e[1]).join(', '): ''}`],
-          ['Instances',`${status.desiredNumberScheduled} desired, ${status.currentNumberScheduled} scheduled, 
-            ${status.numberAvailable} available, ${status.numberReady} ready, 
-            ${status.updatedNumberScheduled} updated, ${status.numberMisscheduled} misscheduled`],
-          ['Update Strategy', spec.updateStrategy.type],
-        ]
-      },
       image: 'daemonset.png',
       abbrev: 'Ds',
     },
@@ -41,21 +23,10 @@ let kinds = {
       abbrev: 'Ss',
       hasLogs: true,
       hasTerminal: true,
-      getData: ({status, spec, metadata}) => {
-        return [
-          ['Replicas',`${status.replicas} current, ${spec.replicas} desired`],
-        ]
-      },
     },
     ReplicaSet: {
       base: 'apis/extensions/v1beta1',
       plural: 'replicasets',
-      getData: ({status, spec, metadata}) => {
-        return [
-          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready, ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
-          ['Label Selector', Object.entries(spec.selector.matchLabels).map(([key, val])=>`${key}=${val}`).join(', ')],
-        ]
-      },
       image: 'replicaset.png',
       abbrev: 'Rs',
       hasLogs: true,
@@ -65,11 +36,6 @@ let kinds = {
       base: 'api/v1',
       plural: 'replicationcontrollers',
       image: 'replicationcontroller.png',
-      getData: ({status, spec, metadata }) => {
-        return [
-          ['Replicas',`${status.availableReplicas} available, ${status.readyReplicas} ready,  ${status.fullyLabeledReplicas} labeled, ${status.replicas} total`],
-        ]
-      },
       abbrev: 'Rc',
       hasLogs: true,
       hasTerminal: true,
@@ -93,18 +59,6 @@ let kinds = {
       base: 'api/v1',
       plural: 'pods',
       image: 'pod.png',
-      getData: ({status, spec, metadata }) => {
-        return [
-            ['Node:', spec.nodeName],
-            ['Start Time:', status.startTime],
-            ['Status:', status.phase],
-            ['Pod IP:',status.podIP],
-            ['Host IP:', status.hostIP],
-            ['Conditions:', (status.conditions ? status.conditions.map(cond => `${cond.type}`).join(', '): '')],
-            ['QoS Class:', status.qosClass],
-            ['Node-Selectors:', spec.nodeSelector ? spec.nodeSelector : '< none >'],
-          ]
-      },
       abbrev: 'Po',
       hasLogs: true,
       hasTerminal: true,
@@ -113,32 +67,11 @@ let kinds = {
       base: 'api/v1',
       plural: 'services',
       abbrev: 'Sv',
-      getData: ({status, spec, metadata }) => {
-        return [
-            ['Type:', spec.type],
-            ['IP:', spec.clusterIP],
-            ['Port:', spec.ports[0].port],
-            ['NodePort:', spec.ports[0].nodePort || 'n/a'],
-            ['Session Affinity:', spec.sessionAffinity],
-          ]
-      },
     },
     Endpoints: {
       base: 'api/v1',
       plural: 'endpoints',
       abbrev: 'Ep',
-      // getData: ({status, spec, metadata }) => {
-      //   return [{
-      //     name: '',
-      //     data: [
-      //       ['Type:', spec.type],
-      //       ['IP:', spec.clusterIP],
-      //       ['Port:', spec.ports[0].port],
-      //       ['NodePort:', spec.ports[0].nodePort || 'n/a'],
-      //       ['Session Affinity:', spec.sessionAffinity],
-      //     ]
-      //   }]
-      // },
     },
     Ingress: {
       base: 'apis/extensions/v1beta1',
@@ -159,14 +92,6 @@ let kinds = {
       base: 'api/v1',
       plural: 'persistentvolumeclaims',
       abbrev: 'Pc',
-      getData: ({status, spec, metadata }) => {
-        return [
-            ['Status:', status.phase],
-            ['Volume:', spec.volumeName],
-            ['Capacity:', `${status.phase === 'Bound' ? status.capacity.storage : 0} bound / ${spec.resources.requests.storage} requested`],
-            ['Access Modes:', `${spec.accessModes.join(', ')}`],
-          ]
-      },
     },
   },
   cluster: {
@@ -181,20 +106,20 @@ let kinds = {
       abbrev: 'Pv',
     },
     StorageClass: {
-      base: 'api/v1',
-      plural: 'storageclass',
+      base: 'apis/storage.k8s.io/v1',
+      plural: 'storageclasses',
       abbrev: 'Sc',
     },
-    ComponentStatus: {
-      base: 'api/v1',
-      plural: 'componentstatuses',
-      abbrev: 'Cs',
-    },
-    Namespace: {
-      base: 'api/v1',
-      plural: 'namespaces',
-      abbrev: 'Ns',
-    },
+    // ComponentStatus: {
+    //   base: 'api/v1',
+    //   plural: 'componentstatuses',
+    //   abbrev: 'Cs',
+    // },
+    // Namespace: {
+    //   base: 'api/v1',
+    //   plural: 'namespaces',
+    //   abbrev: 'Ns',
+    // },
     ResourceQuota: {
       base: 'api/v1',
       plural: 'resourcequotas',

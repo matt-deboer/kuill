@@ -66,86 +66,80 @@ const styles = {
   }
 }
 
-export default class AnnotationsPanel extends React.Component {
+export default class DataPanel extends React.Component {
   
   constructor(props) {
     super(props)
     this.state = {
-      annotationsOpen: false,
+      open: false,
       annotationText: '',
     }
   }
 
-  handleAnnotationsTouchTap = (event) => {
+  handleTouchTap = (event) => {
     // This prevents ghost click.
     event.preventDefault();
 
     this.setState({
-      annotationsOpen: true,
-      annotationsAnchorEl: event.currentTarget,
-      annotationText: event.currentTarget.dataset.text,
-      annotationName: event.currentTarget.dataset.name,
+      open: true,
+      anchorEl: event.currentTarget,
+      text: event.currentTarget.dataset.text,
+      name: event.currentTarget.dataset.name,
     })
   }
 
-  handleRequestCloseAnnotations = () => {
+  handleRequestClose = () => {
     this.setState({
-      annotationsOpen: false,
+      open: false,
       annotationText: '',
       annotationName: '',
     })
   }
 
   render() {
-  
+    
     let { props } = this
+    let { data, title } = props
     let rows = []
-    if (!props.annotations) {
-      rows.push(
-          <TableRow key={-1} style={{height: rowHeight}}>
-            <TableRowColumn style={{height: rowHeight, textAlign: 'center'}}>{'< none >'}</TableRowColumn>
-          </TableRow>)
-    } else {
-      for (let key in props.annotations) {
-        let value = props.annotations[key]
-        let display = value
-        if (value.length > 50) {
-          display = (
-            <div style={{
-              textOverflow: 'ellipsis', 
-              overflow: 'hidden', 
-              height: 'inherit',
-              paddingRight: 50,
-              position: 'relative',
-            }}>
-              {value}
-              <IconButton 
-                style={{position: 'absolute', right: 0, top: 0, padding: 0, height: 24, width: 24}} 
-                onTouchTap={this.handleAnnotationsTouchTap}
-                data-name={key}
-                data-text={value}
-                >
-                <IconMore />
-              </IconButton>
-            </div>
-          )
-        }
-        rows.push(
-          <TableRow key={key} style={{height: rowHeight}}>
-            <TableRowColumn style={styles.tableRowKey}>{key}</TableRowColumn>
-            <TableRowColumn style={styles.tableRowVal}>{display}</TableRowColumn>
-          </TableRow>)
+    for (let key in data) {
+      let value = data[key]
+      let display = value
+      if (value.length > 50) {
+        display = (
+          <div style={{
+            textOverflow: 'ellipsis', 
+            overflow: 'hidden', 
+            height: 'inherit',
+            paddingRight: 50,
+            position: 'relative',
+          }}>
+            {value}
+            <IconButton 
+              style={{position: 'absolute', right: 0, top: 0, padding: 0, height: 24, width: 24}} 
+              onTouchTap={this.handleTouchTap}
+              data-name={key}
+              data-text={value}
+              >
+              <IconMore />
+            </IconButton>
+          </div>
+        )
       }
+      rows.push(
+        <TableRow key={key} style={{height: rowHeight}}>
+          <TableRowColumn style={styles.tableRowKey}>{key}</TableRowColumn>
+          <TableRowColumn style={styles.tableRowVal}>{display}</TableRowColumn>
+        </TableRow>)
     }
 
     return (
       <div>
         <Popover
-          open={this.state.annotationsOpen}
-          anchorEl={this.state.annotationsAnchorEl}
+          open={this.state.open}
+          anchorEl={this.state.anchorEl}
           anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
-          onRequestClose={this.handleRequestCloseAnnotations}
+          onRequestClose={this.handleRequestClose}
           style={styles.popover}
         >
           <Paper style={{
@@ -157,13 +151,13 @@ export default class AnnotationsPanel extends React.Component {
             overflow: 'hidden',
             }}
             zDepth={3}>
-            <Subheader style={styles.popoverTitle}>{this.state.annotationName}</Subheader>
+            <Subheader style={styles.popoverTitle}>{this.state.name}</Subheader>
             <div style={{
               overflow: 'auto',
               maxHeight: `${window.innerHeight - 300}px`,
             }}>
               <pre>
-                {safePrettyPrint(this.state.annotationText)}
+                {safePrettyPrint(this.state.text)}
               </pre>
             </div>
           </Paper>
@@ -171,7 +165,7 @@ export default class AnnotationsPanel extends React.Component {
         <Card style={styles.cards}>
           <CardHeader 
             style={styles.cardHeader}
-            title="annotations"
+            title={title}
             titleStyle={styles.cardHeaderTitle}
           />
           <CardText>

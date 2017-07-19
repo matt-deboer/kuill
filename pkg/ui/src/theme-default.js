@@ -2,7 +2,7 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import {blue600, blue800, grey800} from 'material-ui/styles/colors';
 
 const themeDefault = getMuiTheme({
-
+  // fontFamily: 'Monaco, MonoSpace, sans-serif',
   palette: {
     primary1Color: blue800,
     // primary2Color: blue900,

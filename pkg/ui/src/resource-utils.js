@@ -259,7 +259,7 @@ export function statusForResource(resource) {
                return 'scaling down'
             }
             break
-        case 'PersistentVolumeClaim':
+        case 'PersistentVolumeClaim': case 'PersistentVolume':
             if (resource.status.phase === 'Bound') {
                 return 'ok'
             } else if (resource.status.phase === 'Lost') {
@@ -267,6 +267,35 @@ export function statusForResource(resource) {
             } else {
                 return 'scaling up'
             }
+        case 'Node':
+            let status = 'scaling up'
+            for (let cond of resource.status.conditions) {
+                switch(cond.type) {
+                    case 'DiskPressure': 
+                        if (cond.status === 'True') {
+                            status = 'warning'
+                        }
+                        break
+                    case 'MemoryPressure':
+                        if (cond.status === 'True') {
+                            status = 'warning'
+                        }
+                        break
+                    case 'OutOfDisk':
+                        if (cond.status === 'True') {
+                            return 'error'
+                        }
+                        break
+                    case 'Ready':
+                        if (cond.status === 'True' && status === 'scaling up') {
+                            status = 'ok'
+                        }
+                    default:
+                        break
+                }
+            }
+            return status
+            
         default:
             //return 'unknown'
             return ''

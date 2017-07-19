@@ -53,6 +53,9 @@ class Authenticated extends React.Component {
         } else {
           // Return to the current page afterward
           loginMethod.url += "?target=" + encodeURIComponent(""+window.location)
+          if (loginMethod.url.startsWith("/")) {
+            loginMethod.url = window.location.origin + loginMethod.url
+          }
           loginLinks.push(loginMethod)
         }
       }

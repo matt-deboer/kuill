@@ -48,7 +48,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     removeFilter: function(filterName, index) {
       dispatch(removeFilter(filterName, index))
     },
-    viewResource: function(resource, view='configuration') {
+    viewResource: function(resource, view='config') {
       dispatch(routerActions.push(linkForResource(resource,view)))
     },
     removeResource: function(...resources) {
@@ -110,11 +110,14 @@ const styles = {
   paper: {
     padding: 15,
     margin: 5,
+  },
+  statusIcon: {
+    marginLeft: 10,
   }
 }
 
 // use functional component style for representational components
-export default sizeMe({ monitorWidth: true }) (
+export default sizeMe({ monitorWidth: true, monitorHeight: true }) (
 withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class WorkloadsPage extends React.Component {
 
@@ -143,7 +146,7 @@ class WorkloadsPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '35%',
+          // width: '35%',
         },
       },
       {
@@ -160,8 +163,10 @@ class WorkloadsPage extends React.Component {
         label: 'status',
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 48,
+          width: 65,
           verticalAlign: 'middle',
+          textAlign: 'center',
+          paddingLeft: 30,
         },
         sortable: true,
         comparator: compareStatuses,
@@ -170,7 +175,9 @@ class WorkloadsPage extends React.Component {
         id: 'age',
         label: 'age',
         sortable: true,
-        headerStyle: styles.header,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+        },
         style: { ...styles.cell,
           width: 100,
         }
@@ -273,7 +280,7 @@ class WorkloadsPage extends React.Component {
         let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
         return moment.duration(age).humanize()
       case 'status':
-        return resourceStatusIcons[row.statusSummary]
+        return <div style={styles.statusIcon}>{resourceStatusIcons[row.statusSummary]}</div>
       default:
         return ''
     }
@@ -281,6 +288,8 @@ class WorkloadsPage extends React.Component {
 
   getCellValue = (column, row) => {
     switch(column) {
+      case 'id':
+        return row.key
       case 'name':
         return row.metadata.name
       case 'namespace':
@@ -318,7 +327,7 @@ class WorkloadsPage extends React.Component {
           getCellValue={this.getCellValue}
           selectedIds={this.selectedIds}
           stripedRows={false}
-          width={'calc(100vw - 110px)'}
+          width={'calc(100vw - 130px)'}
           />
 
         {this.state.hoveredResource &&

@@ -25,6 +25,7 @@ export default class FilterTable extends React.PureComponent {
     onRenderCell: PropTypes.func,
     onCellClick: PropTypes.func,
     stripedRows: PropTypes.bool,
+    deselectOnClickaway: PropTypes.bool,
     /**
      * Returns an object where keys are the idColumn values for the selected rows
      */
@@ -46,6 +47,7 @@ export default class FilterTable extends React.PureComponent {
     displayRowCheckbox: true,
     displaySelectAll: true,
     adjustForCheckbox: false,
+    deselectOnClickaway: false,
     fixedHeader: true,
     onRenderCell: function(column, row) {return row[column]},
     getCellValue: function(column, row) {return row[column]},
@@ -104,6 +106,7 @@ export default class FilterTable extends React.PureComponent {
       || nextProps.selectedIds !== this.props.selectedIds
       || nextProps.hoveredRow !== this.props.hoveredRow
       || nextProps.data.length !== this.props.data.length
+      || nextProps.deselectOnClickaway !== this.props.deselectOnClickaway
   }
 
   stateChanged = (nextState) => {
@@ -138,9 +141,14 @@ export default class FilterTable extends React.PureComponent {
   handleRowSelection = (selection) => {
     this.tableBody.setState({ selectedRows: selection })
     let dataSelection = {}
-    if (selection.length > 0) {
+    if (selection === 'all') {
+      for (let row of this.state.data) {
+        let id = this.props.getCellValue(this.props.idColumn,row)
+        dataSelection[id]=true
+      }
+    } else if (selection.constructor === Array && selection.length > 0) {
       for (let index of selection) {
-        let id = this.state.data[index][this.props.idColumn]
+        let id = this.props.getCellValue(this.props.idColumn,this.state.data[index])
         dataSelection[id]=true
       }
     }
@@ -177,15 +185,16 @@ export default class FilterTable extends React.PureComponent {
         />)
 
     let dataRows =
-        this.state.data.map((row, rowIndex) => 
-            <TableRow key={row[props.idColumn]} hovered={props.hoveredRow === rowIndex} selected={row[props.idColumn] in props.selectedIds}>
+        this.state.data.map((row, rowIndex) => {
+          let id = props.getCellValue(props.idColumn, row)
+          return <TableRow key={id} hovered={props.hoveredRow === rowIndex} selected={id in props.selectedIds}>
               {props.columns.map(col =>
                 <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className}>
                   {props.onRenderCell(col.id,row)}
                 </TableRowColumn>
               )}
             </TableRow>
-          )
+        })
 
     return (
       <Table 
@@ -207,6 +216,7 @@ export default class FilterTable extends React.PureComponent {
           stripedRows={!!props.stripedRows}
           ref={(tableBody) => { this.tableBody = tableBody }}
           style={{width: 'inherit'}}
+          deselectOnClickaway={props.deselectOnClickaway}
           >
           {dataRows}
         </TableBody>

@@ -140,7 +140,7 @@ class LogViewer extends React.Component {
             height: `${window.innerHeight - props.contentTop - 90}px`,
             backgroundColor: grey900,
             padding: 10,
-            fontSize: '13px',
+            fontSize: '12px',
           }}
           options={{
             cursorBlink: false,

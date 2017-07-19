@@ -33,7 +33,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       let { namespace, kind, name } = ownProps.match.params
       dispatch(applyResourceChanges(namespace, kind, name, contents))
       let { location } = ownProps
-      let newSearch = '?view=configuration'
+      let newSearch = '?view=config'
       dispatch(routerActions.push({
         pathname: location.pathname,
         search: newSearch,
@@ -193,7 +193,7 @@ class ClusterInfo extends React.Component {
           logs={logs}
           events={events}
           onLogsActivated={this.onLogsActivated.bind(this)}
-          activeTab={(this.props.location.search || 'configuration').replace('?view=','')}
+          activeTab={(this.props.location.search || 'config').replace('?view=','')}
           />
       }
       

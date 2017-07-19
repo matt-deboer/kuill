@@ -55,9 +55,9 @@ export default class ResourceProblems extends React.Component {
     }
 
     return (
-      <Paper>
+      <Paper style={{marginTop: 10}}>
         <Subheader style={styles.subheader}>Problems ({resources.length})</Subheader>
-        <List style={{maxHeight: 400, overflowY: 'scroll'}}>
+        <List style={{maxHeight: 'calc(100vh - 300px)', overflowY: 'scroll'}}>
           {resources.map(r =>
             <div key={r.resource.key}>
               <ListItem

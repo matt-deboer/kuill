@@ -48,7 +48,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     removeFilter: function(filterName, index) {
       dispatch(removeFilter(filterName, index))
     },
-    viewResource: function(resource, view='configuration') {
+    viewResource: function(resource, view='config') {
       dispatch(routerActions.push(linkForResource(resource,view)))
     },
     removeResource: function(...resources) {
@@ -281,6 +281,8 @@ class ClusterPage extends React.Component {
 
   getCellValue = (column, row) => {
     switch(column) {
+      case 'id':
+        return row.key
       case 'name':
         return row.metadata.name
       case 'namespace':
@@ -318,7 +320,7 @@ class ClusterPage extends React.Component {
           getCellValue={this.getCellValue}
           selectedIds={this.selectedIds}
           stripedRows={false}
-          width={'calc(100vw - 110px)'}
+          width={'calc(100vw - 130px)'}
           />
 
         {this.state.hoveredResource &&
