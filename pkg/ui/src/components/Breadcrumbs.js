@@ -15,7 +15,11 @@ export default class Breadcrumbs extends React.Component {
       let parts = rel.split('/')
       let part = parts.shift()
       let base = `/${part}`
-      crumbs.push({value: part, link: base})
+      let link = base
+      if (this.props.previousLocation && this.props.previousLocation.pathname === link) {
+        link += this.props.previousLocation.search
+      }
+      crumbs.push({value: part, link: link})
       if (parts.length > 0) {
         let lastPart = parts[parts.length-1]
         let prefix = parts.slice(0, parts.length - 1).join(' / ') + ' / '
