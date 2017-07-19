@@ -8,9 +8,7 @@ import {
 } from 'material-ui/Table'
 import IconButton from 'material-ui/IconButton'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import Popover from 'material-ui/Popover'
-import Paper from 'material-ui/Paper'
-import Subheader from 'material-ui/Subheader'
+import GenericExpander from './GenericExpander'
 
 const rowHeight = 28
 const styles = {
@@ -36,34 +34,13 @@ const styles = {
     whiteSpace: 'normal',
     width: '40%',
     borderRight: '1px solid rgba(0,0,0,0.1)',
-    // fontSize: '12px',
   },
   tableRowVal: {
     height: rowHeight,
     padding: 10,
     wordWrap: 'break-word',
     whiteSpace: 'normal',
-    // fontSize: '12px',
   },
-  popover: {
-    border: '1px solid rgba(0,0,0,0.3)',
-    backgroundColor: 'rgb(240,240,240)',
-  },
-  popoverTitle: {
-    color: 'rgb(0,0,0)',
-    fontWeight: 600,
-    border: '1px solid rgba(0,0,0,0.3)',
-    backgroundColor: 'rgba(30, 30, 30, 0.15)',
-    fontSize: 13,
-    lineHeight: '32px',
-    paddingLeft: 16,
-    paddingRight: 16,
-    marginLeft: -22,
-    marginRight: -22,
-    marginTop: -22,
-    marginBottom: 10,
-    width: 'auto',
-  }
 }
 
 export default class AnnotationsPanel extends React.Component {
@@ -140,7 +117,14 @@ export default class AnnotationsPanel extends React.Component {
 
     return (
       <div>
-        <Popover
+        <GenericExpander 
+          open={this.state.annotationsOpen}
+          anchorEl={this.state.annotationsAnchorEl}
+          onRequestClose={this.handleRequestCloseAnnotations}
+          title={this.state.annotationName}
+          contents={<pre>{safePrettyPrint(this.state.annotationText)}</pre>}
+          />
+        {/* <Popover
           open={this.state.annotationsOpen}
           anchorEl={this.state.annotationsAnchorEl}
           anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
@@ -152,8 +136,8 @@ export default class AnnotationsPanel extends React.Component {
             background: 'transparent',
             padding: 20, 
             fontSize: 13,
-            maxWidth: `${window.innerWidth - 200}px`,
-            maxHeight: `${window.innerHeight - 260}px`,
+            maxWidth: 'calc(100vw - 100px)',
+            maxHeight: 'calc(100vh - 275px)',
             overflow: 'hidden',
             }}
             zDepth={3}>
@@ -167,7 +151,7 @@ export default class AnnotationsPanel extends React.Component {
               </pre>
             </div>
           </Paper>
-        </Popover>
+        </Popover> */}
         <Card style={styles.cards}>
           <CardHeader 
             style={styles.cardHeader}

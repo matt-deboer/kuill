@@ -9,6 +9,8 @@ import {
 import Subheader from 'material-ui/Subheader'
 import StringArrayExpander from './StringArrayExpander'
 import EnvironmentExpander from './EnvironmentExpander'
+import GenericExpanderButton from './GenericExpanderButton'
+import yaml from 'js-yaml'
 
 import './ContainerPanel.css'
 
@@ -96,6 +98,26 @@ export default class ContainerPanel extends React.Component {
               <TableRow style={styles.tableRow} displayBorder={false}>
                 <TableRowColumn style={styles.tableRowKeyCol}>Env:</TableRowColumn>
                 <TableRowColumn style={styles.tableRowValCol}><EnvironmentExpander data={container.env} title={'env'} namespace={namespace}/></TableRowColumn>
+              </TableRow>
+            }
+
+            {container.livenessProbe &&
+              <TableRow style={styles.tableRow} displayBorder={false}>
+                <TableRowColumn style={styles.tableRowKeyCol}>Liveness Probe:</TableRowColumn>
+                <TableRowColumn style={styles.tableRowValCol}>
+                  <GenericExpanderButton contents={<pre>{yaml.safeDump(container.livenessProbe)}</pre>} title={'liveness probe'} 
+                    anchorOrigin={{horizontal: 'left', vertical: 'bottom'}} targetOrigin={{horizontal: 'left', vertical: 'bottom'}}/>
+                </TableRowColumn>
+              </TableRow>
+            }
+
+            {container.readinessProbe &&
+              <TableRow style={styles.tableRow} displayBorder={false}>
+                <TableRowColumn style={styles.tableRowKeyCol}>Readiness Probe:</TableRowColumn>
+                <TableRowColumn style={styles.tableRowValCol}>
+                  <GenericExpanderButton contents={<pre>{yaml.safeDump(container.readinessProbe)}</pre>} title={'readiness probe'} 
+                    anchorOrigin={{horizontal: 'left', vertical: 'bottom'}} targetOrigin={{horizontal: 'left', vertical: 'bottom'}}/>
+                </TableRowColumn>
               </TableRow>
             }
 
