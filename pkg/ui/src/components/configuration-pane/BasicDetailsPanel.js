@@ -54,7 +54,6 @@ export default class BasicDetailsPanel extends React.Component {
       rendered = 
         <pre style={{margin: 0, fontSize: 13, fontFamily: 'Roboto, sans-serif'}}>{yaml.safeDump(value)}</pre>
     }
-    // return <pre style={{margin: 0, fontSize: 13}}>{rendered}</pre>
     return rendered
   }
 
