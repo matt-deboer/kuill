@@ -115,12 +115,12 @@ func (o *oidcHandler) IconURL() string {
 	return o.iconURL
 }
 
-// GetHandlers returns the handlers for this authenticator
-func (o *oidcHandler) GetHandlers() map[string]http.HandlerFunc {
-	return map[string]http.HandlerFunc{
-		o.LoginURL(): o.authenticate,
-	}
-}
+// // GetHandlers returns the handlers for this authenticator
+// func (o *oidcHandler) GetHandlers() map[string]http.HandlerFunc {
+// 	return map[string]http.HandlerFunc{
+// 		o.LoginURL(): o.authenticate,
+// 	}
+// }
 
 // LoginURL returns the initial login URL for this handler
 func (o *oidcHandler) LoginURL() string {
@@ -139,7 +139,7 @@ func randomBytes(len int) []byte {
 }
 
 // authCallback handles OIDC authentication callback for the app
-func (o *oidcHandler) authenticate(w http.ResponseWriter, r *http.Request) {
+func (o *oidcHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
 
 	oidcCode := r.URL.Query().Get("code")
 
@@ -159,80 +159,85 @@ func (o *oidcHandler) authenticate(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r,
 			o.oauth2Config.AuthCodeURL(state, oidc.Nonce(o.nonce)), http.StatusFound)
+		return nil, nil
 
-	} else {
-
-		stateCookie, err := r.Cookie(oidcStateCookie)
-		if err != nil || stateCookie == nil {
-			http.Error(w, "State did not match: missing/invalid state cookie", http.StatusBadRequest)
-			return
-		}
-		state := stateCookie.Value
-
-		if r.URL.Query().Get("state") != state {
-			http.Error(w, "State did not match", http.StatusBadRequest)
-			return
-		}
-
-		stateBytes, err := base64.URLEncoding.DecodeString(state)
-		if err != nil {
-			http.Error(w, "Failed to decode state: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		stateParts := strings.Split(string(stateBytes), "::")
-		if len(stateParts) > 1 {
-			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Parsed redirect target: %s", stateParts[1])
-			}
-
-			query := r.URL.Query()
-			query.Set("target", stateParts[1])
-			r.URL.RawQuery = query.Encode()
-		}
-
-		oauth2Token, err := o.oauth2Config.Exchange(o.httpCtx, r.URL.Query().Get("code"))
-		if err != nil {
-			http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
-		if !ok {
-			http.Error(w, "No id_token field in oauth2 token", http.StatusInternalServerError)
-			return
-		} else if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Received OIDC idToken: %s", rawIDToken)
-		}
-		// Verify the ID Token signature and nonce.
-		idToken, err := o.verifier.Verify(o.httpCtx, rawIDToken)
-		if err != nil {
-			log.Errorf("Failed to verify ID Token: %v", err)
-			http.Error(w, "Failed to verify ID Token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if idToken.Nonce != o.nonce {
-			log.Errorf("Invalid ID Token nonce: got '%s', expected '%s'", idToken.Nonce, o.nonce)
-			http.Error(w, "Invalid ID Token nonce", http.StatusInternalServerError)
-			return
-		}
-
-		user, groups, err := o.resolveUserAndGroups(oauth2Token, idToken)
-		if err != nil {
-			log.Error("Failed to resolve user/group info", err)
-			http.Error(w, "Failed to resolve user/group info: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		appToken := NewSessionToken(user, groups, jwt.MapClaims{
-			"o2a": oauth2Token.AccessToken,
-			"oid": rawIDToken,
-			"orf": oauth2Token.RefreshToken,
-		})
-
-		o.authManager.completeAuthentication(appToken, w, r)
 	}
+
+	stateCookie, err := r.Cookie(oidcStateCookie)
+	if err != nil || stateCookie == nil {
+		msg := "State did not match: missing/invalid state cookie"
+		http.Error(w, msg, http.StatusBadRequest)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	}
+	state := stateCookie.Value
+
+	if r.URL.Query().Get("state") != state {
+		msg := "State did not match: missing/invalid state cookie"
+		http.Error(w, msg, http.StatusBadRequest)
+		return nil, fmt.Errorf(msg)
+	}
+
+	stateBytes, err := base64.URLEncoding.DecodeString(state)
+	if err != nil {
+		msg := "Failed to decode state"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	}
+
+	stateParts := strings.Split(string(stateBytes), "::")
+	if len(stateParts) > 1 {
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Parsed redirect target: %s", stateParts[1])
+		}
+
+		query := r.URL.Query()
+		query.Set("target", stateParts[1])
+		r.URL.RawQuery = query.Encode()
+	}
+
+	oauth2Token, err := o.oauth2Config.Exchange(o.httpCtx, r.URL.Query().Get("code"))
+	if err != nil {
+		msg := "Failed to exchange token"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	}
+
+	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	if !ok {
+		msg := "No id_token field in oauth2 token"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	} else if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Received OIDC idToken: %s", rawIDToken)
+	}
+	// Verify the ID Token signature and nonce.
+	idToken, err := o.verifier.Verify(o.httpCtx, rawIDToken)
+	if err != nil {
+		msg := "Failed to verify ID Token"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	}
+
+	if idToken.Nonce != o.nonce {
+		msg := "Invalid ID Token nonce"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf(msg)
+	}
+
+	user, groups, err := o.resolveUserAndGroups(oauth2Token, idToken)
+	if err != nil {
+		msg := "Failed to resolve user/group info"
+		http.Error(w, msg, http.StatusInternalServerError)
+		return nil, fmt.Errorf("%s: %v", msg, err)
+	}
+
+	appToken := NewSessionToken(user, groups, jwt.MapClaims{
+		"o2a": oauth2Token.AccessToken,
+		"oid": rawIDToken,
+		"orf": oauth2Token.RefreshToken,
+	})
+	return appToken, nil
+
 }
 
 func (o *oidcHandler) getUserInfoClaims(claims *map[string]interface{}, oauth2Token *oauth2.Token) error {
