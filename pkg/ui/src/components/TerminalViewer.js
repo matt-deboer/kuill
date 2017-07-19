@@ -60,6 +60,7 @@ const styles = {
     fontWeight: 600,
     color: grey500,
     display: 'inline-block',
+    fontFamily: 'Roboto, sans-serif',
   },
   button: {
     height: '24px',
@@ -270,7 +271,7 @@ class TerminalViewer extends React.Component {
       <div style={{overflow: 'hidden'}}>
         <Toolbar style={{height: '36px', padding: 6, backgroundColor: grey900, margin: 0}}>
           <ToolbarGroup>
-            <span style={styles.label}>container:</span>,
+            <span style={styles.label}>container:</span>
             <FlatButton
               fullWidth={false}
               backgroundColor={grey800}
@@ -304,7 +305,7 @@ class TerminalViewer extends React.Component {
                 {this.renderContainerMenuItems()}
               </Menu>
             </Popover>
-            <span style={styles.label}>command:</span>,
+            <span style={styles.label}>command:</span>
             <TextField
               id={'command'}
               style={{height: 24, marginTop: 0, width: 'auto', }}
@@ -339,7 +340,7 @@ class TerminalViewer extends React.Component {
             height: `${window.innerHeight - props.contentTop - 90}px`,
             backgroundColor: (this.state.terminalOpen ? grey900 : grey500),
             padding: '10px 10px 15px 10px',
-            fontSize: '13px',
+            fontSize: '12px',
           }}
           enabled={this.state.terminalOpen}
           options={{

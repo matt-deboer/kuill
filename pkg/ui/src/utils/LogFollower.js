@@ -40,7 +40,8 @@ export default class LogFollower {
     this.logs = props.logs
     this.logColor = props.logs.nextColor()
     let { pod, namespace, container } = props
-    this.logPrefix = `${props.logs.nextColor()}${pod}/${container} | `
+    // this.logPrefix = `${props.logs.nextColor()}${pod}/${container} | `
+    this.logPrefix = `${props.logs.nextColor()}`
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
     this.socket = new WebSocket(`${scheme}://${loc.host}/proxy/api/v1/namespaces/${namespace}/pods/${pod}/log?follow=true&container=${container}&tailLines=${this.maxLines}`)

@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, selectResource, setFilterNames, maxReloadInterval } from '../state/actions/workloads'
+import { requestResources, setFilterNames, maxReloadInterval } from '../state/actions/workloads'
 import WorkloadsPage from '../components/WorkloadsPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -22,9 +22,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     setFilterNames: function(filterNames) {
       dispatch(setFilterNames(filterNames))
-    },
-    clearResource: function() {
-      dispatch(selectResource())
     },
   }
 }

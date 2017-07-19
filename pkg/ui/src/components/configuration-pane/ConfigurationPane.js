@@ -1,11 +1,15 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
 import {blueA100, blueA400, grey600} from 'material-ui/styles/colors'
-import KubeKinds from '../../kube-kinds'
+// import KubeKinds from '../../kube-kinds'
+import ResourceDetails from './ResourceDetails'
 import sizeMe from 'react-sizeme'
 import AnnotationsPanel from './AnnotationsPanel'
+import DataPanel from './DataPanel'
 import BasicDetailsPanel from './BasicDetailsPanel'
-import PodTemplatePanel from './PodTemplatePanel'
+// import PodTemplatePanel from './PodTemplatePanel'
+import PodDetailsPanel from './PodDetailsPanel'
+import ContainerPanel from './ContainerPanel'
 
 const styles = {
   tabs: {
@@ -29,7 +33,7 @@ const styles = {
   cardHeaderTitle: {
     color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    fontStyle: 'italic',
+    // fontStyle: 'italic',
     fontSize: '18px',
   }
 }
@@ -68,39 +72,53 @@ class ConfigurationPane extends React.Component {
   
     let { props } = this
     let { resource } = props
-    let kind = KubeKinds[props.resourceGroup][resource.kind]
+    let kind = ResourceDetails[resource.kind]
     let { getData } = kind
     let data = (typeof getData === 'function' && getData(resource)) || []
-    
+
     let contents = null
     if (resource.kind === 'Pod') {
       contents = (
-        <PodTemplatePanel pod={resource}>
+        <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <PodDetailsPanel resource={resource} />
+          </div>
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <Card style={{...styles.cards}}>
+              <CardHeader 
+                style={styles.cardHeader}
+                title={'containers'}
+                titleStyle={styles.cardHeaderTitle}
+              />
+              <CardText>
+                <div className="row" style={{marginLeft: 0, marginRight: 0, marginBottom: 10}}>
+                  {resource.spec.containers.map(container => {
+                    return <div className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
+                      <ContainerPanel key={container.name} container={container} namespace={resource.metadata.namespace}/>
+                    </div>
+                  })}
+                </div>
+              </CardText>
+            </Card>
+          </div>
           <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <AnnotationsPanel annotations={resource.metadata.annotations} />
           </div>
-        </PodTemplatePanel>
+        </div>
       )
     } else {
 
       contents = (
         <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
-          <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-            <Card style={{...styles.cards, paddingRight: 16}}>
-              <CardHeader 
-                style={styles.cardHeader}
-                title={'status'}
-                titleStyle={styles.cardHeaderTitle}
-              />
-              <CardText>
-                  <BasicDetailsPanel data={data}/>
-              </CardText>
-            </Card>
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+              <BasicDetailsPanel data={data}/>
           </div>
 
-          {/* {!!resource.spec.template && 
-            <PodTemplatePanel pod={resource.spec.template} />
-          } */}
+          {resource.data &&
+            <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+              <DataPanel data={resource.data} title={'data'}/>
+            </div>
+          }
 
           <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <AnnotationsPanel annotations={resource.metadata.annotations} />
@@ -108,7 +126,7 @@ class ConfigurationPane extends React.Component {
         </div>
       )
     }
-    return <div style={{
+    return <div className={'configuration-pane'} style={{
       height: `${window.innerHeight - props.contentTop - 40}px`,
       overflow: 'auto',
     }}>{contents}</div>

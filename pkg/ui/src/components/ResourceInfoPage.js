@@ -1,17 +1,19 @@
 import React from 'react'
 import {blueA400, grey600, grey700, blueA100} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
-// import sizeMe from 'react-sizeme'
+import sizeMe from 'react-sizeme'
 import { routerActions } from 'react-router-redux'
 import { editResource, removeResource } from '../state/actions/workloads'
 
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
+import PodTemplatePane from './configuration-pane/PodTemplatePane'
 import LogViewer from './LogViewer'
 import EventViewer from './EventViewer'
 import TerminalViewer from './TerminalViewer'
 
 import IconConfiguration from 'material-ui/svg-icons/action/list'
+import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEvents from 'material-ui/svg-icons/action/event'
@@ -36,6 +38,8 @@ import KindAbbreviation from './KindAbbreviation'
 import queryString from 'query-string'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
+
+import './ResourceInfoPage.css'
 
 const mapStateToProps = function(store) {
   return {
@@ -107,12 +111,14 @@ const styles = {
   cardHeaderTitle: {
     color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    fontStyle: 'italic',
+    // fontStyle: 'italic',
     fontSize: '18px',
   }
 }
 
+
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
+sizeMe({ monitorHeight: true, monitorWidth: true }) (
 class ResourceInfoPage extends React.Component {
 
   constructor(props) {
@@ -153,17 +159,28 @@ class ResourceInfoPage extends React.Component {
 
     let tabs = [
       {
-        name: 'configuration',
+        name: 'config',
         component: ConfigurationPane,
         icon: <IconConfiguration/>,
         props: {resource: resource, resourceGroup: resourceGroup},
-      },
-      {
-        name: 'events',
-        component: EventViewer,
-        icon: <IconEvents/>,
       }
     ]
+    
+    if (resource.spec && resource.spec.template) {
+      tabs.push({
+        name: 'pod template',
+        component: PodTemplatePane,
+        icon: <IconPodTemplate/>,
+        props: {resource: resource},
+      })
+    }
+    
+    tabs.push({
+      name: 'events',
+      component: EventViewer,
+      icon: <IconEvents/>,
+    })
+
     if (enableLogsTab) {
       tabs.push({
         name: 'logs',
@@ -204,11 +221,11 @@ class ResourceInfoPage extends React.Component {
                 <div>
                   <FilterChip 
                     onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`])} 
-                    prefixStyle={{fontStyle: 'italic', color: grey700}} 
+                    prefixStyle={{color: grey700}} 
                     prefix={'namespace'} suffix={resource.metadata.namespace} />
                   <FilterChip 
                     onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`,`kind:${resource.kind}`])} 
-                    prefixStyle={{fontStyle: 'italic', color: grey700}} 
+                    prefixStyle={{color: grey700}} 
                     prefix={'kind'} suffix={resource.kind} />
                 </div>
               </div>
@@ -257,7 +274,7 @@ class ResourceInfoPage extends React.Component {
             tabItemContainerStyle={styles.tabs}
             contentContainerStyle={{overflow: 'hidden'}}
             inkBarStyle={styles.tabsInkBar}
-            className={'resource-tabs'}
+            className={`resource-tabs ${activeTab.replace(" ","-")}`}
             value={activeTab}
             ref={ (ref) => {
                 if (!!ref) {
@@ -280,4 +297,4 @@ class ResourceInfoPage extends React.Component {
       </div>
     )
   }
-}))
+})))

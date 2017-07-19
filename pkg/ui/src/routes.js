@@ -86,7 +86,7 @@ export default routes
  * @param {*} resource 
  * @param {*} view 
  */
-export function linkForResource(resource, view='configuration') {
+export function linkForResource(resource, view='config') {
   var ns, name, kind
   if (typeof resource === 'string') {
     [ kind, ns, name ] = resource.split('/')

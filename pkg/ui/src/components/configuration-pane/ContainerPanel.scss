@@ -33,3 +33,36 @@ span.mount-perms {
 span.mount-from {
   font-weight: 600;
 }
+span.env-ref-type {
+  font-weight: 600;
+  padding-right: 3px;
+}
+span.env-ref-key {
+  padding-left: 3px;
+}
+
+.quoted-string {
+  color: rgb(30, 136, 229);
+  &:before {
+    content: "\"";
+  }
+  &:after {
+    content: "\"";
+  }
+  + .quoted-string:before {
+    content: ", \"";
+  }
+}
+
+.item-array {
+  font-weight: 600;
+  color: rgb(30, 136, 229);
+  &:before {
+    content: "[";
+    color: rgb(0,0,0);
+  }
+  &:after {
+    content: "]";
+    color: rgb(0,0,0);
+  }
+}
