@@ -72,6 +72,8 @@ let kinds = {
       base: 'api/v1',
       plural: 'endpoints',
       abbrev: 'Ep',
+      editable: false,
+      deletable: false,
     },
     Ingress: {
       base: 'apis/extensions/v1beta1',
@@ -99,6 +101,8 @@ let kinds = {
       base: 'api/v1',
       plural: 'nodes',
       abbrev: 'No',
+      editable: false,
+      deletable: false,
     },
     PersistentVolume: {
       base: 'api/v1',
