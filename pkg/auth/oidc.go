@@ -279,11 +279,16 @@ func (o *oidcHandler) resolveUserAndGroups(oauth2Token *oauth2.Token, idToken *o
 		user = idToken.Subject
 	} else {
 		idClaims := make(map[string]interface{})
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Resolving ID claims...")
+		}
 		err := idToken.Claims(&idClaims)
 		if err != nil {
 			return "", nil, err
 		}
-
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Resolved IDToken %v, with claims: %v", idToken, idClaims)
+		}
 		if u, ok := idClaims[o.idClaim]; ok {
 			user = u.(string)
 		} else {
