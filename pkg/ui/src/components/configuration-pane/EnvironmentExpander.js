@@ -1,36 +1,21 @@
 import React from 'react'
-import {white, grey800} from 'material-ui/styles/colors'
+import { grey800 } from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
   TableRow,
   TableRowColumn,
 } from 'material-ui/Table'
-import Subheader from 'material-ui/Subheader'
 import { Link } from 'react-router-dom'
 import { linkForResource } from '../../routes'
-import Popover from 'material-ui/Popover'
-import Paper from 'material-ui/Paper'
-import IconButton from 'material-ui/IconButton'
-import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
+import GenericExpanderButton from './GenericExpanderButton'
 import './ContainerPanel.css'
 
 const rowHeight = 22
 const styles = {
-  wrapper: {
-    border: '1px solid rgba(0,0,0,0.1)',
-    backgroundColor: 'rgba(30, 30, 30, 0.15)',
-  },
-  subheader: {
-    backgroundColor: '#004d99'/*rgb(13, 64, 109)'/*grey500*/,
-    color: white,
-    width: 'auto',
-    margin: '0 -1px 0 -1px',
-    lineHeight: '24px',
-  },
   table: {
     backgroundColor: 'transparent',
-    border: 'transparent',
+    border: '1px solid rgba(0,0,0,0.05)',
     padding: 16,
     paddingLeft: 16,
     tableLayout: 'inherit',
@@ -38,79 +23,31 @@ const styles = {
   tableRow: {
     height: rowHeight,
   },
-  bracket: {
-    height: rowHeight,
-    fontWeight: 600,
-    paddingLeft: 0,
-  },
   tableRowKeyCol: {
-    padding: '2px 10px 2px 0',
+    padding: 5,
+    paddingRight: 10,
     color: grey800,
     fontWeight: 600,
     whiteSpace: 'nowrap',
-    paddingRight: 10,
     height: rowHeight,
     verticalAlign: 'top',
   },
-  tableRowVal: {
-    // width: '99%',
-    whiteSpace: 'normal',
-    padding: 2,
-    height: rowHeight,
-    overflow: 'visible',
-  },
   envRowVal: {
     whiteSpace: 'normal',
-    padding: 2,
+    padding: 5,
+    paddingLeft: 10,
     height: rowHeight,
     overflow: 'visible',
+    borderLeft: '1px solid rgba(0,0,0,0.05)',
   },
   expander: {
     padding: 0,
     height: 24,
     width: 24,
   },
-  popoverTitle: {
-    color: 'rgb(0,0,0)',
-    fontWeight: 600,
-    borderBottom: '1px solid rgba(0,0,0,0.2)',
-    backgroundColor: 'rgba(30, 30, 30, 0.15)',
-    fontSize: 13,
-    lineHeight: '32px',
-    paddingLeft: 16,
-    paddingRight: 16,
-    marginLeft: -20,
-    marginRight: -20,
-    marginTop: -20,
-    marginBottom: 10,
-    width: 'auto',
-  }
 }
 
 export default class StringArrayExpander extends React.PureComponent {
-
-  constructor(props) {
-    super(props)
-    this.state = {
-      open: false,
-    }
-  }
-
-  handleTouchTap = (event) => {
-    // This prevents ghost click.
-    event.preventDefault();
-
-    this.setState({
-      open: true,
-      anchorEl: event.currentTarget,
-    })
-  }
-
-  handleRequestClose = () => {
-    this.setState({
-      open: false,
-    })
-  }
 
   renderEnvValue = (env) => {
     let { namespace } = this.props
@@ -153,42 +90,22 @@ export default class StringArrayExpander extends React.PureComponent {
     let { data, title } = props
     
     return (
-        <div>
-          <IconButton style={styles.expander} onTouchTap={this.handleTouchTap}>
-            <IconMore />
-          </IconButton>
-
-          <Popover
-            open={this.state.open}
-            anchorEl={this.state.anchorEl}
-            anchorOrigin={{horizontal: 'left', vertical: 'top'}}
-            targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-            onRequestClose={this.handleRequestClose}
-            style={{backgroundColor: 'rgb(240,240,240)'}}
-          >
-            <Paper style={{
-              background: 'transparent',
-              padding: 20, 
-              fontSize: 13,
-              maxWidth: `${window.innerWidth - 200}px`,
-              maxHeight: `${window.innerHeight - 300}px`,
-              overflow: 'auto',
-              }}
-              zDepth={2}>
-              <Subheader style={styles.popoverTitle}>{title}</Subheader>
-              <Table style={styles.table} selectable={false} headerStyle={{display: 'none'}}>
-                <TableBody displayRowCheckbox={false}>
-                  {data.map((env) =>
-                    <TableRow key={env.name} style={styles.tableRow} displayBorder={false}>
-                        <TableRowColumn style={styles.tableRowKeyCol}>{env.name}</TableRowColumn>
-                        <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env)}</TableRowColumn>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </Paper>
-          </Popover>
-      </div>
+        <GenericExpanderButton
+          title={title}
+          contents={
+            <div>
+            <Table style={styles.table} selectable={false} headerStyle={{display: 'none'}}>
+              <TableBody displayRowCheckbox={false}>
+                {data.map((env) =>
+                  <TableRow key={env.name} style={styles.tableRow} displayBorder={true}>
+                      <TableRowColumn style={styles.tableRowKeyCol}>{env.name}</TableRowColumn>
+                      <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env)}</TableRowColumn>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            </div>
+          }/>
       )
   }
 }
