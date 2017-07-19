@@ -38,6 +38,8 @@ const initialState = {
   fetchBackoff: 0,
   fetchError: null,
   watches: null,
+  // kinds in this set are not supported by this cluster
+  disabledKinds: {},
   // the maximum resourceVersion value seen across all resource fetches
   // by kind--this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -60,6 +62,9 @@ export default (state = initialState, action) => {
         isFetching: false,
         fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
       }
+
+    case types.DISABLE_KIND:
+      return doDisableKind(state, action.kind)
 
     case types.REPLACE_ALL:
       return doReceiveResources(state, action.resources, action.maxResourceVersion, action.error)
@@ -97,6 +102,16 @@ export default (state = initialState, action) => {
     default:
       return state
   }
+}
+
+function doDisableKind(state, kind) {
+  if (kind in state.disabledKinds) {
+    return state
+  }
+
+  let newState = {...state, disabledKinds: {...state.disabledKinds}}
+  newState.disabledKinds[kind]=true
+  return newState
 }
 
 function doSetFiltersByLocation(state, location) {
