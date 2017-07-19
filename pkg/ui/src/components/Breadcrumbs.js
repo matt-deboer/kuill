@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import IconButton from 'material-ui/IconButton'
 import IconHome from 'material-ui/svg-icons/action/home'
 import IconChevronRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
+import './Breadcrumbs.css'
 
 export default class Breadcrumbs extends React.Component {
 
@@ -14,10 +15,12 @@ export default class Breadcrumbs extends React.Component {
       let parts = rel.split('/')
       let part = parts.shift()
       let base = `/${part}`
-      crumbs.push({name: part, link: base})
+      crumbs.push({value: part, link: base})
       if (parts.length > 0) {
-        let last = parts.join(' / ')
-        crumbs.push({name: last, link: `${base}/${last}`})
+        let lastPart = parts[parts.length-1]
+        let prefix = parts.slice(0, parts.length - 1).join(' / ') + ' / '
+        let last = <span><span className="last-breadcrumb-prefix">{prefix}</span>{lastPart}</span>
+        crumbs.push({value: last, link: `${base}/${last}`})
       }
     }
     return crumbs
@@ -51,15 +54,15 @@ export default class Breadcrumbs extends React.Component {
           paddingLeft: 0,
           marginRight: -5,
           marginLeft: -5,
-        }} iconStyle={{fill: grey300}}><IconHome /></IconButton></Link>)
+        }} iconStyle={{fill: grey300}} data-rh={'Home'} data-rh-at={'bottom'}><IconHome /></IconButton></Link>)
       renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
       for (let i=0, len=crumbs.length; i < len; ++i) {
         let crumb = crumbs[i]
         if (i < (len - 1)) {
-          renderedCrumbs.push(<Link key={renderedCrumbs.length} to={crumb.link} style={styles.link}>{crumb.name}</Link>)
+          renderedCrumbs.push(<Link key={renderedCrumbs.length} to={crumb.link} style={styles.link}>{crumb.value}</Link>)
           renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
         } else {
-          renderedCrumbs.push(<div key={renderedCrumbs.length} style={{display: 'inline-block'}}>{crumb.name}</div>)
+          renderedCrumbs.push(<div key={renderedCrumbs.length} style={{display: 'inline-block'}}>{crumb.value}</div>)
         }
       }
     } else {
@@ -67,7 +70,7 @@ export default class Breadcrumbs extends React.Component {
     }
 
     return (
-      <div style={{display: 'inline-block', fontSize: '15px'}}>
+      <div className="breadcrumbs">
         {renderedCrumbs}
       </div>
     )

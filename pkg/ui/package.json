@@ -47,7 +47,7 @@
     "node-sass-chokidar": "0.0.1",
     "npm-run-all": "^4.0.2",
     "react-addons-perf": "^15.4.2",
-    "react-scripts": "0.9.5",
+    "react-scripts": "1.0.10",
     "why-did-you-update": "0.0.8"
   },
   "scripts": {
@@ -64,5 +64,16 @@
     "release": "npm install && npm run build"
   },
   "_proxy": "http://localhost:3001",
-  "proxy": "https://localhost:8888"
+  "proxy": {
+    "/auth": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    },
+    "/proxy": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    }
+  }
 }

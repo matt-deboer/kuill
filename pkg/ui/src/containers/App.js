@@ -47,9 +47,9 @@ class App extends React.Component {
       <div>
         <MuiThemeProvider muiTheme={ThemeDefault}>
           <Authenticated>
+              <ReactHint/>
               <Header menu={menu} location={this.props.location}/>
               <div style={styles.container}>
-                <ReactHint/>
                 {this.props.children}
               </div>
           </Authenticated>

@@ -29,9 +29,9 @@ export default class RecentUpdates extends React.Component {
     let { props } = this
 
     return (
-      <Paper>
+      <Paper style={{marginTop: 10}}>
         <Subheader style={styles.subheader}>Recent Updates</Subheader>
-        <List style={{maxHeight: 400, overflowY: 'scroll'}}>
+        <List style={{maxHeight: 'calc(100vh - 300px)', overflowY: 'scroll'}}>
           {props.recentEvents.map(event =>
             <div key={event.object.metadata.uid}>
               <ListItem

@@ -178,7 +178,7 @@ class ResourceInfo extends React.Component {
           enableLogsTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
           enableTerminalTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
           onLogsActivated={this.onLogsActivated.bind(this)}
-          activeTab={(this.props.location.search || 'configuration').replace('?view=','')}
+          activeTab={(this.props.location.search || 'config').replace('?view=','')}
           />
     } else if (this.props.resourceNotFound) {
       resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>

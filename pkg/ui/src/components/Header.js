@@ -1,7 +1,7 @@
 import React from 'react'
 import AppBar from 'material-ui/AppBar'
 import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar'
-import {grey200, grey300, grey500, grey700, grey800, blueA200} from 'material-ui/styles/colors'
+import {grey200, grey300, grey800, blueA200} from 'material-ui/styles/colors'
 import {typography} from 'material-ui/styles'
 import {Link} from 'react-router-dom'
 import { connect } from 'react-redux'
@@ -104,11 +104,7 @@ class Header extends React.Component {
         fontSize: 18,
         fontWeight: 600,
       },
-      menuButton: {
-        marginLeft: 0,
-        backgroundColor: grey700,
-        marginRight: 10,
-      },
+      
       menuButtonLabel: {
         textTransform: 'none',
         color: grey300,
@@ -141,19 +137,26 @@ class Header extends React.Component {
         title={
         <Toolbar style={{...styles.menu}}>
           <ToolbarGroup firstChild={true}>
-            {/* <div style={styles.name}>Kubernetes</div> */}
-            <ToolbarSeparator style={{backgroundColor: grey500, marginRight: 18, marginLeft: 18}}/>
-            {props.location.pathname === '/' ?
+            <ToolbarSeparator className="separator-bar"/>
+            {
               props.menu.map(menuItem =>
-                <Link to={menuItem.link} key={menuItem.name}>
+                <Link to={menuItem.link} key={menuItem.name} >
                   <RaisedButton
                     label={menuItem.name}
                     icon={menuItem.icon}
-                    style={styles.menuButton}
+                    className={'menu-button'}
                     labelStyle={styles.menuButtonLabel}
+                    data-rh={menuItem.name}
+                    data-rh-at={'bottom'}
+                    data-rh-cls={'menu-button-rh'}
                   />
-                </Link>)
-              : <Breadcrumbs location={props.location}/>
+                </Link>)}
+            
+            {props.location.pathname !== '/' &&
+              <ToolbarSeparator className="separator-bar"/>
+            }
+            {props.location.pathname !== '/' &&
+              <Breadcrumbs location={props.location}/>
             }
           </ToolbarGroup>
           
@@ -189,7 +192,7 @@ class Header extends React.Component {
           autoHideDuration={5000}
           onRequestClose={this.handleLatestErrorRequestClose}
           action={!!this.props.latestError ? this.props.latestError.retry.text : ''}
-          onActionTouchTap={!!this.props.latestError ? this.props.latestError.retry.action : ''}
+          onActionTouchTap={!!this.props.latestError ? this.props.latestError.retry.action : null}
         />
       </AppBar>
     )

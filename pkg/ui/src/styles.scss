@@ -1,5 +1,6 @@
 html {
-  font-family: 'Roboto', sans-serif;
+  // font-family: 'Roboto', sans-serif;
+  font-family: 'Monaco, MonoSpace, sans-serif' !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -7,6 +8,7 @@ body, h1, h2, h3, h4, h5, h6 {
   font-size: 15px;
   margin: 0;
   line-height: 24px;
+  font-family: 'Monaco, MonoSpace, sans-serif' !important;
 }
 
 body {
@@ -35,4 +37,5 @@ a:hover {
   padding: 2px 8px;
   font-weight: 600;
   font-size: 13px;
+  font-family: 'Monaco, MonoSpace, sans-serif' !important;
 }

@@ -1,0 +1,10 @@
+.breadcrumbs {
+  display: 'inline-block';
+  font-size: 15px !important;
+}
+
+@media screen and (max-width: 865px) {
+  .last-breadcrumb-prefix {
+    display: none !important;
+  }
+}

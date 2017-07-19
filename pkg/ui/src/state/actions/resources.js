@@ -141,7 +141,7 @@ function updateFilterUrl(dispatch, getState) {
       `?${queryString.stringify({filters: state.workloads.filterNames})}` :
       ''
     console.log(`updateFilterUrl: pushed new location...`)
-    dispatch(routerActions.push(`/workloads${filterQuery}`))
+    dispatch(routerActions.push(`/workloads${filterQuery}`))  
   }
 }
 
