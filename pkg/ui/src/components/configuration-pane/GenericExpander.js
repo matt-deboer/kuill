@@ -17,10 +17,6 @@ const styles = {
     lineHeight: '32px',
     paddingLeft: 16,
     paddingRight: 16,
-    marginLeft: -20,
-    marginRight: -20,
-    marginTop: -20,
-    marginBottom: 10,
     width: 'auto',
   }
 }
@@ -75,17 +71,16 @@ export default class GenericExpander extends React.Component {
       >
         <Paper style={{
           background: 'transparent',
-          padding: 20, 
           fontSize: 13,
-          maxWidth: 'calc(100vw - 100px)',
-          maxHeight: 'calc(100vh - 275px)',
           overflow: 'hidden',
           }}
           zDepth={3}>
           <Subheader style={styles.popoverTitle}>{title}</Subheader>
           <div style={{
             overflow: 'auto',
-            maxHeight: `${window.innerHeight - 300}px`,
+            maxHeight: 'calc(100vh - 295px)',
+            maxWidth: 'calc(100vw - 100px)',
+            padding: 20,
           }}>
             {contents}
           </div>
