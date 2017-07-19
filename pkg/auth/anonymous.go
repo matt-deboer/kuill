@@ -27,7 +27,7 @@ func (a *anonymousHandler) Name() string {
 
 // Description returns the user-friendly description of this authenticator
 func (a *anonymousHandler) Description() string {
-	return "Anonymous user"
+	return "Anonymous access"
 }
 
 // Type returns the type of this authenticator
