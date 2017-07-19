@@ -39,8 +39,10 @@ type Authenticator interface {
 	Type() string
 	// GetHandlers returns the handlers for this authenticator; the set of
 	// handlers must include a "login" handler which will be triggered
-	GetHandlers() map[string]http.HandlerFunc
+	// GetHandlers() map[string]http.HandlerFunc
 	// LoginURL returns the initial login URL for this handler
+	Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error)
+
 	LoginURL() string
 	// IconURL returns an icon URL to signify this login method; empty string implies a default can be used
 	IconURL() string
@@ -121,16 +123,23 @@ func (m *Manager) RegisterAuthenticator(authn Authenticator) error {
 		return fmt.Errorf("An authenticator already exists with name '%s'", authn.Name())
 	}
 	m.authenticators[authn.Name()] = authn
-	for pattern, fn := range authn.GetHandlers() {
-		http.HandleFunc(pattern, fn)
+
+	var handlerFunc http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		sessionToken, err := authn.Authenticate(w, r)
+		if err != nil {
+			log.Error(err)
+		} else if sessionToken != nil {
+			m.completeAuthentication(sessionToken, w, r)
+		}
 	}
+	http.HandleFunc(authn.LoginURL(), handlerFunc)
 
 	var err error
 	m.loginMethodsResponse, err = m.buildLoginMethodsResponse()
 	if err != nil {
 		return fmt.Errorf("Problem marshalling cached authenticators response: %v", err)
 	}
-	log.Infof("Enabled %s authenticator: %s", authn.Type(), authn.Name())
+	log.Infof("Enabled %s authenticator: %s => %s", authn.Type(), authn.Name(), authn.LoginURL())
 	m.mutex.Unlock()
 	return nil
 }
@@ -197,6 +206,7 @@ func (m *Manager) writeSessionCookie(session *SessionToken, w http.ResponseWrite
 	})
 }
 
+// TODO: this should be re-worked so that it wraps authenticators' authenticate methods
 func (m *Manager) completeAuthentication(session *SessionToken, w http.ResponseWriter, r *http.Request) {
 
 	m.writeSessionCookie(session, w)
@@ -252,7 +262,7 @@ func (m *Manager) ParseSessionToken(r *http.Request) (*SessionToken, error) {
 	}
 
 	if log.GetLevel() >= log.DebugLevel {
-		log.Debugf("Found cookie %s: %s", sessionTokenName, cookie.Value)
+		log.Debugf("Found cookie for %s; %s: %s", r.URL, sessionTokenName, cookie.Value)
 	}
 
 	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {

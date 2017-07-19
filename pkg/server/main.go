@@ -154,6 +154,24 @@ func main() {
 			Usage:  "A file containing tab-delimited set of [user,password,group...], on per line; for local testing only",
 			EnvVar: envBase + "PASSWORD_FILE",
 		},
+		cli.BoolFlag{
+			Name:   "disable-anonymous",
+			Usage:  "Disables the anonymous login",
+			EnvVar: envBase + "DISABLE_ANONYMOUS",
+		},
+		cli.StringFlag{
+			Name:   "anonymous-user",
+			Usage:  "This user ID will be used for anonymous login",
+			Value:  "anonymous",
+			EnvVar: envBase + "ANONYMOUS_USER",
+		},
+		cli.StringFlag{
+			Name: "anonymous-groups",
+			Usage: `This comma-separated list of groups will be automatically applied to all proxy requests using 
+			the anonymous login`,
+			Value:  "system:authenticated",
+			EnvVar: envBase + "ANONYMOUS_GROUPS",
+		},
 		cli.StringFlag{
 			Name:   "templates-path",
 			Value:  "./templates",
@@ -285,6 +303,18 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 			log.Fatal(err)
 		}
 		authManager.RegisterAuthenticator(pwFileAuthN)
+	}
+
+	if !c.Bool("disable-anonymous") {
+		anonymousGroups := c.String("anonymous-groups")
+		groups := []string{}
+		if len(anonymousGroups) > 0 {
+			groups = strings.Split(anonymousGroups, ",")
+		}
+		authManager.RegisterAuthenticator(
+			auth.NewAnonymousHandler(
+				c.String("anonymous-user"),
+				groups))
 	}
 
 }
