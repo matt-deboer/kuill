@@ -4,6 +4,7 @@ import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../resource-utils'
+import { applyFiltersToResource, splitFilter } from '../../filter-utils'
 
 const initialState = {
   // the filter names in string form
@@ -40,6 +41,8 @@ const initialState = {
   watches: null,
   // kinds in this set are not supported by this cluster
   disabledKinds: {},
+  // is a map[node-name]string[]
+  podsByNode: {},
   // the maximum resourceVersion value seen across all resource fetches
   // by kind--this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -228,6 +231,10 @@ function doUpdateResource(state, resource, isNew) {
 
   if (isNew && resource.kind === 'Pod') {
     ++newState.podCount
+    newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
+    newState.podsByNode[resource.spec.nodeName][resource.key] = resource
+  } else {
+    // TODO: what if pod changes nodes?
   }
   if (resource.metadata.resourceVersion > state.maxResourceVersionByKind[resource.kind]) {
     newState.maxResourceVersionByKind = {...state.maxResourceVersionByKind}
@@ -255,9 +262,12 @@ function doRemoveResource(state, resource) {
   if (resource.key in state.resources) {
     let resources = { ...state.resources }
     delete resources[resource.key]
+    let podsByNode = {...state.podsByNode}
+    delete podsByNode[resource.spec.nodeName][resource.key]
     return { ...state, 
       resources: resources,
       podCount: (state.podCount - 1),
+      podsByNode: podsByNode,
     }    
   }
   return state
@@ -320,6 +330,7 @@ function doReceiveResources(state, resources) {
     podCount: 0,
     problemResources: {},
     lastLoaded: Date.now(),
+    podsByNode: {},
   }
   
   let possible = null
@@ -344,6 +355,8 @@ function doReceiveResources(state, resources) {
     }
     if (resource.kind === 'Pod') {
       ++newState.podCount
+      newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
+      newState.podsByNode[resource.spec.nodeName][resource.key] = resource
     }
   })
 
@@ -536,77 +549,4 @@ function doRemoveFilter(state, filterName, index) {
     filterNames: filterNames,
     filters: filters
   }, state.resources)
-}
-
-/**
- * Applies the provided filters to the resource, modifying
- * the 'isFiltered' attribute of the resource accordingly
- * 
- * @param {*} filters the filters to apply
- * @param {*} resource the resource to update
- */
-function applyFiltersToResource(filters, resource) {
-  
-  resource.isFiltered = Object.keys(filters).length > 0
-  for (var field in filters) {
-    var values = filters[field]
-    let match = false
-    if (field === '*') {
-      let matched = false
-      for (let m in resource.metadata) {
-        let metaValue = "" + resource.metadata[m]
-        if (metaValue in values) {
-          match = true
-          break
-        }
-        for (let v in values) {
-          if (metaValue.includes(v)) {
-            match = true
-          break
-          }
-        }
-        if (match) {
-          break
-        }
-      }
-      if (!matched && 'labels' in resource.metadata) {
-        for (var label in resource.metadata.labels) {
-          let labelValue = resource.metadata.labels[label]
-          if (labelValue in values) {
-            match = true
-            break
-          }
-        }
-      }
-    } else if (field === 'status') {
-
-      if (resource.statusSummary in values) {
-        match = true
-      }
-    
-    } else if ( (resource.metadata[field] in values)
-    || (resource[field] in values)
-    || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
-      match = true
-    } else if ( `!${resource.metadata[field]}` ) {
-      resource.isFiltered = true
-      return
-    }
-
-    if (match) {
-      resource.isFiltered = false
-    } else {
-      // at least one filter field did not match; exit
-      resource.isFiltered = true
-      return
-    }
-  }
-}
-
-function splitFilter(filter) {
-  var parts=filter.split(":")
-  if (parts.length === 1) {
-    parts = ["*", parts[0]]
-  }
-  return parts
 }
