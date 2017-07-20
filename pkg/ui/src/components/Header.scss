@@ -34,6 +34,12 @@
   }
 }
 
+.sb-avatar {
+  div {
+    font-family: 'Roboto', sans-serif !important;
+  }
+}
+
 @media screen and (min-width: 1170px) {
   .menu-button {
     min-width: auto !important;
