@@ -1,6 +1,6 @@
 html {
-  // font-family: 'Roboto', sans-serif;
-  font-family: 'Monaco, MonoSpace, sans-serif' !important;
+  font-family: 'Roboto', sans-serif;
+  // font-family: 'Monaco, MonoSpace, sans-serif' !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -8,7 +8,8 @@ body, h1, h2, h3, h4, h5, h6 {
   font-size: 15px;
   margin: 0;
   line-height: 24px;
-  font-family: 'Monaco, MonoSpace, sans-serif' !important;
+  font-family: 'Roboto, sans-serif',
+  // font-family: 'Monaco, MonoSpace, sans-serif' !important;
 }
 
 body {
@@ -31,11 +32,20 @@ a:hover {
 }
 
 /* customize tooltips */
-.react-hint .react-hint__content {
-	background: #555;
-	border-radius: 3px;
-  padding: 2px 8px;
-  font-weight: 600;
-  font-size: 13px;
-  font-family: 'Monaco, MonoSpace, sans-serif' !important;
+.react-hint {
+  font-family: 'Roboto', sans-serif !important;
+
+  &:after {
+    border-bottom-color: rgb(120,120,120);
+    border-top-color: rgb(120,120,120);
+  }
+
+  .react-hint__content {
+    background: rgb(120,120,120);
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-weight: 600;
+    font-size: 13px;
+    // font-family: 'Monaco, MonoSpace, sans-serif' !important;
+  }
 }
