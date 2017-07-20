@@ -1,4 +1,8 @@
-export const zoneAnnotation = 'failure-domain.beta.kubernetes.io/zone'
+export const zoneLabel = 'failure-domain.beta.kubernetes.io/zone'
+export const regionLabel = 'failure-domain.beta.kubernetes.io/region'
+export const instanceTypeLabel = 'beta.kubernetes.io/instance-type'
+export const roleLabel = 'kubernetes.io/role'
+export const hostnameLabel = 'kubernetes.io/hostname'
 
 /**
  * Applies the provided filters to the resource, modifying
@@ -41,15 +45,36 @@ export function applyFiltersToResource(filters, resource) {
         }
       }
     } else if (field === 'status') {
-
       if (resource.statusSummary in values) {
         match = true
       }
     } else if (field === 'zone') {
-      if (resource.metadata.annotations && resource.metadata.annotations[zoneAnnotation] in values) {
+      if (resource.metadata.labels && resource.metadata.labels[zoneLabel] in values) {
+        match = true
+      } else if (resource.parameters && resource.parameters.zone in values) {
         match = true
       }
-    } else if (field === 'memory') {
+    } else if (field === 'region') {
+      if (resource.metadata.labels && resource.metadata.labels[regionLabel] in values) {
+        match = true
+      }
+    } else if (field === 'instanceType') {
+      if (resource.metadata.labels && resource.metadata.labels[instanceTypeLabel] in values) {
+        match = true
+      }
+    } else if (field === 'role') {
+      if (resource.metadata.labels && resource.metadata.labels[roleLabel] in values) {
+        match = true
+      }
+    } else if (field === 'hostname') {
+      if (resource.metadata.labels && resource.metadata.labels[hostnameLabel] in values) {
+        match = true
+      }
+    } else if (field === 'node') {
+      if (resource.kind === 'Pod' && resource.spec.nodeName in values) {
+        match = true
+      }
+    } else if (field === 'freeMemory') {
       for (let v of values) {
         // parse the values
         let op, val
@@ -67,7 +92,7 @@ export function applyFiltersToResource(filters, resource) {
           val = v.substr(2)
         }
       }
-    } else if (field === 'cpu') {
+    } else if (field === 'freeCPU') {
       for (let v of values) {
         
       }

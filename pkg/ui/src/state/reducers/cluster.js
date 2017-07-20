@@ -4,7 +4,7 @@ import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../resource-utils'
-import { applyFiltersToResource, splitFilter, zoneAnnotation } from '../../filter-utils'
+import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../filter-utils'
 import math from 'mathjs'
 
 const initialState = {
@@ -154,8 +154,23 @@ function updatePossibleFilters(possible, resource) {
     // if (resource.metadata.labels && 'app' in resource.metadata.labels) {
     //   possible[`app:${resource.metadata.labels.app}`]=true
     // }
-    if (resource.metadata.annotations && zoneAnnotation in resource.metadata.annotations) {
-      possible[`zone:${resource.metadata.annotations[zoneAnnotation]}`]=true
+    if (resource.metadata.labels) {
+
+      if (zoneLabel in resource.metadata.labels) {
+        possible[`zone:${resource.metadata.labels[zoneLabel]}`]=true
+      }
+      if (regionLabel in resource.metadata.labels) {
+        possible[`zone:${resource.metadata.labels[zoneLabel]}`]=true
+      }
+      if (instanceTypeLabel in resource.metadata.labels) {
+        possible[`instanceType:${resource.metadata.labels[instanceTypeLabel]}`]=true
+      }
+      if (roleLabel in resource.metadata.labels) {
+        possible[`role:${resource.metadata.labels[roleLabel]}`]=true
+      }
+      if (hostnameLabel in resource.metadata.labels) {
+        possible[`hostname:${resource.metadata.labels[hostnameLabel]}`]=true
+      }
     }
   }
 }
