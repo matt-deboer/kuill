@@ -57,7 +57,13 @@ export default class LogFollower {
   onEvent = (event) => {
     let line = new TextDecoder("utf-8").decode(event.data)
     if (!!line) {
-      this.logs.push(`${this.logPrefix}${line}${logSuffix}`)
+      line = this.logPrefix + line
+      if (line.endsWith('\n')) {
+        line = line.slice(0, -1) + logSuffix
+      } else {
+        line += logSuffix
+      }
+      this.logs.push(line)
     }
   }
 

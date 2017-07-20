@@ -12,7 +12,7 @@ import FlatButton from 'material-ui/FlatButton'
 import Popover from 'material-ui/Popover'
 import { connect } from 'react-redux'
 import { selectLogsFor } from '../state/actions/logs'
-// import sizeMe from 'react-sizeme'
+import sizeMe from 'react-sizeme'
 import XTerm from './xterm/XTerm'
 import lcs from 'longest-common-subsequence'
 import './LogViewer.scss'
@@ -76,7 +76,8 @@ const styles = {
 }
 
 // use functional component style for representational components
-export default connect(mapStateToProps, mapDispatchToProps) (
+export default sizeMe({ monitorWidth: true, monitorHeight: true }) (
+connect(mapStateToProps, mapDispatchToProps) (
 class LogViewer extends React.Component {
 
   static propTypes = {
@@ -255,4 +256,4 @@ class LogViewer extends React.Component {
     )
   }
 
-})
+}))
