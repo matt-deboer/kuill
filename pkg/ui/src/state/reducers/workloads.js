@@ -205,6 +205,9 @@ function updatePossibleFilters(possible, resource) {
       possible[`app:${resource.metadata.labels.app}`]=true
     }
     possible[`status:${resource.statusSummary}`]=true
+    if (resource.kind === 'Pod') {
+      possible[`node:${resource.spec.nodeName}`]=true
+    }
   }
 }
 
