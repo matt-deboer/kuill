@@ -180,11 +180,10 @@ class Header extends React.Component {
               badgeStyle={{top: 32, right: 16, height: 18, width: 18, zIndex: 2}}
             >
               <IconButton
-                tooltip="Dashboard Errors" 
                 iconStyle={{height: 36, width: 36}}
-                tooltipPosition={'bottom-left'}
-                tooltipStyles={{marginTop: -40, marginRight: 25}}
                 onTouchTap={this.handleOpen}
+                data-rh={'Dashboard Errors'}
+                data-rh-at={'bottom'}
                 >
                 <IconError />
               </IconButton>
