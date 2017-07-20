@@ -4,6 +4,7 @@ import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../resource-utils'
+import { applyFiltersToResource, splitFilter, zoneAnnotation } from '../../filter-utils'
 import math from 'mathjs'
 
 const initialState = {
@@ -143,14 +144,18 @@ function registerOwned(resources, resource) {
   }
 }
 
+
 function updatePossibleFilters(possible, resource) {
   if (!!possible) {
     if (!!resource.metadata.namespace) {
       possible[`namespace:${resource.metadata.namespace}`]=true
     }
     possible[`kind:${resource.kind}`]=true
-    if (resource.metadata.labels && 'app' in resource.metadata.labels) {
-      possible[`app:${resource.metadata.labels.app}`]=true
+    // if (resource.metadata.labels && 'app' in resource.metadata.labels) {
+    //   possible[`app:${resource.metadata.labels.app}`]=true
+    // }
+    if (resource.metadata.annotations && zoneAnnotation in resource.metadata.annotations) {
+      possible[`zone:${resource.metadata.annotations[zoneAnnotation]}`]=true
     }
   }
 }
@@ -466,50 +471,4 @@ function doRemoveFilter(state, filterName, index) {
     filterNames: filterNames,
     filters: filters
   }, state.resources)
-}
-
-/**
- * Applies the provided filters to the resource, modifying
- * the 'isFiltered' attribute of the resource accordingly
- * 
- * @param {*} filters the filters to apply
- * @param {*} resource the resource to update
- */
-function applyFiltersToResource(filters, resource) {
-  resource.isFiltered = false
-  for (var field in filters) {
-    var values = filters[field]
-    
-    if (field === '*') {
-      let matched = false
-      for (var m in resource.metadata) {
-        if (resource.metadata[m] in values) {
-          matched = true
-          break
-        }
-      }
-      if (!matched && 'labels' in resource.metadata) {
-        for (var label in resource.metadata.labels) {
-          if (resource.metadata.labels[label] in values) {
-            matched = true
-            break
-          }
-        }
-      }
-      resource.isFiltered = !matched
-    } else if ( !(resource.metadata[field] in values)
-    && !(resource[field] in values)
-    && !('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
-      resource.isFiltered = true
-      break
-    }
-  }
-}
-
-function splitFilter(filter) {
-  var parts=filter.split(":")
-  if (parts.length === 1) {
-    parts = ["*", parts[0]]
-  }
-  return parts
 }
