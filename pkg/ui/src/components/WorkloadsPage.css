@@ -1,6 +1,13 @@
 td.resource-actions:hover {
   cursor: pointer; }
 
+table.filter-table.workloads tr {
+  border-bottom: 1px solid rgba(224, 224, 224, 0.25) !important; }
+  table.filter-table.workloads tr.hovered td {
+    background-color: #e6e6e6 !important; }
+  table.filter-table.workloads tr th input:not(:checked) + div svg {
+    fill: rgba(255, 255, 255, 0.9) !important; }
+
 /* generated using http://www.cssarrowplease.com/ */
 .actions-popover:after, .actions-popover:before {
   right: 100%;

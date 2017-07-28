@@ -1,7 +1,7 @@
 import React from 'react'
 import {Link} from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey500, blueA100, red900 } from 'material-ui/styles/colors'
+import {blueA400, grey500, blueA100, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../state/actions/cluster'
@@ -26,7 +26,10 @@ import Paper from 'material-ui/Paper'
 import { arraysEqual } from '../comparators'
 import { resourceStatus as resourceStatusIcons } from './icons'
 import { compareStatuses } from '../resource-utils'
-
+import NodeHeatmap from './dashboard/NodeHeatmap'
+import { hostnameLabel } from '../filter-utils'
+// import BrowserUsage from './dashboard/BrowserUsage'
+// import Data from '../data'
 import KubeKinds from '../kube-kinds'
 import './ClusterPage.css'
 
@@ -37,7 +40,8 @@ const mapStateToProps = function(store) {
     filters: store.cluster.filters,
     filterNames: store.cluster.filterNames,
     possibleFilters: store.cluster.possibleFilters,
-  };
+    resourceRevision: store.cluster.resourceRevision,
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
@@ -84,6 +88,8 @@ const styles = {
   header: {
     fontWeight: 600,
     fontSize: '13px',
+    color: white,
+    fill: white,
   },
   iconButton: {
     float: 'left',
@@ -127,34 +133,17 @@ class ClusterPage extends React.Component {
     }
     this.selectedIds = {}
     this.rows = this.resourcesToRows(props.resources)
+    this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
     this.columns = [
-      {
-        id: 'kind',
-        label: 'kind',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '100px',
-        }
-      },
-      {
-        id: 'name',
-        label: 'name',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: '35%',
-        },
-      },
-      {
-        id: 'namespace',
-        label: 'ns',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: 100,
-        }
-      },
+      // {
+      //   id: 'kind',
+      //   label: 'kind',
+      //   sortable: true,
+      //   headerStyle: styles.header,
+      //   style: { ...styles.cell,
+      //     width: '100px',
+      //   }
+      // },
       {
         id: 'status',
         label: 'status',
@@ -162,9 +151,20 @@ class ClusterPage extends React.Component {
         style: { ...styles.cell,
           width: 48,
           verticalAlign: 'middle',
+          paddingLeft: 15,
         },
         sortable: true,
         comparator: compareStatuses,
+      },
+      {
+        id: 'hostname',
+        label: 'hostname',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '35%',
+          paddingLeft: 20,
+        },
       },
       {
         id: 'age',
@@ -172,18 +172,104 @@ class ClusterPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 100,
+          width: 90,
         }
       },
       {
-        id: 'actions',
-        label: 'actions ',
+        id: 'pods',
+        label: 'pods',
+        sortable: true,
+        isNumeric: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '34px',
-        },
-        className: 'resource-actions',
+          width: 50,
+        }
       },
+      {
+        id: 'containers',
+        label: 'containers',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 60,
+        }
+      },
+      {
+        id: 'cpu_utilized',
+        label: 'cpu used',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: 52,
+          textAlign: 'right',
+        },
+      },
+      {
+        id: 'mem_utilized',
+        label: 'mem used',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: 52,
+          textAlign: 'right',
+        },
+      },
+      {
+        id: 'disk_utilized',
+        label: 'disk used',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: 52,
+          textAlign: 'right',
+        },
+      },
+      {
+        id: 'pad_right',
+        label: '',
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: 16,
+        },
+      },
+      // {
+      //   id: 'namespace',
+      //   label: 'ns',
+      //   sortable: true,
+      //   headerStyle: styles.header,
+      //   style: { ...styles.cell,
+      //     width: 100,
+      //   }
+      // },
+      
+      // {
+      //   id: 'actions',
+      //   label: 'actions ',
+      //   headerStyle: styles.header,
+      //   style: { ...styles.cell,
+      //     width: 55,
+      //   },
+      //   className: 'resource-actions',
+      // },
     ]
   }
 
@@ -197,6 +283,7 @@ class ClusterPage extends React.Component {
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
+      || this.props.resourceRevision !== nextProps.resourceRevision
   }
 
   handleActionsRequestClose = () => {
@@ -257,18 +344,32 @@ class ClusterPage extends React.Component {
 
   componentWillReceiveProps = (nextProps) => {
     this.rows = this.resourcesToRows(nextProps.resources)
+    this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
   }
 
   renderCell = (column, row) => {
     switch(column) {
-      case 'name':
-        return row.metadata.name
+      case 'hostname':
+        return row.metadata.labels[hostnameLabel]
       case 'namespace':
         return row.metadata.namespace
       case 'kind':
         return row.kind
-      case 'actions':
-        return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
+      case 'mem_utilized':
+        return (row.metrics.summary.memory.utilized && 
+          row.metrics.summary.memory.utilized + '%') || ''
+      case 'cpu_utilized':
+        return (row.metrics.summary.cpu.utilized && 
+          row.metrics.summary.cpu.utilized + '%') || ''
+      case 'disk_utilized':
+        return (row.metrics.summary.disk && 
+          row.metrics.summary.disk.utilized + '%') || ''
+      case 'pods':
+        return row.metrics.summary.pods ? row.metrics.summary.pods.usage : ''
+      case 'containers':
+        return row.metrics.summary.containers ? row.metrics.summary.containers.usage : ''
+      // case 'actions':
+      //   return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
       case 'age':
         let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
         return moment.duration(age).humanize()
@@ -283,10 +384,18 @@ class ClusterPage extends React.Component {
     switch(column) {
       case 'id':
         return row.key
-      case 'name':
-        return row.metadata.name
-      case 'namespace':
-        return row.metadata.namespace
+      case 'hostname':
+        return row.metadata.labels[hostnameLabel]
+      case 'mem_utilized':
+        return row.metrics.summary.memory.utilized || 0
+      case 'cpu_utilized':
+        return row.metrics.summary.cpu.utilized || 0
+      case 'disk_utilized':
+        return row.metrics.summary.disk.utilized || 0
+      case 'pods':
+        return row.metrics.summary.pods ? row.metrics.summary.pods.usage : -1
+      case 'containers':
+        return row.metrics.summary.containers ? row.metrics.summary.containers.usage : -1
       case 'kind':
         return row.kind
       case 'age':
@@ -298,6 +407,10 @@ class ClusterPage extends React.Component {
     }
   }
 
+// selectedIds={this.selectedIds}
+// onRowSelection={this.handleRowSelection.bind(this)}
+// multiSelectable={true}
+
   render() {
     let { props } = this
 
@@ -305,22 +418,29 @@ class ClusterPage extends React.Component {
     <div>
       <Paper style={styles.paper}>
         
+        {/* <BrowserUsage data={Data.dashBoardPage.browserUsage}/> */}
+        
+        <NodeHeatmap nodes={this.nodes} resourceRevision={props.resourceRevision}/>
+
         {renderFilters(props)}
 
         <FilterTable
           className={'cluster'}
           columns={this.columns}
           data={this.rows}
-          height={`${window.innerHeight - 290}px`}
-          multiSelectable={true}
-          onRowSelection={this.handleRowSelection.bind(this)}
+          height={'calc(100vh - 430px)'}
+          displayRowCheckbox={false}
           onCellClick={this.handleCellClick.bind(this)}
           hoveredRow={this.state.hoveredRow}
           onRenderCell={this.renderCell}
           getCellValue={this.getCellValue}
-          selectedIds={this.selectedIds}
           stripedRows={false}
-          width={'calc(100vw - 130px)'}
+          iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
+          iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
+          width={'calc(100vw - 60px)'}
+          revision={props.resourceRevision}
+          wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
+          headerStyle={{backgroundColor: 'rgba(21, 61, 128, 0.5)', color: 'white'}}
           />
 
         {this.state.hoveredResource &&
@@ -358,7 +478,7 @@ class ClusterPage extends React.Component {
           </FloatingActionButton >
         </Popover>
         }
-        <Link to="/cluster/new" >
+        {/* <Link to="/cluster/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
           </FloatingActionButton>
@@ -369,7 +489,7 @@ class ClusterPage extends React.Component {
           style={styles.deleteResourceButton} 
           disabled={Object.keys(this.selectedIds).length === 0}
           onTouchTap={this.handleDelete}
-          ref={(ref)=>{this.deleteButton = ref}}/>
+          ref={(ref)=>{this.deleteButton = ref}}/> */}
 
       </Paper>
     </div>

@@ -116,7 +116,6 @@ class Header extends React.Component {
         fontSize: 18,
         fontWeight: 600,
       },
-      
       menuButtonLabel: {
         textTransform: 'none',
         color: grey300,

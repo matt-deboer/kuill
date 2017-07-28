@@ -7,9 +7,9 @@ import Sortable from 'material-ui/svg-icons/action/swap-vert';
 import IconButton from 'material-ui/IconButton';
 
 const orderIcons = {
-  '': <Sortable style={{fill: 'rgba(0,0,0,0.25)', height: '20px'}}/>,
-  'asc': <SortAsc style={{height: '20px'}}/>,
-  'desc': <SortDesc style={{height: '20px'}}/>,
+  '': <Sortable style={{fill: 'inherit', height: '20px'}}/>,
+  'asc': <SortAsc style={{fill: 'inherit', height: '20px'}}/>,
+  'desc': <SortDesc style={{fill: 'inherit', height: '20px'}}/>,
 }
 
 export default class TableSortLabel extends React.Component {
@@ -102,10 +102,10 @@ export default class TableSortLabel extends React.Component {
 
     let { props } = this;
     
-    let iconStyle = styles.icon
+    let iconStyle = {...styles.icon, ...props.iconStyle}
     if (props.sortable) {
       if (!props.active) {
-        iconStyle = {...iconStyle, ...styles.inactiveIcon}
+        iconStyle = {...iconStyle, ...styles.inactiveIcon, ...props.iconInactiveStyle}
       }
     } else {
       iconStyle = {...styles.icon, ...styles.unsortableIcon}

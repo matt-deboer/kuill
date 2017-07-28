@@ -163,7 +163,7 @@ export function statusForResource(resource) {
                 return 'ok'
             } else if (!resource.status.readyReplicas && resource.spec.replicas === 0) {
                 return 'disabled'
-            } else if (resource.status.readyReplicas < resource.spec.replicas) {
+            } else if ((resource.status.readyReplicas || 0) < resource.spec.replicas) {
                 return 'scaling up'
             } else if (resource.status.readyReplicas > resource.spec.replicas) {
                 return 'scaling down'

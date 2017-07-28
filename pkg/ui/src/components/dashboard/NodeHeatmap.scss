@@ -1,0 +1,158 @@
+$le-10: rgb(93, 188, 247);
+$le-35: rgb(64, 152, 229);
+$le-50: rgb(42, 134, 214);
+$le-75: rgb(37, 111, 209);
+$le-90: rgb(28, 87, 191);
+$le-100: rgb(6, 65, 168);
+
+// $le-10: rgb(153, 40, 226);
+// $le-35: rgb(94, 42, 222);
+// $le-50: rgb(44, 50, 219);
+// $le-75: rgb(41, 121, 255);
+// $le-90: rgb(22, 120, 165);
+// $le-100: rgb(19, 150, 148);
+
+.node-heatmap {
+  svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .hex {
+    stroke: rgba(240,240,240,0.2);
+    stroke-width: 2;
+    fill: rgba(21, 61, 128, 0.5);
+
+    &.filtered {
+      fill: rgba(21, 61, 128, 0.1);
+    }
+    transition: fill 1s cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  }
+ 
+  &.by-mem .hex.mem-usage-le-10,
+  &.by-cpu .hex.cpu-usage-le-10,
+  &.by-disk .hex.disk-usage-le-10,
+  &.by-net .hex.net-usage-le-10,
+  .usage-le-10 {
+    fill: $le-10;
+    background-color: $le-10;
+  }
+  &.by-mem .hex.mem-usage-le-35,
+  &.by-cpu .hex.cpu-usage-le-35,
+  &.by-disk .hex.disk-usage-le-35,
+  &.by-net .hex.net-usage-le-35,
+  .usage-le-35 {
+    fill: $le-35;
+    background-color: $le-35;
+  }
+  &.by-mem .hex.mem-usage-le-50,
+  &.by-cpu .hex.cpu-usage-le-50,
+  &.by-disk .hex.disk-usage-le-50,
+  &.by-net .hex.net-usage-le-50,
+  .usage-le-50 {
+    fill: $le-50;
+    background-color: $le-50;
+  }
+  &.by-mem .hex.mem-usage-le-75,
+  &.by-cpu .hex.cpu-usage-le-75,
+  &.by-disk .hex.disk-usage-le-75,
+  &.by-net .hex.net-usage-le-75,
+  .usage-le-75 {
+    fill: $le-75;
+    background-color: $le-75;
+  }
+  &.by-mem .hex.mem-usage-le-90,
+  &.by-cpu .hex.cpu-usage-le-90,
+  &.by-disk .hex.disk-usage-le-90,
+  &.by-net .hex.net-usage-le-90,
+  .usage-le-90 {
+    fill: $le-90;
+    background-color: $le-90;
+  }
+  &.by-mem .hex.mem-usage-le-100,
+  &.by-cpu .hex.cpu-usage-le-100,
+  &.by-disk .hex.disk-usage-le-100,
+  &.by-net .hex.net-usage-le-100,
+  .usage-le-100 {
+    fill: $le-100;
+    background-color: $le-100;
+  }
+
+}
+
+.node-heatmap {
+  position: relative;
+  text-align: center;
+  .legend {
+    bottom: 0;
+    height: 10px;
+    width: 200px;
+    margin: 0 auto;
+    display: inline-block;
+    .usage {
+      width: 30px;
+      height: 10px;
+      display: inline-block;
+      color: rgba(255,255,255,0.8);
+      font-size: 9px;
+      text-align: center;
+      line-height: 10px;
+    }
+  }
+}
+.utilization {
+  .selector {
+    height: 0px;
+    margin-top: -10px;
+    background-color: #757575;
+    bottom: 0;
+    width: 360px;
+    margin: 5px auto 0 auto;
+    display: block;
+    border: 1px solid #757575;
+    position: relative;
+    
+    &:before, 
+    &:after {
+      transition: left 1s cubic-bezier(0.23, 1, 0.32, 1) 0ms
+    }
+  }
+
+  &.by-cpu .selector:after,
+  &.by-cpu .selector:before {
+    left: 18%;
+  }
+
+  &.by-mem .selector:after,
+  &.by-mem .selector:before {
+    left: 50%;
+  }
+
+  &.by-disk .selector:after,
+  &.by-disk .selector:before {
+    left: 82%;
+  }
+
+  .selector:after, .selector:before {
+    bottom: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .selector:after {
+    border-color: rgba(117, 117, 117, 0);
+    border-bottom-color: #757575;
+    border-width: 8px;
+    margin-left: -8px;
+  }
+  .selector:before {
+    border-color: rgba(117, 117, 117, 0);
+    border-bottom-color: #757575;
+    border-width: 9px;
+    margin-left: -9px;
+  }
+}

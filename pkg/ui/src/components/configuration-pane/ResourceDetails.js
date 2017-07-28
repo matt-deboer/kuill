@@ -1,13 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { linkForResource } from '../../routes'
-import * as moment from 'moment'
-
-function toHumanizedAge(timestamp) {
-  let age = Date.now() - Date.parse(timestamp)
-  let humanized = moment.duration(age).humanize()
-  return humanized.replace("a few ", "")
-}
+import { toHumanizedAge } from '../../converters'
 
 let kinds = {
   Deployment: {
@@ -17,7 +11,7 @@ let kinds = {
           (status.readyReplicas ? status.readyReplicas + ' ready, ':'') +
           (status.updatedReplicas ? status.updatedReplicas + ' updated, ':'') +
           (status.unavailableReplicas ? status.unavailableReplicas + ' unavailable, ':'') +
-          status.replicas + ' desired'],
+          (status.replicas || 0) + ' desired'],
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
         ['Update Strategy:', spec.strategy.type],
       ]
@@ -26,7 +20,7 @@ let kinds = {
   DaemonSet: {
     getData: ({status, spec, metadata }) => {
       return [
-        ['Instances',`${status.desiredNumberScheduled} desired, ${status.currentNumberScheduled} scheduled, 
+        ['Instances',`${status.desiredNumberScheduled || 0} desired, ${status.currentNumberScheduled} scheduled, 
           ${status.numberAvailable} available, ${status.numberReady} ready, 
           ${status.updatedNumberScheduled} updated, ${status.numberMisscheduled} misscheduled`],
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
@@ -38,7 +32,7 @@ let kinds = {
   StatefulSet: {
     getData: ({status, spec, metadata}) => {
       return [
-        ['Replicas',`${status.replicas} current, ${spec.replicas} desired`],
+        ['Replicas',`${status.replicas || 0} current, ${spec.replicas || 0} desired`],
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
       ]
     },
@@ -101,9 +95,20 @@ let kinds = {
   },
   Ingress: {
     getData: ({status, spec, metadata }) => {
+      let lbs = []
+      if (status.loadBalancer.ingress && status.loadBalancer.ingress.length) {
+        for (let ig of status.loadBalancer.ingress) {
+          if (ig.hostname) {
+            lbs.push(ig.hostname)
+          } else if (ig.ip) {
+            lbs.push(ig.ip)
+          }
+        }
+      }
       return [
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
         ['Rules:', spec.rules],
+        ['Load Balancers:', lbs.length > 0 ? lbs.join(', ') : '< none >'],
       ]
     },
   },

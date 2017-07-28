@@ -36,6 +36,11 @@ export default class FilterTable extends React.PureComponent {
     selectedIds: PropTypes.object,
     hoveredRow: PropTypes.number,
     getCellValue: PropTypes.func,
+    /**
+     * An optional value that can be used to control when the table should update;
+     * the table will re-render whenever this value has changed.
+     */
+    revision: PropTypes.string,
   }
 
   static defaultProps = {
@@ -54,6 +59,7 @@ export default class FilterTable extends React.PureComponent {
     onCellClick: function(){},
     onRowSelection: function(){},
     hoveredRow: -1,
+    revision: 1,
   }
 
   constructor(props) {
@@ -91,7 +97,8 @@ export default class FilterTable extends React.PureComponent {
   }
 
   propsChanged = (nextProps) => {
-    return nextProps.width !== this.props.width
+    return nextProps.revision !== this.props.revision 
+      || nextProps.width !== this.props.width
       || nextProps.height !== this.props.height
       || nextProps.idColumn !== this.props.idColumn
       || nextProps.showRowHover !== this.props.showRowHover
@@ -182,24 +189,34 @@ export default class FilterTable extends React.PureComponent {
             onRequestSort={this.createSortHandler(col.id)}
             active={this.state.orderBy === col.id}
             sortable={!!col.sortable}
+            iconStyle={props.iconStyle}
+            iconInactiveStyle={props.iconInactiveStyle}
         />)
 
     let dataRows =
         this.state.data.map((row, rowIndex) => {
           let id = props.getCellValue(props.idColumn, row)
-          return <TableRow key={id} hovered={props.hoveredRow === rowIndex} selected={id in props.selectedIds}>
-              {props.columns.map(col =>
-                <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className}>
-                  {props.onRenderCell(col.id,row)}
-                </TableRowColumn>
-              )}
+          return (
+            <TableRow key={id} 
+              hovered={props.hoveredRow === rowIndex} 
+              selected={id in props.selectedIds}
+              className={(props.hoveredRow === rowIndex ? 'hovered' : '')}
+              >
+                {props.columns.map(col =>
+                  <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className}>
+                    {props.onRenderCell(col.id,row)}
+                  </TableRowColumn>
+                )}
             </TableRow>
+          )
         })
 
     return (
       <Table 
-        headerStyle={{width: props.width}}
-        bodyStyle={{width: props.width}}
+        style={{...props.style}}
+        wrapperStyle={{...props.wrapperStyle}}
+        headerStyle={{...props.headerStyle, width: props.width}}
+        bodyStyle={{...props.bodyStyle, width: props.width}}
         className={className('filter-table', props.className)}
         fixedHeader={props.fixedHeader}
         height={props.height}
@@ -207,7 +224,7 @@ export default class FilterTable extends React.PureComponent {
         onRowSelection={this.handleRowSelection.bind(this)}
         onCellClick={this.handleCellClick}
         >
-        <TableHeader displaySelectAll={props.displaySelectAll} adjustForCheckbox={props.adjustForCheckbox} style={{width: 'inherit'}}>
+        <TableHeader displaySelectAll={props.displaySelectAll && props.displayRowCheckbox} adjustForCheckbox={props.adjustForCheckbox && props.displayRowCheckbox} style={{...props.headerStyle, width: 'inherit'}}>
           <TableRow>{headerColumns}</TableRow>
         </TableHeader>
         <TableBody 

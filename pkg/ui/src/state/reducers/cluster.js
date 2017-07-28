@@ -31,11 +31,15 @@ const initialState = {
   memory: 0,
   memoryUnits: '',
   nodes: 0,
+  clusterMetrics: null,
   // the maximum resourceVersion value seen across all resource fetches
   // this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
   // as the fetches for different resource kinds occur independently
   maxResourceVersion: 0,
+  // a value used internally to handle fast notification of when the
+  // resources have changed in a way such that they should be re-rendered
+  resourceRevision: 0,
 }
 
 export default (state = initialState, action) => {
@@ -71,6 +75,9 @@ export default (state = initialState, action) => {
 
     case types.SELECT_RESOURCE:
       return doSelectResource(state, action.namespace, action.kind, action.name)
+
+    case types.PUT_METRICS:
+      return doReceiveMetrics(state, action.metrics)  
 
     case types.RECEIVE_RESOURCE_CONTENTS:
       return doReceiveResourceContents(state, action.resource, action.contents, action.error)
@@ -317,12 +324,20 @@ function visitResources(resources, ...visitors) {
 
 function updateComputeResources(state, resource) {
   if (resource.kind === 'Node') {
-    state.cores += parseInt(resource.status.allocatable.cpu, 10)
-    if (state.memory === 0) {
-      state.memory = math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes').replace('Gi','gibibytes'))
-    } else {
-      state.memory = math.add(math.unit(state.memory), math.unit(resource.status.allocatable.memory.replace('Ki','kibibytes').replace('Gi','gibibytes')))
+    if (!resource.metrics) {
+      resource.metrics = {summary: {cpu: {}, memory: {}}}
     }
+    resource.metrics.summary.cpu.total = parseInt(resource.status.allocatable.cpu, 10)
+    resource.metrics.summary.memory.total = 
+        math.unit(resource.status.allocatable.memory.replace('Ki',' kibibytes').replace('Gi',' gibibytes'))
+
+    state.cores += resource.metrics.summary.cpu.total
+    if (state.memory === 0) {
+      state.memory = resource.metrics.summary.memory.total
+    } else {
+      state.memory = math.add(state.memory, resource.metrics.summary.memory.total)
+    }
+    resource.metrics.summary.memory.total = resource.metrics.summary.memory.total.toNumber('bytes')
     ++state.nodes
   }
 }
@@ -486,4 +501,61 @@ function doRemoveFilter(state, filterName, index) {
     filterNames: filterNames,
     filters: filters
   }, state.resources)
+}
+
+function doReceiveMetrics(state, metrics) {
+  if (!!metrics) {
+    let newState = {...state}
+    let nodesByName = {}
+    for (let key in newState.resources) {
+      if (key.startsWith("Node/")) {
+        let node = newState.resources[key]
+        nodesByName[node.metadata.name] = node
+      }
+    }
+    for (let metric in metrics) {
+        let m = metrics[metric].node
+        if (metric.startsWith('Node:')) {
+          let node = nodesByName[metric.substr(5)]
+          let nm = node.metrics = node.metrics || {}
+          nm.summary = nm.summary || {}
+          nm.summary.cpu = nm.summary.cpu || {}
+          nm.summary.memory = nm.summary.memory || {}
+          nm.summary.disk = nm.summary.disk || {}
+          nm.summary.inodes = nm.summary.inodes || {}
+          nm.summary.pods = nm.summary.pods || {}
+          nm.summary.containers = nm.summary.containers || {}
+
+          nm.summary.cpu.usage = (m.cpu.usageNanoCores / 1000000)
+          nm.summary.memory.usage = m.memory.usageBytes
+          nm.summary.disk.usage = m.fs.usedBytes
+          nm.summary.disk.total = m.fs.capacityBytes
+          nm.summary.inodes.usage = m.fs.inodesUsed
+          nm.summary.inodes.total = m.fs.inodes
+          nm.summary.pods.usage = metrics[metric].pods.length
+          nm.summary.containers.usage = 0
+          for (let p of metrics[metric].pods) {
+            nm.summary.containers.usage += p.containers.length
+          }
+
+          nm.summary.cpu.utilized =
+              Math.round( nm.summary.cpu.usage / (nm.summary.cpu.total * 10))
+          nm.summary.memory.utilized =
+              Math.round(100 * nm.summary.memory.usage /  nm.summary.memory.total)
+          nm.summary.disk.utilized = Math.round(100 * nm.summary.disk.usage / nm.summary.disk.total)
+          nm.summary.inodes.utilized = Math.round(100 * nm.summary.inodes.usage / nm.summary.inodes.total)
+        } else if (metric === 'Cluster') {
+          
+          newState.clusterMetrics = {}
+          let s = newState.clusterMetrics.summary = {}
+          s.cpu = {}
+          s.memory = {}
+          s.cpu.usage = (m.cpu.usageNanoCores / 1000)
+          s.memory.usage = m.memory.usageBytes
+        }
+    }
+    ++newState.resourceRevision
+    return newState
+  }
+  return state
 }
