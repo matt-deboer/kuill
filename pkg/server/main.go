@@ -13,6 +13,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/kapow/pkg/auth"
+	"github.com/matt-deboer/kapow/pkg/metrics"
 	"github.com/matt-deboer/kapow/pkg/proxy"
 	"github.com/matt-deboer/kapow/pkg/templates"
 	"github.com/matt-deboer/kapow/pkg/version"
@@ -178,6 +179,11 @@ func main() {
 			Usage:  "The path containing a set of *.json and/or *.yml/*.yaml files that are used to initialize the editor for a new resource",
 			EnvVar: envBase + "TEMPLATES_PATH",
 		},
+		cli.StringFlag{
+			Name:   "kubeconfig",
+			Usage:  "The path to the kubeconfig file; defaults to using in-cluster config",
+			EnvVar: envBase + "KUBECONFIG",
+		},
 		cli.BoolFlag{
 			Name:   "verbose, V",
 			Usage:  "Log extra information about steps taken",
@@ -198,6 +204,7 @@ func main() {
 		setupAuthenticators(c, authManager)
 		setupProxy(c, authManager)
 		setupTemplates(c)
+		setupMetrics(c, authManager)
 
 		http.HandleFunc("/", serveUI)
 
@@ -346,6 +353,15 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 		http.HandleFunc("/proxy/", authManager.NewAuthDelegate(apiProxy.ProxyRequest))
 	} else {
 		log.Warnf("Kubernetes proxy is not enabled; %s", err)
+	}
+}
+
+func setupMetrics(c *cli.Context, authManager *auth.Manager) {
+	provider, err := metrics.NewMetricsProvider(c.String("kubeconfig"))
+	if err != nil {
+		log.Errorf("Failed to configure metrics adapter: %v", err)
+	} else {
+		http.HandleFunc("/metrics", authManager.NewAuthDelegate(provider.GetMetrics))
 	}
 }
 
