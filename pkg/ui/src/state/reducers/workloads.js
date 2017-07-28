@@ -48,6 +48,9 @@ const initialState = {
   // TODO: we may need to store this on a per-resource basis, 
   // as the fetches for different resource kinds occur independently
   maxResourceVersionByKind: {},
+  // a value used internally to handle fast notification of when the
+  // resources have changed in a way such that they should be re-rendered
+  resourceRevision: 0,
 }
 
 export default (state = initialState, action) => {
@@ -247,6 +250,12 @@ function doUpdateResource(state, resource, isNew) {
         parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
   }
+
+  let prevResource = state.resources[resource.key]
+  if (isNew || resource.kind !== 'Endpoints') {
+    ++newState.resourceRevision
+  }
+
   return doFilterResource(newState, resource)
 }
 
@@ -373,7 +382,7 @@ function doReceiveResources(state, resources) {
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
   }
-
+  ++newState.resourceRevision
   return newState
 }
 
@@ -392,7 +401,6 @@ function visitResources(resources, ...visitors) {
     }
   }
 }
-
 
 function doReceiveResourceContents(state, resource, contents, error) {
   if (contents && state.editor.format) {

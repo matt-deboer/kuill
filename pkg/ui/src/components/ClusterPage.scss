@@ -3,3 +3,17 @@ td.resource-actions {
     cursor: pointer;
   }
 }
+
+table.filter-table.cluster {
+  tr {
+		border-bottom: 1px solid rgba(224, 224, 224,0.25) !important;
+
+    th {
+      input:not(:checked) + div {
+        svg {
+          fill: rgba(255,255,255,0.9) !important;
+        }
+      }
+    }
+  }
+}

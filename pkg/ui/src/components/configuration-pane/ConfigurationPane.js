@@ -116,7 +116,7 @@ class ConfigurationPane extends React.Component {
 
           {resource.data &&
             <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-              <DataPanel data={resource.data} title={'data'}/>
+              <DataPanel data={resource.data} decodeBase64={(resource.kind === 'Secret')} title={'data'}/>
             </div>
           }
 

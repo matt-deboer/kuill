@@ -6,6 +6,7 @@ let kinds = {
       plural: 'deployments',
       hasLogs: true,
       hasTerminal: true,
+      hasScale: true,
       image: 'deployment.png',
       abbrev: 'De',
     },
@@ -23,6 +24,7 @@ let kinds = {
       abbrev: 'Ss',
       hasLogs: true,
       hasTerminal: true,
+      hasScale: true,
     },
     ReplicaSet: {
       base: 'apis/extensions/v1beta1',
@@ -31,6 +33,7 @@ let kinds = {
       abbrev: 'Rs',
       hasLogs: true,
       hasTerminal: true,
+      hasScale: true,
     },
     ReplicationController: {
       base: 'api/v1',
@@ -39,6 +42,7 @@ let kinds = {
       abbrev: 'Rc',
       hasLogs: true,
       hasTerminal: true,
+      hasScale: true,
     },
     Job: {
       base: 'apis/batch/v1',

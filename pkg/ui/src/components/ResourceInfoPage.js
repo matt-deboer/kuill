@@ -3,7 +3,7 @@ import {blueA400, grey600, grey700, blueA100} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import sizeMe from 'react-sizeme'
 import { routerActions } from 'react-router-redux'
-import { editResource, removeResource } from '../state/actions/workloads'
+import { editResource, removeResource, scaleResource } from '../state/actions/workloads'
 
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
@@ -20,6 +20,8 @@ import IconEvents from 'material-ui/svg-icons/action/event'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
+import IconScale from 'material-ui/svg-icons/communication/import-export'
+import IconSuspend from 'material-ui/svg-icons/content/block'
 
 import FilterChip from './FilterChip'
 
@@ -38,6 +40,9 @@ import KindAbbreviation from './KindAbbreviation'
 import queryString from 'query-string'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
+
+import ConfirmationDialog from './ConfirmationDialog'
+import ScaleDialog from './ScaleDialog'
 
 import './ResourceInfoPage.css'
 
@@ -88,6 +93,13 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         hash: location.hash,
       }))
     },
+    scaleResource: function(resource, replicas) {
+      dispatch(scaleResource(
+        resource.metadata.namespace,
+        resource.kind,
+        resource.metadata.name,
+        replicas))
+    }
   }
 }
 
@@ -125,6 +137,9 @@ class ResourceInfoPage extends React.Component {
     super(props);
     this.state = {
       actionsOpen: false,
+      deleteOpen: false,
+      scaleOpen: false,
+      suspendOpen: false,
       editing: false,
     }
     this.kubeKind = !!props.resource && KubeKinds[props.resourceGroup][props.resource.kind]
@@ -135,6 +150,9 @@ class ResourceInfoPage extends React.Component {
     event.preventDefault();
     this.setState({
       actionsOpen: true,
+      deleteOpen: false,
+      scaleOpen: false,
+      suspendOpen: false,
       actionsAnchor: event.currentTarget,
     })
   }
@@ -147,6 +165,68 @@ class ResourceInfoPage extends React.Component {
 
   handleFilterLabelTouchTap = (filters) => {
     this.props.viewFilters(filters)
+  }
+
+  handleRequestCloseDelete = () => {
+    this.setState({
+      deleteOpen: false,
+    })
+  }
+
+  handleDelete = () => {
+    this.setState({
+      deleteOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleConfirmDelete = () => {
+    this.setState({
+      deleteOpen: false,
+    })
+    this.props.removeResource(this.props.resource)
+  }
+
+  handleScale = () => {
+    this.setState({
+      scaleOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleRequestCloseScale = () => {
+    this.setState({
+      scaleOpen: false,
+    })
+  }
+
+  handleConfirmScale = (replicas) => {
+    this.setState({
+      scaleOpen: false,
+    })
+    if (replicas !== undefined) {
+      this.props.scaleResource(this.props.resource, replicas)
+    }
+  }
+
+  handleSuspend = () => {
+    this.setState({
+      suspendOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleRequestCloseSuspend = () => {
+    this.setState({
+      suspendOpen: false,
+    })
+  }
+
+  handleConfirmSuspend = () => {
+    this.setState({
+      suspendOpen: false,
+    })
+    this.props.scaleResource(this.props.resource, 0)
   }
 
   componentDidUpdate = () => {
@@ -251,19 +331,35 @@ class ResourceInfoPage extends React.Component {
               targetOrigin={{horizontal: 'right', vertical: 'top'}}
             >
               <Menu desktop={true}>
-                <MenuItem primaryText="Edit" 
-                  onTouchTap={() => {
-                    this.props.selectView('edit')
-                    this.setState({actionsOpen: false})
-                  }}
-                  leftIcon={<IconEdit/>}
-                  />
+                {(!('editable' in this.kubeKind) || !!this.kubeKind.editable) &&
+                  <MenuItem primaryText="Edit" 
+                    onTouchTap={() => {
+                      this.props.selectView('edit')
+                      this.setState({actionsOpen: false})
+                    }}
+                    leftIcon={<IconEdit/>}
+                    />
+                }
+                
+                {(this.props.resource.spec.replicas > 0) &&
+                  <MenuItem primaryText="Suspend"
+                    leftIcon={<IconSuspend/>}
+                    onTouchTap={this.handleSuspend}
+                    />
+                }
+
+                {(this.props.resource.spec.replicas > -1) &&
+                  <MenuItem primaryText="Scale"
+                    leftIcon={<IconScale/>}
+                    onTouchTap={this.handleScale}
+                    />
+                }
+
                 <MenuItem primaryText="Delete" 
                   leftIcon={<IconDelete/>}
-                  onTouchTap={() => {
-                    this.props.removeResource(this.props.resource, this.props.filterNames)
-                  }}
+                  onTouchTap={this.handleDelete}
                   />
+
               </Menu>
             </Popover>
             <div style={{top: 85, left: 32, position: 'absolute'}}>{resourceStatusIcons[resource.statusSummary]}</div>
@@ -294,6 +390,32 @@ class ResourceInfoPage extends React.Component {
             )}
           </Tabs>
         </Card>
+
+        <ConfirmationDialog 
+          open={this.state.deleteOpen}
+          title={'Delete Resource(s):'}
+          message={`Are you sure you want to delete the following resource?`}
+          resources={[this.props.resource]}
+          onRequestClose={this.handleRequestCloseDelete}
+          onConfirm={this.handleConfirmDelete}
+          />
+       
+        <ConfirmationDialog 
+          open={this.state.suspendOpen}
+          title={'Suspend Resource(s):'}
+          message={`Are you sure you want to suspend the following resource (by scaling to 0 replicas)?`}
+          resources={[this.props.resource]}
+          onRequestClose={this.handleRequestCloseSuspend}
+          onConfirm={this.handleConfirmSuspend}
+          />
+
+        <ScaleDialog 
+          open={this.state.scaleOpen}
+          resource={this.props.resource}
+          onRequestClose={this.handleRequestCloseScale}
+          onConfirm={this.handleConfirmScale}
+          />
+
       </div>
     )
   }

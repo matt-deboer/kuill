@@ -193,6 +193,41 @@ export function setFilterNames(filterNames) {
 }
 
 /**
+ * Scales a resource to the desired number of replicas
+ * 
+ * @param {String} namespace 
+ * @param {String} kind 
+ * @param {String} name 
+ * @param {Object} contents 
+ */
+export function scaleResource(namespace, kind, name, replicas) {
+  return async function (dispatch, getState) {
+      
+      await doRequest(dispatch, getState, async () => {
+        await fetchResourceContents(dispatch, getState, namespace, kind, name)
+      })
+
+      let { contents } = getState().workloads.editor 
+      if (contents) {
+        let resource = createPost(contents)
+        if (resource.spec && 'replicas' in resource.spec) {
+          resource.spec.replicas = (typeof replicas === 'string' ? parseInt(replicas, 10) : replicas)
+          doRequest(dispatch, getState, async () => {
+            await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
+          })
+        }
+      }
+
+      
+      // dispatch(routerActions.push({
+      //   pathname: linkForResource({name: name, namespace: namespace, kind: kind}).split('?')[0],
+      //   search: '?view=events',
+      //   hash: '',
+      // }))
+  }
+}
+
+/**
  * Called by editors to send updated resource contents
  * 
  * @param {String} namespace 
@@ -205,6 +240,7 @@ export function applyResourceChanges(namespace, kind, name, contents) {
       doRequest(dispatch, getState, async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
+      // TODO: should we really be controlling routing here?
       dispatch(routerActions.push({
         pathname: linkForResource({name: name, namespace: namespace, kind: kind}).split('?')[0],
         search: '?view=events',
@@ -639,7 +675,7 @@ function removeReadOnlyFields(resource) {
  * @param {String} contents 
  */
 function createPatch(resource, contents) {
-  let patch = yaml.safeLoad(contents)
+  let patch = (typeof contents === 'string' ? yaml.safeLoad(contents) : contents)
   patch.spec.$patch = 'replace'
   patch.metadata.$patch = 'replace'
   delete patch.kind
@@ -698,7 +734,6 @@ export function clearEditor() {
     type: types.RECEIVE_RESOURCE_CONTENTS,
   }
 }
-
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {

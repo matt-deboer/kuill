@@ -27,6 +27,7 @@ for (let type of [
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
+  'PUT_METRICS',
 ]) {
   types[type] = `cluster.${type}`
 }
@@ -234,6 +235,17 @@ export function requestResource(namespace, kind, name) {
   }
 }
 
+/**
+ * Request metrics
+ */
+export function requestMetrics() {
+  return async function (dispatch, getState) {
+    doFetch(dispatch, getState, async () => {
+      await fetchMetrics(dispatch, getState)
+    })
+  }
+}
+
 function shouldFetchResources(getState) {
   let state = getState()
   let { isFetching, resources } = state.cluster
@@ -294,6 +306,7 @@ async function fetchResources(dispatch, getState) {
 
     dispatch(replaceAll(resources))
     dispatch(watchEvents(resources))
+    await fetchMetrics(dispatch, getState)
     watchResources(dispatch, getState)
   }
 }
@@ -404,6 +417,21 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
     // dispatch(putResource(resource))
     dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
     dispatch(receiveResource(resource, resource))
+  })
+}
+
+async function fetchMetrics(dispatch, getState) {
+  await fetch('/metrics', defaultFetchParams)
+    .then(resp => {
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        dispatch(invalidateSession())
+      }
+    } else {
+      return resp.json()
+    }
+  }).then(metrics => {
+    dispatch({ type: types.PUT_METRICS, metrics: metrics })
   })
 }
 
