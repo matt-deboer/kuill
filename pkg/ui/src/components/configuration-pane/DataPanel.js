@@ -1,5 +1,6 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
+import { grey100, grey600 } from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
@@ -8,9 +9,11 @@ import {
 } from 'material-ui/Table'
 import IconButton from 'material-ui/IconButton'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
+import IconCopy from 'material-ui/svg-icons/content/content-copy'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 import Subheader from 'material-ui/Subheader'
+import { decodeBase64 } from '../../converters'
 
 const rowHeight = 28
 const styles = {
@@ -26,7 +29,6 @@ const styles = {
   cardHeaderTitle: {
     color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    // fontStyle: 'italic',
     fontSize: '18px',
   },
   tableRowKey: {
@@ -36,14 +38,12 @@ const styles = {
     whiteSpace: 'normal',
     width: '40%',
     borderRight: '1px solid rgba(0,0,0,0.1)',
-    // fontSize: '12px',
   },
   tableRowVal: {
     height: rowHeight,
     padding: 10,
     wordWrap: 'break-word',
     whiteSpace: 'normal',
-    // fontSize: '12px',
   },
   popover: {
     border: '1px solid rgba(0,0,0,0.3)',
@@ -63,6 +63,20 @@ const styles = {
     marginTop: -22,
     marginBottom: 10,
     width: 'auto',
+  },
+  copyButton: {
+    height: 24,
+    lineHeight: '22px',
+    float: 'right',
+    margin: 3,
+    position: 'absolute',
+    top: 0,
+    right: 12,
+    textTransform: 'none',
+  },
+  copyButtonLabel: {
+    textTransform: 'none',
+    color: grey100,
   }
 }
 
@@ -72,7 +86,7 @@ export default class DataPanel extends React.Component {
     super(props)
     this.state = {
       open: false,
-      annotationText: '',
+      text: '',
     }
   }
 
@@ -91,8 +105,8 @@ export default class DataPanel extends React.Component {
   handleRequestClose = () => {
     this.setState({
       open: false,
-      annotationText: '',
-      annotationName: '',
+      text: '',
+      name: '',
     })
   }
 
@@ -104,7 +118,7 @@ export default class DataPanel extends React.Component {
     for (let key in data) {
       let value = data[key]
       let display = value
-      if (value.length > 50) {
+      if (value.length > 50 || props.decodeBase64) {
         display = (
           <div style={{
             textOverflow: 'ellipsis', 
@@ -117,6 +131,7 @@ export default class DataPanel extends React.Component {
             <IconButton 
               style={{position: 'absolute', right: 0, top: 0, padding: 0, height: 24, width: 24}} 
               onTouchTap={this.handleTouchTap}
+              data-rh={'View...'}
               data-name={key}
               data-text={value}
               >
@@ -152,12 +167,21 @@ export default class DataPanel extends React.Component {
             }}
             zDepth={3}>
             <Subheader style={styles.popoverTitle}>{this.state.name}</Subheader>
+            {/* <IconButton
+              label="copy"
+              labelStyle={styles.copyButtonLabel}
+              style={styles.copyButton}
+              iconStyle={{height: 16, width: 16}}
+              >
+                <IconCopy />
+              </IconButton>
+             */}
             <div style={{
               overflow: 'auto',
               maxHeight: `${window.innerHeight - 300}px`,
             }}>
               <pre>
-                {safePrettyPrint(this.state.text)}
+                {props.decodeBase64 ? decodeBase64(this.state.text) : safePrettyPrint(this.state.text)}
               </pre>
             </div>
           </Paper>

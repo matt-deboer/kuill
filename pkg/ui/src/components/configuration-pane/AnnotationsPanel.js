@@ -24,7 +24,6 @@ const styles = {
   cardHeaderTitle: {
     color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    // fontStyle: 'italic',
     fontSize: '18px',
   },
   tableRowKey: {
@@ -124,34 +123,6 @@ export default class AnnotationsPanel extends React.Component {
           title={this.state.annotationName}
           contents={<pre>{safePrettyPrint(this.state.annotationText)}</pre>}
           />
-        {/* <Popover
-          open={this.state.annotationsOpen}
-          anchorEl={this.state.annotationsAnchorEl}
-          anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
-          onRequestClose={this.handleRequestCloseAnnotations}
-          style={styles.popover}
-        >
-          <Paper style={{
-            background: 'transparent',
-            padding: 20, 
-            fontSize: 13,
-            maxWidth: 'calc(100vw - 100px)',
-            maxHeight: 'calc(100vh - 275px)',
-            overflow: 'hidden',
-            }}
-            zDepth={3}>
-            <Subheader style={styles.popoverTitle}>{this.state.annotationName}</Subheader>
-            <div style={{
-              overflow: 'auto',
-              maxHeight: `${window.innerHeight - 300}px`,
-            }}>
-              <pre>
-                {safePrettyPrint(this.state.annotationText)}
-              </pre>
-            </div>
-          </Paper>
-        </Popover> */}
         <Card style={styles.cards}>
           <CardHeader 
             style={styles.cardHeader}

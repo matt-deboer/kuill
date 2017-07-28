@@ -5,6 +5,7 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "brace": "^0.10.0",
+    "d3": "^3.5.17",
     "duration-js": "^4.0.0",
     "fetch": "^1.1.0",
     "flexboxgrid": "6.3.1",
@@ -25,6 +26,8 @@
     "react-avatar": "^2.3.0",
     "react-dimensions": "^1.3.0",
     "react-dom": "^15.6.1",
+    "react-faux-dom": "^4.0.3",
+    "react-hexgrid": "^1.0.0",
     "react-hint": "^1.3.1",
     "react-redux": "^5.0.5",
     "react-router": "^4.0.0",
@@ -62,14 +65,35 @@
     "eject": "react-scripts eject",
     "release": "npm install && npm run build"
   },
-  "_proxy": "http://localhost:3001",
   "proxy": {
+    "/auth": {
+      "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    },
+    "/proxy": {
+      "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    },
+    "/metrics": {
+      "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    }
+  },
+  "_proxy": {
     "/auth": {
       "target": "https://localhost:8888",
       "secure": false,
       "ws": true
     },
     "/proxy": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    },
+    "/metrics": {
       "target": "https://localhost:8888",
       "secure": false,
       "ws": true
