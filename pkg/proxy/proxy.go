@@ -26,10 +26,11 @@ type KubeAPIProxy struct {
 	kubernetesURL      *url.URL
 	proxyBasePath      string
 	websocketProxy     *WebsocketProxy
+	traceRequests      bool
 }
 
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
-	usernameHeader, groupHeader, extraHeadersPrefix string) (*KubeAPIProxy, error) {
+	usernameHeader, groupHeader, extraHeadersPrefix string, traceRequests bool) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -111,6 +112,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		extraHeadersPrefix: extraHeadersPrefix,
 		proxyBasePath:      proxyBasePath,
 		websocketProxy:     wsp,
+		traceRequests:      traceRequests,
 	}, nil
 }
 
@@ -127,7 +129,7 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 
 		r.Header.Del("Origin")
 
-		if log.GetLevel() >= log.DebugLevel {
+		if p.traceRequests {
 			data, err := httputil.DumpRequest(r, r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH")
 			if err != nil {
 				ctx.Warnf("Error dumping request : %v", err)
@@ -143,7 +145,7 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 		r.URL.Host = p.kubernetesURL.Host
 		r.URL.Scheme = p.kubernetesURL.Scheme
 
-		if log.GetLevel() >= log.DebugLevel {
+		if p.traceRequests {
 			data, err := httputil.DumpRequest(r, r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH")
 			if err != nil {
 				ctx.Warnf("Error dumping request : %v", err)
