@@ -185,6 +185,11 @@ func main() {
 			EnvVar: envBase + "KUBECONFIG",
 		},
 		cli.BoolFlag{
+			Name:   "trace-requests, T",
+			Usage:  "Log information about all requests",
+			EnvVar: envBase + "TRACE_REQUESTS",
+		},
+		cli.BoolFlag{
 			Name:   "verbose, V",
 			Usage:  "Log extra information about steps taken",
 			EnvVar: envBase + "VERBOSE",
@@ -336,6 +341,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 		"username-header":        "string",
 		"group-header":           "string",
 		"extra-headers-prefix":   "string",
+		"trace-requests":         "bool",
 	})
 
 	if err == nil {
@@ -346,6 +352,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 			flags["username-header"].(string),
 			flags["group-header"].(string),
 			flags["extra-headers-prefix"].(string),
+			flags["trace-requests"].(bool),
 		)
 		if err != nil {
 			log.Fatal(err)
