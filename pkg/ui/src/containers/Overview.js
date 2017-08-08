@@ -137,9 +137,6 @@ class Overview extends React.Component {
     let { props } = this
     return (
       <Paper style={styles.wrapper} zDepth={1} className={'overview'}>
-        <div style={{position: 'absolute', top: 5, left: 15, color: 'rgb(120,120,120)', fontSize: 18, fontWeight: 600}}>
-          Allocated Resource Usage
-        </div>
 
         <div style={styles.heatmap}>
           <NamespaceBarChart
