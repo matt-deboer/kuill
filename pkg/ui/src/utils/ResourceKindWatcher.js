@@ -1,7 +1,7 @@
 import Kinds from '../kube-kinds'
 import { putResource, removeResource } from '../state/actions/workloads'
 import { addError } from '../state/actions/errors'
-import { keyForResource } from '../resource-utils'
+import { keyForResource } from '../utils/resource-utils'
 
 const throttles = {
   'Endpoints/MODIFIED': 10000,

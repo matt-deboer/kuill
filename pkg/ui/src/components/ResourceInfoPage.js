@@ -113,18 +113,22 @@ const styles = {
     marginTop: -4,
     borderTop: `1px ${blueA100} solid`,
   },
-  cards: {
-    margin: 10,
-    boxShadow: 'none',
+  card: {
+    margin: 5,
   },
   cardHeader: {
-    borderBottom: '1px solid rgba(0,0,0,0.1)',
+    background: 'rgb(66,66,66)',
+    minHeight: '125px',
   },
   cardHeaderTitle: {
-    color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    // fontStyle: 'italic',
     fontSize: '18px',
+  },
+  cardHeaderTitleStyle: {
+    fontSize: '24px',
+    fontWeight: 600,
+    paddingLeft: 10,
+    color: 'rgba(240,240,240,1)',
   }
 }
 
@@ -142,7 +146,11 @@ class ResourceInfoPage extends React.Component {
       suspendOpen: false,
       editing: false,
     }
+
     this.kubeKind = !!props.resource && KubeKinds[props.resourceGroup][props.resource.kind]
+    for (let fn of ['handleScale','handleSuspend','handleDelete']) {
+      this[fn] = this[fn].bind(this)
+    }
   }
 
   handleActionsTouchTap = (event) => {
@@ -229,6 +237,16 @@ class ResourceInfoPage extends React.Component {
     this.props.scaleResource(this.props.resource, 0)
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    let { props } = this
+    if ((props.activeTab === 'logs' && !props.enableLogsTab)
+      || (props.activeTab === 'term' && !props.enableTerminalTab)) {
+
+      props.selectView('config')
+    }
+
+  }
+
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
   }
@@ -284,9 +302,10 @@ class ResourceInfoPage extends React.Component {
       <div>
         <LoadingSpinner hidden={!this.props.resource}/>
 
-        <Card className="resource-info" style={{margin: 5}} >
+        <Card className="resource-info" style={styles.card} >
           <CardHeader
             title={resource.metadata.name}
+            titleStyle={styles.cardHeaderTitleStyle}
             subtitle={
               <div style={{padding: 20}}>
                 <div>
@@ -311,8 +330,7 @@ class ResourceInfoPage extends React.Component {
               </div>
             }
             avatar={<KindAbbreviation text={this.kubeKind.abbrev} color={this.kubeKind.color}/>}
-            titleStyle={{fontSize: '24px', fontWeight: 600, paddingLeft: 10}}
-            style={{minHeight: '125px'}}
+            style={styles.cardHeader}
           >
             
             <RaisedButton
@@ -331,6 +349,13 @@ class ResourceInfoPage extends React.Component {
               targetOrigin={{horizontal: 'right', vertical: 'top'}}
             >
               <Menu desktop={true}>
+                {(this.props.resource.spec && this.props.resource.spec.replicas > -1) &&
+                  <MenuItem primaryText="Scale"
+                    leftIcon={<IconScale/>}
+                    onTouchTap={this.handleScale}
+                    />
+                }
+                
                 {(!('editable' in this.kubeKind) || !!this.kubeKind.editable) &&
                   <MenuItem primaryText="Edit" 
                     onTouchTap={() => {
@@ -341,17 +366,10 @@ class ResourceInfoPage extends React.Component {
                     />
                 }
                 
-                {(this.props.resource.spec.replicas > 0) &&
+                {(this.props.resource.spec && this.props.resource.spec.replicas > 0) &&
                   <MenuItem primaryText="Suspend"
                     leftIcon={<IconSuspend/>}
                     onTouchTap={this.handleSuspend}
-                    />
-                }
-
-                {(this.props.resource.spec.replicas > -1) &&
-                  <MenuItem primaryText="Scale"
-                    leftIcon={<IconScale/>}
-                    onTouchTap={this.handleScale}
                     />
                 }
 
@@ -366,7 +384,8 @@ class ResourceInfoPage extends React.Component {
 
           </CardHeader>
         
-          <Tabs 
+          <Tabs
+            style={{background: 'white'}}
             tabItemContainerStyle={styles.tabs}
             contentContainerStyle={{overflow: 'hidden'}}
             inkBarStyle={styles.tabsInkBar}

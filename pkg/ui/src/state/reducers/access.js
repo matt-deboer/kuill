@@ -2,7 +2,7 @@ import { types } from '../actions/access'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
-import { keyForResource, statusForResource } from '../../resource-utils'
+import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { arraysEqual } from '../../comparators'
 
 const initialState = {

@@ -27,31 +27,7 @@ const styles = {
     width: 28,
     height: 28,
     borderRadius: 0,
-  },
-  background: {
-    backgroundImage: `url(${require('../images/kubernetes-logo.svg')})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundColor: '#326ce5',
-    backgroundPosition: '-375px -375px',
-    backgroundSize: `1024px`,
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 1400,
   }, 
-  backgroundTitle: {
-    backgroundImage: `url(${require('../images/kubernetes-name-white.svg')})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 5% top 5%',
-    backgroundSize: `50%`,
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
   backgroundRight: {
     backgroundColor: '#326ce5',
     position: 'fixed',
@@ -116,11 +92,10 @@ export default function LoginDialog(props) {
     }
 
     login = (
-      <div key={'login-dialog'} className={'login-background'} style={styles.background}>
-        <div style={styles.backgroundTitle}/>
+      <div key={'login-dialog'} className={'login-background'} >
 
-        <Dialog title={
-            <div>
+        <Dialog className="login" title={
+            <div className="title">
               <div>Authentication Required</div>
               <div style={{
                 position: 'absolute',
@@ -129,13 +104,14 @@ export default function LoginDialog(props) {
               }}><LockIcon style={{
                 width: 48,
                 height: 48,
-                fill: 'rgba(0,0,0,0.5)',
               }}/></div>
             </div>
           }
           titleStyle={{
-            color: 'rgba(0,0,0,0.5)',
+            color: 'rgba(180,180,180)',
             borderBottom: `4px solid ${blueA400}`, 
+            background: 'rgb(66,66,66)',
+            fill: 'rgba(180,180,180)',
           }}
           modal={true}
           open={props.open}

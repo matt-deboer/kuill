@@ -6,6 +6,7 @@
  * @param {*} res2 
  */
 export function sameResource(res1, res2) {
+  
   if (!!res1 && !!res2 && !!res1.key && !!res2.key) {
     return res1.key === res2.key
   } 
@@ -16,6 +17,18 @@ export function sameResource(res1, res2) {
               && res1.metadata.namespace === res2.metadata.namespace
               && res1.metadata.name === res2.metadata.name))
 }
+
+/**
+ * Returns true if the 2 resource references are the same version of 
+ * the same resource.
+ * 
+ * @param {*} res1 
+ * @param {*} res2 
+ */
+export function sameResourceVersion(res1, res2) {
+    return sameResource(res1, res2) && !!res1 && res1.metadata.resourceVersion === res2.metadata.resourceVersion
+}
+
 
 /**
  * Returns true if the provided resource is owned (either directly
@@ -177,8 +190,12 @@ export function statusForResource(resource) {
             } else if ((resource.status.readyReplicas || 0) < resource.spec.replicas) {
                 if (!!resource.status.conditions) {
                     for (let cond of resource.status.conditions) {
-                        if (cond.type === 'Progressing' && cond.status === 'False') {
-                            return 'timed out'
+                        if (cond.type === 'Progressing') {
+                            if (cond.status === 'False') {
+                                return 'timed out'
+                            } else {
+                                return 'scaling up'
+                            }
                         }
                     }
                 }
@@ -289,6 +306,10 @@ export function statusForResource(resource) {
                     case 'Ready':
                         if (cond.status === 'True' && status === 'scaling up') {
                             status = 'ok'
+                        } else if (cond.status === 'False' && resource.statusSummary !== 'scaling up') {
+                            status = 'error'
+                        } else if (cond.status === 'Unknown') {
+                            status = 'error'
                         }
                         break
                     default:

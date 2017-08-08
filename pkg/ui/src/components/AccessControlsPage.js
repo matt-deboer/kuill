@@ -25,7 +25,7 @@ import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
 import { resourceStatus as resourceStatusIcons } from './icons'
-import { compareStatuses } from '../resource-utils'
+import { compareStatuses } from '../utils/resource-utils'
 
 import KubeKinds from '../kube-kinds'
 import './AccessControlsPage.css'

@@ -3,8 +3,8 @@ import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
-import { keyForResource, statusForResource } from '../../resource-utils'
-import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../filter-utils'
+import { keyForResource, statusForResource } from '../../utils/resource-utils'
+import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../utils/filter-utils'
 import math from 'mathjs'
 
 const initialState = {
@@ -32,6 +32,8 @@ const initialState = {
   memoryUnits: '',
   nodes: 0,
   clusterMetrics: null,
+  problemResources: {},
+  namespaceMetrics: {},
   // the maximum resourceVersion value seen across all resource fetches
   // this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -75,9 +77,6 @@ export default (state = initialState, action) => {
 
     case types.SELECT_RESOURCE:
       return doSelectResource(state, action.namespace, action.kind, action.name)
-
-    case types.PUT_METRICS:
-      return doReceiveMetrics(state, action.metrics)  
 
     case types.RECEIVE_RESOURCE_CONTENTS:
       return doReceiveResourceContents(state, action.resource, action.contents, action.error)
@@ -271,6 +270,7 @@ function doReceiveResources(state, resources) {
       memory: 0,
       disk: 0,
       nodes: 0,
+      problemResources: {},
   }
   
 
@@ -285,6 +285,10 @@ function doReceiveResources(state, resources) {
     registerOwned(newState.resources, resource)
     newState.maxResourceVersion = Math.max(newState.maxResourceVersion, resource.metadata.resourceVersion)
     resource.statusSummary = statusForResource(resource)
+    if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
+      newState.problemResources[resource.key] = resource
+    }
+
     updateComputeResources(newState, resource)
   })
 
@@ -297,6 +301,7 @@ function doReceiveResources(state, resources) {
       newState.memoryUnits = units.replace("bibytes", "").toUpperCase().replace("I","i")
     }
   }
+  newState.clusterMetrics = newState.clusterMetrics || {}
   newState.memory = parseInt(number, 10)
   
   if (possible !== null) {
@@ -327,16 +332,17 @@ function updateComputeResources(state, resource) {
     if (!resource.metrics) {
       resource.metrics = {summary: {cpu: {}, memory: {}}}
     }
-    resource.metrics.summary.cpu.total = parseInt(resource.status.allocatable.cpu, 10)
+    let cores = parseInt(resource.status.allocatable.cpu, 10)
     resource.metrics.summary.memory.total = 
         math.unit(resource.status.allocatable.memory.replace('Ki',' kibibytes').replace('Gi',' gibibytes'))
 
-    state.cores += resource.metrics.summary.cpu.total
+    state.cores += cores
     if (state.memory === 0) {
       state.memory = resource.metrics.summary.memory.total
     } else {
       state.memory = math.add(state.memory, resource.metrics.summary.memory.total)
     }
+    resource.metrics.summary.cpu.total = 1000 * cores
     resource.metrics.summary.memory.total = resource.metrics.summary.memory.total.toNumber('bytes')
     ++state.nodes
   }
@@ -501,61 +507,4 @@ function doRemoveFilter(state, filterName, index) {
     filterNames: filterNames,
     filters: filters
   }, state.resources)
-}
-
-function doReceiveMetrics(state, metrics) {
-  if (!!metrics) {
-    let newState = {...state}
-    let nodesByName = {}
-    for (let key in newState.resources) {
-      if (key.startsWith("Node/")) {
-        let node = newState.resources[key]
-        nodesByName[node.metadata.name] = node
-      }
-    }
-    for (let metric in metrics) {
-        let m = metrics[metric].node
-        if (metric.startsWith('Node:')) {
-          let node = nodesByName[metric.substr(5)]
-          let nm = node.metrics = node.metrics || {}
-          nm.summary = nm.summary || {}
-          nm.summary.cpu = nm.summary.cpu || {}
-          nm.summary.memory = nm.summary.memory || {}
-          nm.summary.disk = nm.summary.disk || {}
-          nm.summary.inodes = nm.summary.inodes || {}
-          nm.summary.pods = nm.summary.pods || {}
-          nm.summary.containers = nm.summary.containers || {}
-
-          nm.summary.cpu.usage = (m.cpu.usageNanoCores / 1000000)
-          nm.summary.memory.usage = m.memory.usageBytes
-          nm.summary.disk.usage = m.fs.usedBytes
-          nm.summary.disk.total = m.fs.capacityBytes
-          nm.summary.inodes.usage = m.fs.inodesUsed
-          nm.summary.inodes.total = m.fs.inodes
-          nm.summary.pods.usage = metrics[metric].pods.length
-          nm.summary.containers.usage = 0
-          for (let p of metrics[metric].pods) {
-            nm.summary.containers.usage += p.containers.length
-          }
-
-          nm.summary.cpu.utilized =
-              Math.round( nm.summary.cpu.usage / (nm.summary.cpu.total * 10))
-          nm.summary.memory.utilized =
-              Math.round(100 * nm.summary.memory.usage /  nm.summary.memory.total)
-          nm.summary.disk.utilized = Math.round(100 * nm.summary.disk.usage / nm.summary.disk.total)
-          nm.summary.inodes.utilized = Math.round(100 * nm.summary.inodes.usage / nm.summary.inodes.total)
-        } else if (metric === 'Cluster') {
-          
-          newState.clusterMetrics = {}
-          let s = newState.clusterMetrics.summary = {}
-          s.cpu = {}
-          s.memory = {}
-          s.cpu.usage = (m.cpu.usageNanoCores / 1000)
-          s.memory.usage = m.memory.usageBytes
-        }
-    }
-    ++newState.resourceRevision
-    return newState
-  }
-  return state
 }

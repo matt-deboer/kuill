@@ -1,13 +1,15 @@
 import { invalidateSession } from './session'
 import { selectLogsFor } from './logs'
 import { selectTerminalFor } from './terminal'
+import { requestMetrics } from './metrics'
 import { routerActions } from 'react-router-redux'
 import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
-import { keyForResource, isResourceOwnedBy, sameResource } from '../../resource-utils'
+import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
-import { watchEvents, selectEventsFor } from './events'
+import { watchEvents, selectEventsFor, reconcileEvents } from './events'
+import { defaultFetchParams, sleep } from '../../utils/request-utils'
 import yaml from 'js-yaml'
 
 export var types = {}
@@ -27,17 +29,12 @@ for (let type of [
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
-  'PUT_METRICS',
 ]) {
   types[type] = `cluster.${type}`
 }
 
 export const defaultFilterNames = 'namespace:default'
 
-const defaultFetchParams = {
-  credentials: 'same-origin',
-  timeout: 5000,
-}
 
 export function replaceAll(resources, maxResourceVersion, error) {
   return {
@@ -235,17 +232,6 @@ export function requestResource(namespace, kind, name) {
   }
 }
 
-/**
- * Request metrics
- */
-export function requestMetrics() {
-  return async function (dispatch, getState) {
-    doFetch(dispatch, getState, async () => {
-      await fetchMetrics(dispatch, getState)
-    })
-  }
-}
-
 function shouldFetchResources(getState) {
   let state = getState()
   let { isFetching, resources } = state.cluster
@@ -305,8 +291,9 @@ async function fetchResources(dispatch, getState) {
     }
 
     dispatch(replaceAll(resources))
+    dispatch(reconcileEvents(resources))
     dispatch(watchEvents(resources))
-    await fetchMetrics(dispatch, getState)
+    dispatch(requestMetrics(resources))
     watchResources(dispatch, getState)
   }
 }
@@ -420,21 +407,6 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
   })
 }
 
-async function fetchMetrics(dispatch, getState) {
-  await fetch('/metrics', defaultFetchParams)
-    .then(resp => {
-    if (!resp.ok) {
-      if (resp.status === 401) {
-        dispatch(invalidateSession())
-      }
-    } else {
-      return resp.json()
-    }
-  }).then(metrics => {
-    dispatch({ type: types.PUT_METRICS, metrics: metrics })
-  })
-}
-
 const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
 
 /**
@@ -532,8 +504,4 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
     }).then(contents => {
       dispatch(receiveResource(resource, contents))
     })
-}
-
-async function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
 }

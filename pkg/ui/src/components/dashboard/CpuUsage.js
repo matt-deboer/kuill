@@ -1,11 +1,11 @@
-import React from 'react';
+import React from 'react'
 import PropTypes from 'prop-types'
-import Paper from 'material-ui/Paper';
-import {PieChart, Pie, Cell, ResponsiveContainer} from 'recharts';
-import Avatar from 'material-ui/Avatar';
-import List from 'material-ui/List/List';
-import ListItem from 'material-ui/List/ListItem';
-import GlobalStyles from '../../styles';
+import Paper from 'material-ui/Paper'
+import {PieChart, Pie, Cell, ResponsiveContainer} from 'recharts'
+import Avatar from 'material-ui/Avatar'
+import List from 'material-ui/List/List'
+import ListItem from 'material-ui/List/ListItem'
+import GlobalStyles from '../../styles'
 
 const CpuUsage = (props) => {
 

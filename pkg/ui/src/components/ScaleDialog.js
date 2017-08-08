@@ -25,6 +25,10 @@ export default class ScaleDialog extends React.PureComponent {
     let { props } = this
     let { resource } = props
     
+    if (!props.open || !resource || !resource.spec || !('replicas' in resource.spec)) {
+      return null
+    }
+
     let currentReplicas = !!resource && resource.spec.replicas
     let resourceLabel = !!resource && resource.key.replace(/\//g, ' / ')
 

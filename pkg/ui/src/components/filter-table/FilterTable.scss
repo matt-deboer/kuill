@@ -11,5 +11,22 @@ table.filter-table {
         }
       }
     }
+    th {
+      button {
+        min-width: 0 !important;
+        color: inherit !important;
+        border-radius: 0 !important;
+        white-space: normal !important;
+        line-height: 10px !important;
+        svg {
+          margin-right: 0 !important;
+        }
+      }
+    }
+    th, td {
+      &:first-child {
+        padding-left: 15px !important;
+      }
+    }
   }
 }

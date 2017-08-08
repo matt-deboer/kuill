@@ -1,15 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { TableHeaderColumn } from 'material-ui/Table';
-import SortDesc from 'material-ui/svg-icons/navigation/arrow-drop-up';
-import SortAsc from 'material-ui/svg-icons/navigation/arrow-drop-down';
-import Sortable from 'material-ui/svg-icons/action/swap-vert';
-import IconButton from 'material-ui/IconButton';
+import React from 'react'
+import PropTypes from 'prop-types'
+import { TableHeaderColumn } from 'material-ui/Table'
+import SortDesc from 'material-ui/svg-icons/navigation/arrow-drop-up'
+import SortAsc from 'material-ui/svg-icons/navigation/arrow-drop-down'
+import Sortable from 'material-ui/svg-icons/action/swap-vert'
+import IconButton from 'material-ui/IconButton'
+import FlatButton from 'material-ui/FlatButton'
 
 const orderIcons = {
-  '': <Sortable style={{fill: 'inherit', height: '20px'}}/>,
-  'asc': <SortAsc style={{fill: 'inherit', height: '20px'}}/>,
-  'desc': <SortDesc style={{fill: 'inherit', height: '20px'}}/>,
+  '': <Sortable style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
+  'asc': <SortAsc style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
+  'desc': <SortDesc style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
 }
 
 export default class TableSortLabel extends React.Component {
@@ -78,7 +79,12 @@ export default class TableSortLabel extends React.Component {
         fill: 'inherit',
         color: 'inherit',
         textTransform: 'inherit',
-        fontSize: 'inherit'
+        fontSize: 'inherit',
+        paddingLeft: 0,
+        paddingRight: 0,
+        wordWrap: 'break-word',
+        whiteSpace: 'normal',
+        // display: 'block',
       },
       button: {
         padding: 0,
@@ -113,14 +119,22 @@ export default class TableSortLabel extends React.Component {
 
     return (
       <TableHeaderColumn style={props.style} key={props.key}>
-        {props.text}
+        <FlatButton
+          label={props.text}
+          labelPosition={'before'}
+          labelStyle={styles.label}
+          onTouchTap={this.onRequestSort}
+          icon={props.sortable && orderIcons[this.state.order]}
+          />
+
+        {/* {props.text}
         <IconButton
           style={styles.button}
           onTouchTap={this.onRequestSort}
           iconStyle={iconStyle}
           >
           {orderIcons[this.state.order]}
-        </IconButton>
+        </IconButton> */}
       </TableHeaderColumn> 
     )
   }

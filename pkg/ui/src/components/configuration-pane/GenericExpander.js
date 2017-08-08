@@ -80,7 +80,7 @@ export default class GenericExpander extends React.Component {
             overflow: 'auto',
             maxHeight: 'calc(100vh - 295px)',
             maxWidth: 'calc(100vw - 100px)',
-            padding: 20,
+            padding: 16,
           }}>
             {contents}
           </div>

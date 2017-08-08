@@ -3,8 +3,8 @@ import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
-import { keyForResource, statusForResource } from '../../resource-utils'
-import { applyFiltersToResource, splitFilter } from '../../filter-utils'
+import { keyForResource, statusForResource, sameResource } from '../../utils/resource-utils'
+import { applyFiltersToResource, splitFilter } from '../../utils/filter-utils'
 
 const initialState = {
   // the filter names in string form
@@ -32,10 +32,13 @@ const initialState = {
   // reload all resources on some regular cadence to account for 
   // possible missed events
   lastLoaded: 0,
+  // all seen namespaces
+  namespaces: {},
   editor: {
     format: 'yaml'
   },
   isFetching: false,
+  countsByKind: {},
   fetchBackoff: 0,
   fetchError: null,
   watches: null,
@@ -188,6 +191,8 @@ function registerOwned(resources, unnresolvedOwnership, resource, problemResourc
         possibleFilters[`status:${owner.statusSummary}`]=true
 
         resolved = true
+        registerOwned(resources, unnresolvedOwnership, owner, problemResources, possibleFilters)
+
       }
       if (!resolved) {
         unnresolvedOwnership[ownerKey] = unnresolvedOwnership[ownerKey] || []
@@ -216,7 +221,7 @@ function updatePossibleFilters(possible, resource) {
 
 function doUpdateResource(state, resource, isNew) {
   resource.key = keyForResource(resource)
-  if (!(resource.key in state.resources) && !isNew) {
+  if (!(resource.key in state.resources) && !isNew && resource.kind !== 'Pod') {
     return state
   }
   resource.statusSummary = statusForResource(resource)
@@ -235,6 +240,11 @@ function doUpdateResource(state, resource, isNew) {
   }
   newState.possibleFilters = Object.keys(possible)
 
+  if (isNew) {
+    newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0 
+    newState.countsByKind[resource.kind]++
+  }
+
   if (isNew && resource.kind === 'Pod') {
     ++newState.podCount
     newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
@@ -250,12 +260,19 @@ function doUpdateResource(state, resource, isNew) {
         parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
   }
+  if (!!resource.metadata.namespace) {
+    newState.namespaces[resource.metadata.namespace]=true
+  }
 
-  let prevResource = state.resources[resource.key]
   if (isNew || resource.kind !== 'Endpoints') {
     ++newState.resourceRevision
   }
 
+  if (sameResource(newState.resource, resource)) {
+    newState = doSelectResource(newState, 
+      resource.metadata.namespace, resource.kind, resource.metadata.name)
+  }
+  
   return doFilterResource(newState, resource)
 }
 
@@ -276,7 +293,11 @@ function doRemoveResource(state, resource) {
     delete resources[resource.key]
     let podsByNode = {...state.podsByNode}
     delete podsByNode[resource.spec.nodeName][resource.key]
-    return { ...state, 
+    let countsByKind = {...state.countsByKind}
+    countsByKind[resource.kind] -= 1
+
+    return { ...state,
+      countsByKind: countsByKind,
       resources: resources,
       podCount: (state.podCount - 1),
       podsByNode: podsByNode,
@@ -343,6 +364,8 @@ function doReceiveResources(state, resources) {
     problemResources: {},
     lastLoaded: Date.now(),
     podsByNode: {},
+    namespaces: {},
+    countsByKind: {},
   }
   
   let possible = null
@@ -365,11 +388,16 @@ function doReceiveResources(state, resources) {
       newState.maxResourceVersionByKind[resource.kind] = 
         parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
+    if (!!resource.metadata.namespace) {
+      newState.namespaces[resource.metadata.namespace]=true
+    }
     if (resource.kind === 'Pod') {
       ++newState.podCount
       newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
       newState.podsByNode[resource.spec.nodeName][resource.key] = resource
     }
+    newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0
+    newState.countsByKind[resource.kind]++
   })
 
   for (let ownerKey in unnresolvedOwnership) {
