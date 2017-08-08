@@ -9,9 +9,9 @@ import (
 
 	"sync"
 
-	log "github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -155,7 +155,8 @@ func (m *Manager) listLoginMethods(w http.ResponseWriter, r *http.Request) {
 }
 
 type userInfo struct {
-	User string `json:"user,omitempty"`
+	User           string `json:"user,omitempty"`
+	SessionExpires string `json:"session_expires,omitempty"`
 }
 
 func (m *Manager) userInfo(w http.ResponseWriter, r *http.Request) {
@@ -172,6 +173,7 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 	var resp userInfo
 	if session != nil {
 		resp.User = session.User()
+		resp.SessionExpires = time.Unix(session.Expires(), 0).Format(time.RFC3339)
 	}
 	data, err := json.Marshal(resp)
 	if err != nil {
@@ -185,7 +187,8 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 }
 
 func (m *Manager) keepSessionAlive(session *SessionToken, w http.ResponseWriter) {
-	if session != nil && session.Valid && int(session.claims[claimExpires].(float64)) < 120 {
+	// If the session expires in less than 1 minute, renew it
+	if session != nil && session.Valid && session.Expires() < (time.Now().Unix()-int64(time.Minute.Seconds())) {
 		session = NewSessionToken(session.User(), []string{}, session.claims)
 		m.writeSessionCookie(session, w)
 	}
@@ -228,6 +231,16 @@ type SessionToken struct {
 // User recovers the userID from a session token
 func (s *SessionToken) User() string {
 	return s.claims[claimUserID].(string)
+}
+
+// Expires returns the expiration of the token in Unix time, the number of seconds elapsed
+// since January 1, 1970 UTC.
+func (s *SessionToken) Expires() int64 {
+	expires := s.claims[claimExpires]
+	if intVal, ok := expires.(int64); ok {
+		return intVal
+	}
+	return int64(expires.(float64))
 }
 
 // Groups recovers the groups from a session token
