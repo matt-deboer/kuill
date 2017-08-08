@@ -9,7 +9,7 @@ import (
 
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
 )

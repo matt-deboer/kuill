@@ -11,7 +11,7 @@ import (
 
 	"encoding/base64"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/matt-deboer/kapow/pkg/auth"
 	"github.com/matt-deboer/kapow/pkg/metrics"
 	"github.com/matt-deboer/kapow/pkg/proxy"

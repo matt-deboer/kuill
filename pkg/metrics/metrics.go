@@ -12,13 +12,12 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/alecthomas/units"
 	"github.com/ericchiang/k8s"
 	apiv1 "github.com/ericchiang/k8s/api/v1"
 	"github.com/ghodss/yaml"
 	"github.com/matt-deboer/kapow/pkg/auth"
-	"k8s.io/kubernetes/pkg/kubelet/api/v1alpha1/stats"
+	log "github.com/sirupsen/logrus"
 )
 
 const serviceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -134,21 +133,21 @@ func (m *Provider) summarize() *Summaries {
 
 			convertedSummary := convertSummary(nodeSummary, node)
 			// aggregate at the cluster level
-			// aggregates["Cluster:usageCoreNanoSeconds"] += safeGet(nodeSummary.Node.CPU.UsageCoreNanoSeconds)
+			// aggregates["Cluster:usageCoreNanoSeconds"] += nodeSummary.Node.CPU.UsageCoreNanoSeconds
 
 			aggregates["Cluster:totalMillicores"] += convertedSummary.CPU.Total
 			aggregates["Cluster:memTotalBytes"] += convertedSummary.Memory.Total
 
-			aggregates["Cluster:usageNanoCores"] += safeGet(nodeSummary.Node.CPU.UsageNanoCores)
-			// aggregates["Cluster:memAvailableBytes"] += safeGet(nodeSummary.Node.Memory.AvailableBytes)
-			aggregates["Cluster:memUsageBytes"] += safeGet(nodeSummary.Node.Memory.UsageBytes)
-			// aggregates["Cluster:memRSSBytes"] += safeGet(nodeSummary.Node.Memory.RSSBytes)
-			// aggregates["Cluster:memWorkingSetBytes"] += safeGet(nodeSummary.Node.Memory.WorkingSetBytes)
-			aggregates["Cluster:networkTxBytes"] += safeGet(nodeSummary.Node.Network.TxBytes)
-			aggregates["Cluster:networkRxBytes"] += safeGet(nodeSummary.Node.Network.RxBytes)
-			aggregates["Cluster:networkSeconds"] += uint64(nodeSummary.Node.Network.Time.Sub(nodeSummary.Node.StartTime.Time).Seconds())
-			aggregates["Cluster:fsCapacityBytes"] += safeGet(nodeSummary.Node.Fs.CapacityBytes)
-			aggregates["Cluster:fsUsedBytes"] += safeGet(nodeSummary.Node.Fs.UsedBytes)
+			aggregates["Cluster:usageNanoCores"] += nodeSummary.Node.CPU.UsageNanoCores
+			// aggregates["Cluster:memAvailableBytes"] += nodeSummary.Node.Memory.AvailableBytes
+			aggregates["Cluster:memUsageBytes"] += nodeSummary.Node.Memory.UsageBytes
+			// aggregates["Cluster:memRSSBytes"] += nodeSummary.Node.Memory.RSSBytes
+			// aggregates["Cluster:memWorkingSetBytes"] += nodeSummary.Node.Memory.WorkingSetBytes
+			aggregates["Cluster:networkTxBytes"] += nodeSummary.Node.Network.TxBytes
+			aggregates["Cluster:networkRxBytes"] += nodeSummary.Node.Network.RxBytes
+			aggregates["Cluster:networkSeconds"] += uint64(nodeSummary.Node.Network.Time.Sub(nodeSummary.Node.StartTime).Seconds())
+			aggregates["Cluster:fsCapacityBytes"] += nodeSummary.Node.Fs.CapacityBytes
+			aggregates["Cluster:fsUsedBytes"] += nodeSummary.Node.Fs.UsedBytes
 			// aggregate at the namespace level
 			for _, podStats := range nodeSummary.Pods {
 				ns := podStats.PodRef.Namespace
@@ -157,10 +156,10 @@ func (m *Provider) summarize() *Summaries {
 				convertedSummary.Pods.Usage++
 				namespaces[ns] = true
 				for _, volStats := range podStats.VolumeStats {
-					aggregates["Cluster:volCapacityBytes"] += safeGet(volStats.CapacityBytes)
-					aggregates["Cluster:volUsedBytes"] += safeGet(volStats.UsedBytes)
-					aggregates["Namespace:"+ns+":volCapacityBytes"] += safeGet(volStats.CapacityBytes)
-					aggregates["Namespace:"+ns+":volUsedBytes"] += safeGet(volStats.UsedBytes)
+					aggregates["Cluster:volCapacityBytes"] += volStats.CapacityBytes
+					aggregates["Cluster:volUsedBytes"] += volStats.UsedBytes
+					aggregates["Namespace:"+ns+":volCapacityBytes"] += volStats.CapacityBytes
+					aggregates["Namespace:"+ns+":volUsedBytes"] += volStats.UsedBytes
 				}
 
 				for _, c := range podStats.Containers {
@@ -168,20 +167,20 @@ func (m *Provider) summarize() *Summaries {
 					aggregates["Cluster:containers"]++
 					convertedSummary.Containers.Usage++
 					if c.CPU != nil {
-						aggregates["Namespace:"+ns+":usageCoreNanoSeconds"] += safeGet(c.CPU.UsageCoreNanoSeconds)
-						aggregates["Namespace:"+ns+":usageNanoCores"] += safeGet(c.CPU.UsageNanoCores)
+						aggregates["Namespace:"+ns+":usageCoreNanoSeconds"] += c.CPU.UsageCoreNanoSeconds
+						aggregates["Namespace:"+ns+":usageNanoCores"] += c.CPU.UsageNanoCores
 					}
 					if c.Memory != nil {
-						aggregates["Namespace:"+ns+":memAvailableBytes"] += safeGet(c.Memory.AvailableBytes)
-						aggregates["Namespace:"+ns+":memUsageBytes"] += safeGet(c.Memory.UsageBytes)
-						aggregates["Namespace:"+ns+":memRSSBytes"] += safeGet(c.Memory.RSSBytes)
-						aggregates["Namespace:"+ns+":memWorkingSetBytes"] += safeGet(c.Memory.WorkingSetBytes)
+						aggregates["Namespace:"+ns+":memAvailableBytes"] += c.Memory.AvailableBytes
+						aggregates["Namespace:"+ns+":memUsageBytes"] += c.Memory.UsageBytes
+						aggregates["Namespace:"+ns+":memRSSBytes"] += c.Memory.RSSBytes
+						aggregates["Namespace:"+ns+":memWorkingSetBytes"] += c.Memory.WorkingSetBytes
 					}
 				}
 				if podStats.Network != nil {
-					aggregates["Namespace:"+ns+":networkTxBytes"] += safeGet(podStats.Network.TxBytes)
-					aggregates["Namespace:"+ns+":networkRxBytes"] += safeGet(podStats.Network.RxBytes)
-					aggregates["Namespace:"+ns+":networkSeconds"] += uint64(podStats.Network.Time.Unix() - podStats.StartTime.Time.Unix())
+					aggregates["Namespace:"+ns+":networkTxBytes"] += podStats.Network.TxBytes
+					aggregates["Namespace:"+ns+":networkRxBytes"] += podStats.Network.RxBytes
+					aggregates["Namespace:"+ns+":networkSeconds"] += uint64(podStats.Network.Time.Unix() - podStats.StartTime.Unix())
 				}
 			}
 			summary.Node[*node.Metadata.Name] = convertedSummary
@@ -212,15 +211,15 @@ func safeGet(ref *uint64) uint64 {
 	return 0
 }
 
-func convertSummary(summary *stats.Summary, node *apiv1.Node) *Summary {
+func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node) *Summary {
 
-	networkSeconds := uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Time.Unix())
+	networkSeconds := uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Unix())
 	volCapacityBytes := uint64(0)
 	volUsageBytes := uint64(0)
 	for _, podStats := range summary.Pods {
 		for _, volStats := range podStats.VolumeStats {
-			volUsageBytes += safeGet(volStats.CapacityBytes)
-			volCapacityBytes += safeGet(volStats.UsedBytes)
+			volUsageBytes += volStats.CapacityBytes
+			volCapacityBytes += volStats.UsedBytes
 		}
 	}
 
@@ -239,27 +238,27 @@ func convertSummary(summary *stats.Summary, node *apiv1.Node) *Summary {
 
 	return &Summary{
 		CPU: newSummaryStat(
-			safeGet(summary.Node.CPU.UsageNanoCores)/1000000,
+			summary.Node.CPU.UsageNanoCores/1000000,
 			uint64(totalCPUCores*1000),
 			"millicores"),
 		Memory: newSummaryStat(
-			safeGet(summary.Node.Memory.UsageBytes),
+			summary.Node.Memory.UsageBytes,
 			uint64(totalMemoryBytes),
 			"bytes"),
 		Disk: newSummaryStat(
-			safeGet(summary.Node.Fs.UsedBytes),
-			safeGet(summary.Node.Fs.CapacityBytes),
+			summary.Node.Fs.UsedBytes,
+			summary.Node.Fs.CapacityBytes,
 			"bytes"),
 		Volumes: newSummaryStat(
 			volUsageBytes,
 			volCapacityBytes,
 			"bytes"),
 		NetRx: newSummaryStat(
-			safeGet(summary.Node.Network.RxBytes)/networkSeconds,
+			summary.Node.Network.RxBytes/networkSeconds,
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			safeGet(summary.Node.Network.TxBytes)/networkSeconds,
+			summary.Node.Network.TxBytes/networkSeconds,
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
@@ -328,7 +327,7 @@ func makeSummary(prefix string, aggregates map[string]uint64) *Summary {
 	}
 }
 
-func (m *Provider) readNodeSummary(path string) *stats.Summary {
+func (m *Provider) readNodeSummary(path string) *KubeletStatsSummary {
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s", path), nil)
 	if err != nil {
@@ -346,7 +345,8 @@ func (m *Provider) readNodeSummary(path string) *stats.Summary {
 		}
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
-			var data stats.Summary
+			// var data stats.Summary
+			var data KubeletStatsSummary
 			if err = json.Unmarshal(b, &data); err == nil {
 				return &data
 			}

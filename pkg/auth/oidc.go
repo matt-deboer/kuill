@@ -15,7 +15,7 @@ import (
 
 	"encoding/base64"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	oidc "github.com/coreos/go-oidc"
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
