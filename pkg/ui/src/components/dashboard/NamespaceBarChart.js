@@ -99,7 +99,9 @@ class NamespaceBarChart extends React.PureComponent {
     }
 
     return (
-      <div style={{...styles.wrapper, ...props.style}} className="row">
+      <div style={{...styles.wrapper, ...props.style}} className="row namespace-panel">
+        <div className="title">Allocated Resource Usage</div>
+        
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 namespace-barchart by-${this.state.selectBy}`}>
           <DiscreteBarChart 
             items={items[this.state.selectBy] || []}
