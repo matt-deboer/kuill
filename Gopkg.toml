@@ -51,23 +51,23 @@
 
 
 
-[[dependencies]]
-  name = "github.com/Sirupsen/logrus"
-  version = ">=0.10.0, <1.0.0"
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.2"
 
-[[dependencies]]
+[[constraint]]
   name = "github.com/coreos/go-oidc"
 
-[[dependencies]]
+[[constraint]]
   branch = "master"
   name = "github.com/nu7hatch/gouuid"
 
-[[dependencies]]
+[[constraint]]
   name = "github.com/prometheus/common"
 
-[[dependencies]]
+[[constraint]]
   branch = "master"
   name = "github.com/urfave/cli"
 
-[[dependencies]]
+[[constraint]]
   name = "golang.org/x/oauth2"
