@@ -11,7 +11,7 @@ import (
 
 	"net/http/httputil"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/matt-deboer/kapow/pkg/auth"
 )
