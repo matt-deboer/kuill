@@ -15,14 +15,24 @@ const defaultFetchParams = {
   timeout: 5000,
 }
 
-export function receiveEvents(...events) {
+export function receiveEvents(resources, ...events) {
   
   return function(dispatch, getState) {
-    let { resources } = getState().workloads
     dispatch({
       type: types.RECEIVE_EVENTS,
       resources: resources,
       events: events,
+    })
+  }
+}
+
+export function reconcileEvents(resources) {
+  
+  return function(dispatch, getState) {
+    dispatch({
+      type: types.RECEIVE_EVENTS,
+      resources: resources,
+      events: [],
     })
   }
 }
@@ -75,11 +85,13 @@ async function setEventWatches(dispatch, getState) {
 
     if (!!result && result.kind === 'EventList') {
       resourceVersion = result.metadata.resourceVersion
-      dispatch(receiveEvents(...result.items))  
+      dispatch(receiveEvents(getState().workloads.resources, ...result.items))  
+      dispatch(reconcileEvents(getState().cluster.resources))  
     }
 
     watch = new EventsWatcher({
-      dispatch: dispatch, 
+      dispatch: dispatch,
+      getState: getState,
       resourceVersion: resourceVersion,
     })
     dispatch(setWatch(watch))

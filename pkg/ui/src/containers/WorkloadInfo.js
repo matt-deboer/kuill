@@ -9,7 +9,7 @@ import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import EditorPage from '../components/EditorPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResource } from '../resource-utils'
+import { sameResource, sameResourceVersion } from '../utils/resource-utils'
 import { applyResourceChanges } from '../state/actions/workloads'
 
 const mapStateToProps = function(store) {
@@ -21,6 +21,7 @@ const mapStateToProps = function(store) {
     editor: store.workloads.editor,
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
+    resourceRevision: store.workloads.resourceRevision,
   }
 }
 
@@ -113,7 +114,10 @@ class ResourceInfo extends React.Component {
 
   componentWillReceiveProps = (props) => {
     
-    if ((props.resource !== this.state.resource) || (props.editor.contents !== this.props.editor.contents)) {
+    if ((props.resource !== this.state.resource) 
+      || (props.editor.contents !== this.props.editor.contents)
+      || (props.resource && this.state.resource && props.resource.metadata.resourceVersion )
+    ) {
       this.setState({
         resource: props.resource,
         editor: props.editor,
@@ -123,13 +127,16 @@ class ResourceInfo extends React.Component {
 
   // TODO: consider removing this entirely...
   shouldComponentUpdate = (nextProps, nextState) => {
-    return (this.state.resource !== nextProps.resource)
+    let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
+        || !sameResourceVersion(this.state.resource,nextProps.resource)
         || this.props.isFetching !== nextProps.isFetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
         || this.props.resourceNotFound !== nextProps.resourceNotFound
+    )
+    return shouldUpdate
   }
 
   componentDidUpdate = () => {

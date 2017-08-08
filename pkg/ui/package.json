@@ -67,34 +67,44 @@
   },
   "proxy": {
     "/auth": {
-      "target": "http://localhost:3001",
+      "target": "https://localhost:8888",
       "secure": false,
       "ws": true
     },
     "/proxy": {
-      "target": "http://localhost:3001",
+      "target": "https://localhost:8888",
       "secure": false,
       "ws": true
     },
     "/metrics": {
-      "target": "http://localhost:3001",
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    },
+    "/templates": {
+      "target": "https://localhost:8888",
       "secure": false,
       "ws": true
     }
   },
   "_proxy": {
     "/auth": {
-      "target": "https://localhost:8888",
+      "target": "http://localhost:3001",
       "secure": false,
       "ws": true
     },
     "/proxy": {
-      "target": "https://localhost:8888",
+      "target": "http://localhost:3001",
       "secure": false,
       "ws": true
     },
     "/metrics": {
-      "target": "https://localhost:8888",
+      "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    },
+    "/templates": {
+      "target": "http://localhost:3001",
       "secure": false,
       "ws": true
     }

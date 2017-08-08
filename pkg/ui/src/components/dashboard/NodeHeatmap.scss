@@ -1,16 +1,14 @@
-$le-10: rgb(93, 188, 247);
-$le-35: rgb(64, 152, 229);
-$le-50: rgb(42, 134, 214);
-$le-75: rgb(37, 111, 209);
-$le-90: rgb(28, 87, 191);
-$le-100: rgb(6, 65, 168);
+// $le-20: rgb(93, 188, 247); // rgb(255,155,26);
+// $le-40: rgb(64, 152, 229); // rgb(191,138,76);
+// $le-60: rgb(37, 111, 209); // rgb(121,121,127);
+// $le-80: rgb(28, 87, 191); // rgb(63, 104,178);
+// $le-100: rgb(6, 65, 168); // rgb(0,88,229);
 
-// $le-10: rgb(153, 40, 226);
-// $le-35: rgb(94, 42, 222);
-// $le-50: rgb(44, 50, 219);
-// $le-75: rgb(41, 121, 255);
-// $le-90: rgb(22, 120, 165);
-// $le-100: rgb(19, 150, 148);
+$le-20: rgb(0,88,229);
+$le-40:  rgb(63, 104,178);
+$le-60: rgb(121,121,127);
+$le-80: rgb(191,138,76);
+$le-100: rgb(255,155,26);
 
 .node-heatmap {
   svg {
@@ -18,64 +16,66 @@ $le-100: rgb(6, 65, 168);
     margin: 0 auto;
   }
 
+  .border {
+    stroke: rgb(255, 255, 255);
+  }
+
   .hex {
-    stroke: rgba(240,240,240,0.2);
+    stroke: rgba(150,150,150,0.7);
     stroke-width: 2;
     fill: rgba(21, 61, 128, 0.5);
 
     &.filtered {
       fill: rgba(21, 61, 128, 0.1);
     }
-    transition: fill 1s cubic-bezier(0.23, 1, 0.32, 1) 0ms
+
+    &.error {
+      fill: rgba(255, 0, 0, 0.5);
+    }
+    transition: fill 600ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
   }
  
-  &.by-mem .hex.mem-usage-le-10,
-  &.by-cpu .hex.cpu-usage-le-10,
-  &.by-disk .hex.disk-usage-le-10,
-  &.by-net .hex.net-usage-le-10,
-  .usage-le-10 {
-    fill: $le-10;
-    background-color: $le-10;
+  &.by-memory .hex.memory-le-20,
+  &.by-cpu .hex.cpu-le-20,
+  &.by-disk .hex.disk-le-20,
+  &.by-net .hex.net-le-20,
+  .usage.le-20 {
+    fill: $le-20;
+    background-color: $le-20;
   }
-  &.by-mem .hex.mem-usage-le-35,
-  &.by-cpu .hex.cpu-usage-le-35,
-  &.by-disk .hex.disk-usage-le-35,
-  &.by-net .hex.net-usage-le-35,
-  .usage-le-35 {
-    fill: $le-35;
-    background-color: $le-35;
+  &.by-memory .hex.memory-le-40,
+  &.by-cpu .hex.cpu-le-40,
+  &.by-disk .hex.disk-le-40,
+  &.by-net .hex.net-le-40,
+  .usage.le-40 {
+    fill: $le-40;
+    background-color: $le-40;
   }
-  &.by-mem .hex.mem-usage-le-50,
-  &.by-cpu .hex.cpu-usage-le-50,
-  &.by-disk .hex.disk-usage-le-50,
-  &.by-net .hex.net-usage-le-50,
-  .usage-le-50 {
-    fill: $le-50;
-    background-color: $le-50;
+  &.by-memory .hex.memory-le-60,
+  &.by-cpu .hex.cpu-le-60,
+  &.by-disk .hex.disk-le-60,
+  &.by-net .hex.net-le-60,
+  .usage.le-60 {
+    fill: $le-60;
+    background-color: $le-60;
   }
-  &.by-mem .hex.mem-usage-le-75,
-  &.by-cpu .hex.cpu-usage-le-75,
-  &.by-disk .hex.disk-usage-le-75,
-  &.by-net .hex.net-usage-le-75,
-  .usage-le-75 {
-    fill: $le-75;
-    background-color: $le-75;
+  &.by-memory .hex.memory-le-80,
+  &.by-cpu .hex.cpu-le-80,
+  &.by-disk .hex.disk-le-80,
+  &.by-net .hex.net-le-80,
+  .usage.le-80 {
+    fill: $le-80;
+    background-color: $le-80;
+    color: rgba(0,0,0,0.8) !important;
   }
-  &.by-mem .hex.mem-usage-le-90,
-  &.by-cpu .hex.cpu-usage-le-90,
-  &.by-disk .hex.disk-usage-le-90,
-  &.by-net .hex.net-usage-le-90,
-  .usage-le-90 {
-    fill: $le-90;
-    background-color: $le-90;
-  }
-  &.by-mem .hex.mem-usage-le-100,
-  &.by-cpu .hex.cpu-usage-le-100,
-  &.by-disk .hex.disk-usage-le-100,
-  &.by-net .hex.net-usage-le-100,
-  .usage-le-100 {
+  &.by-memory .hex.memory-le-100,
+  &.by-cpu .hex.cpu-le-100,
+  &.by-disk .hex.disk-le-100,
+  &.by-net .hex.net-le-100,
+  .usage.le-100 {
     fill: $le-100;
     background-color: $le-100;
+    color: rgba(0,0,0,0.8) !important;
   }
 
 }
@@ -87,8 +87,19 @@ $le-100: rgb(6, 65, 168);
     bottom: 0;
     height: 10px;
     width: 200px;
-    margin: 0 auto;
+    margin: 10px auto;
     display: inline-block;
+
+    .title {
+      margin: 0 auto;
+      position: absolute;
+      bottom: 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      display: inline-block;
+      padding-left: 4px;
+    }
+
     .usage {
       width: 30px;
       height: 10px;
@@ -100,7 +111,7 @@ $le-100: rgb(6, 65, 168);
     }
   }
 }
-.utilization {
+.node-utilization {
   .selector {
     height: 0px;
     margin-top: -10px;
@@ -114,23 +125,23 @@ $le-100: rgb(6, 65, 168);
     
     &:before, 
     &:after {
-      transition: left 1s cubic-bezier(0.23, 1, 0.32, 1) 0ms
+      transition: left 600ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
     }
   }
 
   &.by-cpu .selector:after,
   &.by-cpu .selector:before {
-    left: 18%;
+    left: 17%;
   }
 
-  &.by-mem .selector:after,
-  &.by-mem .selector:before {
+  &.by-memory .selector:after,
+  &.by-memory .selector:before {
     left: 50%;
   }
 
   &.by-disk .selector:after,
   &.by-disk .selector:before {
-    left: 82%;
+    left: 83%;
   }
 
   .selector:after, .selector:before {

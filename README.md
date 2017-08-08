@@ -51,3 +51,12 @@ The mock API responses are stored in the file `pkg/ui/test-proxy/data.json`; the
 sill missing a mock response--just add a key to the json object matching the path of the request, and
 fill in the JSON response as the value.
 _Mocks for the web-socket APIs and POST/PUT/DELETE methods are not yet supported._
+
+Roadmap:
+- [ ] Overview/Homepage:
+  - [ ] Heatmap acts as a selector by namespace
+  - [ ] All details on the overview page are dynamically updated according to selected namespace(s)
+  - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
+  - [ ]
+- [ ] Workloads:
+  - [ ] Provide summary counts of all metrics

@@ -22,7 +22,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     setFilterNames: function(filterNames) {
       dispatch(setFilterNames(filterNames))
-    },  
+    },
   }
 }
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { initializeSession } from '../state/actions/session'
+import { initializeSession, invalidateSession } from '../state/actions/session'
 import LoginDialog from '../components/LoginDialog'
 import { withRouter } from 'react-router-dom'
 
@@ -16,9 +16,14 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     initializeSession: function(user, loginMethod) {
       dispatch(initializeSession(user, loginMethod))
+    },
+    invalidateSession: function() {
+      dispatch(invalidateSession())
     }
   }
 }
+
+const sessionInterval = 2 * 60 * 1000
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
 /** 
@@ -34,6 +39,9 @@ class Authenticated extends React.Component {
       loginLinks: [],
     }
     this.inputs = {}
+    for (let fn of ['updateSession', 'maintainSession', 'sleepSession']) {
+      this[fn] = this[fn].bind(this)
+    }
   }
 
   componentDidMount = () => {
@@ -61,8 +69,12 @@ class Authenticated extends React.Component {
       }
       that.setState({credsLink: credsLink, loginLinks: loginLinks})
     })
-   
-    if (!this.props.user && !this.fetching) {
+
+    this.updateUserInfo()
+  }
+
+  updateUserInfo = () => {
+    if (!this.fetching) {
       this.fetching = true
       fetch("/auth/user_info", {
         credentials: 'same-origin'
@@ -75,9 +87,58 @@ class Authenticated extends React.Component {
         }
       }).then(payload => {
         this.fetching = false
-        this.props.initializeSession(payload.user)
+        if (!!payload.user !== this.props.user) {
+          this.props.initializeSession(payload.user)
+          this.keepAlive()
+        } else if (!payload.user) {
+          this.props.invalidateSession()
+        }
       })
     }
+  }
+
+  updateSession = () => {
+    if (!this.fetching && !!this.props.user) {
+      this.fetching = true
+      fetch("/auth/user_info?refresh=true", {
+        credentials: 'same-origin'
+      }).then(resp => {
+        if (!resp.ok) {
+          this.fetching = false
+          return {}
+        } else {
+          return resp.json() 
+        }
+      }).then(payload => {
+        this.fetching = false
+        if (!payload.user) {
+          this.props.invalidateSession()
+        }
+      })
+    }
+  }
+
+  maintainSession = () => {
+    this.updateSession()
+    if (!this.props.user) {
+      this.sessionInterval && window.clearInterval(this.sessionInterval)
+    } else if (!this.sessionInterval) {
+      this.sessionInterval = window.setInterval(this.updateSession, sessionInterval)
+    }
+  }
+
+  sleepSession = () => {
+    this.sessionInterval && window.clearInterval(this.sessionInterval)
+    this.sessionInterval = null
+  }
+
+  keepAlive = () => {
+    window.onfocus = this.maintainSession
+    window.onblur = this.sleepSession
+  }
+
+  componentWillUnmount = () => {
+    this.sessionInterval && window.clearInterval(this.sessionInterval)
   }
 
   handleLogin = () => {

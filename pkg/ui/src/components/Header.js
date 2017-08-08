@@ -6,12 +6,18 @@ import {typography} from 'material-ui/styles'
 import {Link} from 'react-router-dom'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
+import { routerActions } from 'react-router-redux'
 import { clearErrors } from '../state/actions/errors'
+import { invalidateSession } from '../state/actions/session'
 import Avatar from 'react-avatar'
 import Badge from 'material-ui/Badge'
 import IconButton from 'material-ui/IconButton'
 import IconError from 'material-ui/svg-icons/action/info'
 import RaisedButton from 'material-ui/FlatButton'
+import Popover from 'material-ui/Popover'
+import Menu from 'material-ui/Menu'
+import MenuItem from 'material-ui/MenuItem'
+import IconLogout from 'material-ui/svg-icons/action/power-settings-new'
 
 import Breadcrumbs from './Breadcrumbs'
 import ErrorsDialog from './ErrorsDialog'
@@ -34,7 +40,13 @@ const mapDispatchToProps = function(dispatch) {
     },
     clearAllErrors: function(errors) {
       dispatch(clearErrors(...errors))
-    }
+    },
+    navigateHome: function() {
+      dispatch(routerActions.push('/'))
+    },
+    invalidateSession: function() {
+      dispatch(invalidateSession())
+    },
   }
 }
 
@@ -45,11 +57,13 @@ class Header extends React.Component {
     super(props)
     this.state = {
       open: false,
+      profileOpen: false,
       latestErrorOpen: !!props.latestError,
       latestError: props.latestError,
       location: props.location,
     }
     this.handleLatestErrorRequestClose = this.handleLatestErrorRequestClose.bind(this)
+    this.handleProfileTouchTap = this.handleProfileTouchTap.bind(this)
   }
 
   handleLatestErrorRequestClose = () => {
@@ -64,6 +78,24 @@ class Header extends React.Component {
 
   handleClose = () => {
     this.setState({open: false})
+  }
+
+  handleProfileTouchTap = (event) => {
+    // This prevents ghost click.
+    event.preventDefault();
+    this.setState({
+      profileOpen: true,
+      profileAnchor: event.currentTarget,
+    })
+  }
+
+  handleProfileRequestClose = () => {
+    this.setState({profileOpen: false})
+  }
+
+  handleLogout = () => {
+    this.props.invalidateSession()
+    this.setState({profileOpen: false})
   }
 
   componentWillReceiveProps = (props) => {
@@ -95,6 +127,7 @@ class Header extends React.Component {
       || nextState.open !== this.state.open
       || nextState.latestErrorOpen !== this.state.latestErrorOpen
       || nextState.previousLocation !== this.state.previousLocation
+      || nextState.profileOpen !== this.state.profileOpen
   }
 
   render() {
@@ -139,11 +172,24 @@ class Header extends React.Component {
     let { props } = this
     return (
       <AppBar
-        iconElementLeft={<Avatar
-          src={require('../images/kubernetes-logo.svg')}
-          size={30}
-          style={{background: 'transparent', marginLeft: 10, marginTop: 8}}
-        />}
+        iconStyleLeft={{marginTop: 8, marginRight: 4, marginLeft: -10}}
+        iconElementLeft={
+          <Link to={'/'}>
+            <RaisedButton
+              icon={<Avatar
+                src={require('../images/kubernetes-logo.svg')}
+                size={30}
+                style={{background: 'transparent', marginTop: -4}}
+              />}
+              style={{marginTop: 4}}
+              className={'menu-button'}
+              labelStyle={styles.menuButtonLabel}
+              data-rh={'Home'}
+              data-rh-at={'bottom'}
+              data-rh-cls={'menu-button-rh'}
+            />
+          </Link>
+          }
         style={{...props.styles, ...styles.appBar}}
         title={
         <Toolbar style={{...styles.menu}}>
@@ -151,7 +197,7 @@ class Header extends React.Component {
             <ToolbarSeparator className="separator-bar"/>
             {
               props.menu.map(menuItem =>
-                <Link to={menuItem.link} key={menuItem.name} >
+                <Link to={menuItem.link} key={menuItem.name}>
                   <RaisedButton
                     label={menuItem.name}
                     icon={menuItem.icon}
@@ -188,7 +234,30 @@ class Header extends React.Component {
               </IconButton>
             </Badge>
             }
-            <Avatar email={props.user} name={props.user} color={blueA200} round={true} size={42} style={styles.avatar}/>
+            <RaisedButton
+              className="profile"
+              label={props.user}
+              labelPosition="before"
+              onTouchTap={this.handleProfileTouchTap}
+              icon={<Avatar email={props.user} name={props.user} color={blueA200} round={true} size={32} style={styles.avatar}/>}
+              labelStyle={{textTransform: 'none', color: '#9e9e9e'}}
+              style={{margin: 0}}
+              buttonStyle={{height: 48}}
+            />
+            <Popover
+              open={this.state.profileOpen}
+              anchorEl={this.state.profileAnchor}
+              onRequestClose={this.handleProfileRequestClose}
+              anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
+              targetOrigin={{horizontal: 'right', vertical: 'top'}}
+            >
+              <Menu desktop={false}>
+                <MenuItem primaryText="Log out" 
+                  leftIcon={<IconLogout/>}
+                  onTouchTap={this.handleLogout}
+                  />
+              </Menu>
+            </Popover>
           </ToolbarGroup>
         </Toolbar>
       }>

@@ -8,7 +8,7 @@ import ResourceInfoPage from '../components/ResourceInfoPage'
 import EditorPage from '../components/EditorPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResource } from '../resource-utils'
+import { sameResource } from '../utils/resource-utils'
 
 const mapStateToProps = function(store) {
   return { 

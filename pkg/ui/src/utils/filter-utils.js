@@ -75,27 +75,27 @@ export function applyFiltersToResource(filters, resource) {
         match = true
       }
     } else if (field === 'freeMemory') {
-      for (let v of values) {
-        // parse the values
-        let op, val
-        if (v.startsWith('>')) {
-          op = '>'
-          val = v.substr(1)
-        } else if (v.startsWith('>=')) {
-          op = '>='
-          val = v.substr(2)
-        } else if (v.startsWith('<')) {
-          op = '<'
-          val = v.substr(1)
-        } else if (v.startsWith('<=')) {
-          op = '<='
-          val = v.substr(2)
-        }
-      }
+      // for (let v of values) {
+      //   // parse the values
+      //   let op, val
+      //   if (v.startsWith('>')) {
+      //     op = '>'
+      //     val = v.substr(1)
+      //   } else if (v.startsWith('>=')) {
+      //     op = '>='
+      //     val = v.substr(2)
+      //   } else if (v.startsWith('<')) {
+      //     op = '<'
+      //     val = v.substr(1)
+      //   } else if (v.startsWith('<=')) {
+      //     op = '<='
+      //     val = v.substr(2)
+      //   }
+      // }
     } else if (field === 'freeCPU') {
-      for (let v of values) {
+      // for (let v of values) {
         
-      }
+      // }
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
@@ -122,3 +122,4 @@ export function splitFilter(filter) {
   }
   return parts
 }
+

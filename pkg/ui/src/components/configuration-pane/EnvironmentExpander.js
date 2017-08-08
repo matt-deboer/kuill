@@ -15,8 +15,8 @@ const rowHeight = 22
 const styles = {
   table: {
     backgroundColor: 'transparent',
-    border: '1px solid rgba(0,0,0,0.05)',
-    padding: 16,
+    // border: '1px solid rgba(0,0,0,0.05)',
+    padding: 10,
     paddingLeft: 16,
     tableLayout: 'inherit',
   },
@@ -38,7 +38,7 @@ const styles = {
     paddingLeft: 10,
     height: rowHeight,
     overflow: 'visible',
-    borderLeft: '1px solid rgba(0,0,0,0.05)',
+    // borderLeft: '1px solid rgba(0,0,0,0.05)',
   },
   expander: {
     padding: 0,
@@ -97,7 +97,7 @@ export default class StringArrayExpander extends React.PureComponent {
             <Table style={styles.table} selectable={false} headerStyle={{display: 'none'}}>
               <TableBody displayRowCheckbox={false}>
                 {data.map((env) =>
-                  <TableRow key={env.name} style={styles.tableRow} displayBorder={true}>
+                  <TableRow key={env.name} style={styles.tableRow} displayBorder={false}>
                       <TableRowColumn style={styles.tableRowKeyCol}>{env.name}</TableRowColumn>
                       <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env)}</TableRowColumn>
                   </TableRow>

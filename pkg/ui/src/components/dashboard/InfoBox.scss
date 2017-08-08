@@ -1,0 +1,9 @@
+.infobox {
+  .recharts-responsive-container {
+    // position: absolute !important;
+    width: calc(100% - 60px) !important;
+    height: 60px !important;
+    margin-left: 60px;
+    padding-top: 1px;
+  } 
+}

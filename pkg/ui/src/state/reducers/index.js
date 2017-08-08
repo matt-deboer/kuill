@@ -6,4 +6,6 @@ export { default as logs} from './logs'
 export { default as terminal} from './terminal'
 export { default as errors} from './errors'
 export { default as events} from './events'
+export { default as usersettings} from './usersettings'
+export { default as metrics} from './metrics'
 

@@ -1,7 +1,6 @@
 import React from 'react'
 import { grey300, grey500 } from 'material-ui/styles/colors'
 import { Link } from 'react-router-dom'
-import IconButton from 'material-ui/IconButton'
 import IconHome from 'material-ui/svg-icons/action/home'
 import IconChevronRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
 import './Breadcrumbs.css'
@@ -52,13 +51,6 @@ export default class Breadcrumbs extends React.Component {
     let renderedCrumbs = []
     
     if (crumbs.length > 0) {
-      renderedCrumbs.push(<Link key={renderedCrumbs.length} to={'/'}><IconButton style={{
-          verticalAlign: 'middle',
-          paddingRight: 0,
-          paddingLeft: 0,
-          marginRight: -5,
-          marginLeft: -5,
-        }} iconStyle={{fill: grey300}} data-rh={'Home'} data-rh-at={'bottom'}><IconHome /></IconButton></Link>)
       renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
       for (let i=0, len=crumbs.length; i < len; ++i) {
         let crumb = crumbs[i]
