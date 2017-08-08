@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans");
 html {
   font-family: 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased; }
@@ -6,7 +7,7 @@ body, h1, h2, h3, h4, h5, h6 {
   font-size: 15px;
   margin: 0;
   line-height: 24px;
-  font-family: "Roboto, sans-serif"; }
+  font-family: 'Open Sans', sans-serif !important; }
 
 body {
   margin: 0;
@@ -25,7 +26,7 @@ a:hover {
 
 /* customize tooltips */
 .react-hint {
-  font-family: 'Roboto', sans-serif !important; }
+  font-family: 'Open Sans', sans-serif !important; }
   .react-hint:after {
     border-bottom-color: #787878;
     border-top-color: #787878; }

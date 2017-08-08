@@ -36,8 +36,13 @@
 
 .sb-avatar {
   div {
-    font-family: 'Roboto', sans-serif !important;
+    font-family: 'Open Sans', sans-serif !important;
   }
+}
+
+button.profile {
+  height: 42px !important;
+  margin-bottom: -4px !important;
 }
 
 @media screen and (min-width: 1170px) {

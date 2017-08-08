@@ -1,0 +1,30 @@
+
+.overview {
+  .list-contents {
+    overflow-y: auto;
+  }
+}
+
+.overview {
+  .list-contents {
+    height: calc(100vh - 565px) !important;
+  }
+}
+
+.list {
+  position: relative;
+  &> div:after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    bottom: 1px;
+    margin-right: 10px;
+    margin-left: 10px;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    background-image: linear-gradient(to bottom, transparent, rgba(80,80,80, 1) 60%);
+    height: 20px;
+    // max-width: 33.333%;
+  }
+}

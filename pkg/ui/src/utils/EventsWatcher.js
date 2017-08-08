@@ -6,7 +6,7 @@ export default class EventsWatcher {
 
     this.props = props
 
-    if (!!props.dispatch) {
+    if (!!props.dispatch && !!props.getState) {
       this.dispatch = props.dispatch
       let resourceVersion = props.resourceVersion || 0
 
@@ -33,7 +33,13 @@ export default class EventsWatcher {
   onEvent = (event) => {
     let data = JSON.parse(event.data)
     if (!!data) {
-      this.dispatch(receiveEvents(data))
+      let resources
+      if (!!data.object.metadata.namespace) {
+        resources = this.props.getState().workloads.resources
+      } else {
+        resources = this.props.getState().cluster.resources
+      }
+      this.dispatch(receiveEvents(resources, data))
     }
   }
 

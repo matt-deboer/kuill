@@ -5,13 +5,13 @@ import { routerActions } from 'react-router-redux'
 import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
-import { keyForResource, isResourceOwnedBy, sameResource } from '../../resource-utils'
+import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
-import { watchEvents, selectEventsFor } from './events'
+import { watchEvents, selectEventsFor, reconcileEvents } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
 import yaml from 'js-yaml'
-
+import { defaultFetchParams, sleep } from '../../utils/request-utils'
 export var types = {}
 for (let type of [
   'REPLACE_ALL',
@@ -38,11 +38,6 @@ for (let type of [
 export const defaultFilterNames = 'namespace:default'
 
 export const maxReloadInterval = 5000
-
-const defaultFetchParams = {
-  credentials: 'same-origin',
-  timeout: 5000,
-}
 
 export function replaceAll(resources, error) {
   return {
@@ -78,6 +73,9 @@ export function putResource(newResource, isNew) {
       })
 
       let { resource, resources } = getState().workloads
+      
+      dispatch(reconcileEvents(resources))
+
       if (sameResource(newResource, resource)
       || isResourceOwnedBy(resources, newResource, resource)
       || isResourceOwnedBy(resources, resource, newResource)) {
@@ -88,6 +86,9 @@ export function putResource(newResource, isNew) {
           name: resource.metadata.name,
         })
         let { pods } = getState().workloads
+        if (resource.statusSummary === 'disabled') {
+          pods = {}
+        }
         selectAllForResource(dispatch, resources, resource, pods)
       }
     }
@@ -211,7 +212,13 @@ export function scaleResource(namespace, kind, name, replicas) {
       if (contents) {
         let resource = createPost(contents)
         if (resource.spec && 'replicas' in resource.spec) {
+          let prevReplicas = resource.spec.replicas
           resource.spec.replicas = (typeof replicas === 'string' ? parseInt(replicas, 10) : replicas)
+          
+          // Provide immediate feedback that the resource is scaling
+          resource.statusSummary = 'scaling ' + (prevReplicas > resource.spec.replicas ? 'down' : 'up')
+          dispatch(putResource(resource, false))
+
           doRequest(dispatch, getState, async () => {
             await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
           })
@@ -325,11 +332,33 @@ export function createResource(contents) {
 /**
  * Removes the specified resource
  */
-export function removeResource(...resources) {
+export function removeResource(...resourcesToRemove) {
   return async function (dispatch, getState) {
+      
+      let { resources, resource } = getState().workloads
+      let updateSelected = false
+      for (let toBeRemoved of resourcesToRemove) {
+        if (isResourceOwnedBy(resources, toBeRemoved, resource)
+        || isResourceOwnedBy(resources, resource, toBeRemoved)) {
+          updateSelected = true
+          break
+        }
+      }
+
       await doRequest(dispatch, getState, async () => {
-        await removeResources(dispatch, getState, resources)
+        await removeResources(dispatch, getState, resourcesToRemove)
       })
+
+      if (updateSelected) {
+        dispatch({
+          type: types.SELECT_RESOURCE,
+          namespace: resource.metadata.namespace,
+          kind: resource.kind,
+          name: resource.metadata.name,
+        })
+        let { pods } = getState().workloads
+        selectAllForResource(dispatch, resources, resource, pods)
+      }
   }
 }
 
@@ -397,6 +426,7 @@ async function fetchResources(dispatch, getState, force) {
     }
 
     dispatch(replaceAll(resources))
+    dispatch(reconcileEvents(resources))
     dispatch(watchEvents(resources))
     watchResources(dispatch, getState)
   }
@@ -764,8 +794,4 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
     }).then(contents => {
       dispatch(receiveResource(resource, contents))
     })
-}
-
-async function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
 }

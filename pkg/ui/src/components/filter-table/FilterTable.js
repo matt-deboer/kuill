@@ -40,14 +40,14 @@ export default class FilterTable extends React.PureComponent {
      * An optional value that can be used to control when the table should update;
      * the table will re-render whenever this value has changed.
      */
-    revision: PropTypes.string,
+    revision: PropTypes.oneOfType([PropTypes.string,PropTypes.number]),
   }
 
   static defaultProps = {
     width: '100%',
     height: 'auto',
     idColumn: 'id',
-    selectedIds: [],
+    selectedIds: {},
     showRowHover: true,
     displayRowCheckbox: true,
     displaySelectAll: true,

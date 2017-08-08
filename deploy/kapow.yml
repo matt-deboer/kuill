@@ -1,0 +1,106 @@
+kind: List
+api: v1
+items:
+
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: kapow
+    namespace: kube-system
+
+- kind: Role
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kapow-serviceaccount
+    namespace: kube-system
+  rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1alpha1
+  metadata:
+    name: kapow-serviceaccount
+    namespace: kube-system
+  subjects:
+    - kind: ServiceAccount
+      name: kapow
+    - kind: User
+      name: kapow
+  roleRef:
+    kind: Role
+    name: kapow-serviceaccount
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: Deployment
+  apiVersion: extensions/v1beta1
+  metadata:
+    labels:
+      name: kapow
+    name: kapow
+    namespace: kube-system
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: kapow
+    template:
+      metadata:
+        labels:
+          name: kapow
+          service: kapow
+      spec:
+        volumes:
+        - name: auth-proxy-certs
+          secret:
+            secretName: auth-proxy-certs
+        containers:
+        - image: mattdeboer/kapow:v1.0-RC1
+          name: kapow
+          volumeMounts: 
+          - name: auth-proxy-certs
+            mountPath: /certs
+            readOnly: true
+          env:
+          - name: KAPOW_SERVER_CERT
+            value: /certs/auth-proxy.pem
+          - name: KAPOW_SERVER_KEY
+            value: /certs/auth-proxy-key.pem
+          - name: KAPOW_KUBERNETES_CLIENT_CERT
+            value: /certs/auth-proxy.pem
+          - name: KAPOW_KUBERNETES_CLIENT_KEY
+            value: /certs/auth-proxy-key.pem
+          - name: KAPOW_KUBERNETES_CLIENT_CA
+            value: /certs/ca.pem
+          ports:
+          - containerPort: 8443
+            name: https
+        
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: kapow
+    namespace: kube-system
+  spec:
+    ports:
+    - name: kapow
+      port: 8443
+    selector:
+      name: kapow
+    type: NodePort
+
+- kind: Ingress
+  apiVersion: extensions/v1beta1
+  metadata:
+    namespace: kube-system
+    name: kapow
+  spec:
+    rules:
+    - host: ui.${domain}
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: kapow
+            servicePort: 8443

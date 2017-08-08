@@ -3,7 +3,8 @@ import {blue600, blue800, grey800} from 'material-ui/styles/colors';
 
 const themeDefault = getMuiTheme({
   // fontFamily: 'Monaco, MonoSpace, sans-serif',
-  fontFamily: 'Roboto, sans-serif',
+  // fontFamily: 'Roboto, sans-serif',
+  fontFamily: 'Open Sans, sans-serif',
   palette: {
     primary1Color: blue800,
     // primary2Color: blue900,

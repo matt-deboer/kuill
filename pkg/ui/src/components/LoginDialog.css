@@ -4,3 +4,48 @@
 .login-appear.login-appear-active {
   opacity: 1;
   transition: opacity 3s ease-in; }
+
+.login .title {
+  background: #424242;
+  color: #b4b4b4; }
+  .login .title svg {
+    fill: #b4b4b4 !important;
+    color: #b4b4b4 !important; }
+
+.login-background {
+  background-color: #326ce5;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 1400;
+  opacity: 1;
+  top: 0;
+  left: 0; }
+
+.login-background::before {
+  content: "";
+  background-image: url("../images/kubernetes-logo.svg");
+  background-repeat: no-repeat;
+  background-position: -375px -375px;
+  background-size: 1024px;
+  position: fixed;
+  opacity: 0.2;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1400; }
+
+.login-background::after {
+  content: "";
+  background-image: url("../images/kubernetes-name-white.svg");
+  background-repeat: no-repeat;
+  background-position: right 5% top 5%;
+  background-size: 50%;
+  position: fixed;
+  opacity: 0.2;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1400; }

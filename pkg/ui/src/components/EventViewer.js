@@ -11,6 +11,7 @@ import {
 import * as moment from 'moment'
 import sizeMe from 'react-sizeme'
 import { eventType as eventTypeIcons } from './icons'
+import { toHumanizedAge } from '../converters'
 
 const mapStateToProps = function(store) {
   return {
@@ -78,10 +79,3 @@ function EventViewer(props) {
     </div>
   )
 }))
-
-function toHumanizedAge(timestamp) {
-  let age = Date.now() - Date.parse(timestamp)
-  let humanized = moment.duration(age).humanize()
-  return humanized.replace("a few ", "")
-}
-

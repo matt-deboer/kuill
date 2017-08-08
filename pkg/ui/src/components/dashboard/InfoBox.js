@@ -1,24 +1,32 @@
-import React from 'react';
-import PropTypes from 'prop-types'
-import Paper from 'material-ui/Paper';
-import {white, grey800} from 'material-ui/styles/colors';
-import typography from 'material-ui/styles/typography';
+import React from 'react'
+import { ResponsiveContainer, AreaChart, Area } from 'recharts'
+import Paper from 'material-ui/Paper'
+import { white, grey800 } from 'material-ui/styles/colors'
+import typography from 'material-ui/styles/typography'
+import './InfoBox.css'
 
-class InfoBox extends React.Component {
+export default class InfoBox extends React.PureComponent {
 
   render() {
     const {color, title, total, units, Icon} = this.props;
 
     const styles = {
+      wrapper: {
+        backgroundColor: 'rgb(77,77,77)',
+        border: '1px solid rgba(0,0,0,0.5)',
+        height: 60,
+        position: 'relative',
+      },
       content: {
         padding: '5px 10px',
-        marginLeft: 90,
-        height: 80,
-        lineHeight: '80px',
-        fontSize: 60,
+        height: 50,
+        fontSize: 50,
         textAlign: 'right',
-        color: 'rgba(0,0,0,.7)',
-        position: 'relative'
+        color: 'rgb(180,180,180)',
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: '100%',
       },
       number: {
         display: 'block',
@@ -29,22 +37,22 @@ class InfoBox extends React.Component {
       total: {
         display: 'block',
         fontWeight: 600,
-        fontSize: 48,
-        lineHeight: '80px',
-        height: 90,
-        color: grey800,
+        fontSize: 30,
+        lineHeight: '36px',
+        height: 50,
+        color: 'rgb(180,180,180)',
         width: '100%',
         right: 0,
         top: 0,
       },
       units: {
-        fontSize: 24,
-        lineHeight: '24px',
-        color: 'rgba(0,0,0,.3)',
-        paddingTop: 65,
+        fontSize: 16,
+        lineHeight: '16px',
+        color: 'rgb(150,150,150)',
+        paddingTop: 40,
         paddingRight: 10,
         position: 'absolute',
-        height: 80,
+        height: 60,
         textAlign: 'right',
         width: '100%',
         right: 0,
@@ -57,7 +65,7 @@ class InfoBox extends React.Component {
         color: grey800
       },
       text: {
-        fontSize: 20,
+        fontSize: 16,
         top: 5,
         left: 0,
         color: 'rgba(255,255,255,0.7)',
@@ -66,24 +74,46 @@ class InfoBox extends React.Component {
         width: '100%',
       },
       iconSpan: {
-        position: 'relative',
+        position: 'absolute',
+        top: 0,
         float: 'left',
-        height: 90,
-        width: 90,
+        height: 58,
+        width: 58,
         textAlign: 'center',
         backgroundColor: color
       },
       icon: {
-        height: 48,
-        width: 48,
-        marginTop: 30,
+        height: 30,
+        width: 30,
+        marginTop: 25,
         maxWidth: '100%',
         fill: 'rgba(255,255,255,0.7)',
       }
-    };
+    }
+    
+    const data = [
+          {name: 'Page A', uv: 4000, pv: 2400, amt: 2400},
+          {name: 'Page B', uv: 3000, pv: 1398, amt: 2210},
+          {name: 'Page C', uv: 2000, pv: 9800, amt: 2290},
+          {name: 'Page D', uv: 2780, pv: 3908, amt: 2000},
+          {name: 'Page E', uv: 1890, pv: 4800, amt: 2181},
+          {name: 'Page F', uv: 2390, pv: 3800, amt: 2500},
+          {name: 'Page G', uv: 3490, pv: 4300, amt: 2100},
+    ]
+
+
+    //width={336} height={60}
 
     return (
-      <Paper>
+      <Paper style={styles.wrapper} className={'infobox'}>
+
+        <ResponsiveContainer style={{}}>
+          <AreaChart data={data} margin={{top: 5, right: 0, left: 0, bottom: 5}}>
+            <Area type='monotone' dataKey='uv' stroke='rgb(41, 98, 255)' fill='rgba(41, 98, 255, 0.3)' />
+          </AreaChart>
+        </ResponsiveContainer>
+        
+        
         <span style={styles.iconSpan}>
           <span style={styles.text}>{title}</span>
           <Icon color={white}
@@ -103,12 +133,3 @@ class InfoBox extends React.Component {
   }
 }
 
-InfoBox.propTypes = {
-  Icon: PropTypes.any, // eslint-disable-line
-  color: PropTypes.string,
-  title: PropTypes.string,
-  total: PropTypes.number,
-  units: PropTypes.string,
-};
-
-export default InfoBox;

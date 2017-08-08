@@ -3,33 +3,44 @@ import {blueA200, blueA700, lightBlueA400, lightBlue900} from 'material-ui/style
 
 import IconMemory from 'material-ui/svg-icons/hardware/memory'
 import IconCPU from 'material-ui/svg-icons/content/select-all'
-import IconNodes from 'material-ui/svg-icons/navigation/apps'
-import IconPods from 'material-ui/svg-icons/image/grain'
 
+import IconStorage from 'material-ui/svg-icons/device/storage'
+import IconNetwork from 'material-ui/svg-icons/action/settings-ethernet'
+
+import Paper from 'material-ui/Paper'
 
 import InfoBox from '../components/dashboard/InfoBox'
-// import NewOrders from '../components/dashboard/NewOrders'
-// import MonthlySales from '../components/dashboard/MonthlySales'
-// import ResourceUsage from '../components/dashboard/ResourceUsage'
 import RecentUpdates from '../components/dashboard/RecentUpdates'
 import ResourceProblems from '../components/dashboard/ResourceProblems'
+import ResourceCounts from '../components/dashboard/ResourceCounts'
+import NamespaceBarChart from '../components/dashboard/NamespaceBarChart'
+
 import { watchEvents } from '../state/actions/events'
 import { requestResources as requestClusterResources } from '../state/actions/cluster'
 import { requestResources as requestWorkloadsResources } from '../state/actions/workloads'
+import { calculateMetrics } from '../utils/summary-utils'
 import { connect } from 'react-redux'
+import './Overview.css'
 
 const mapStateToProps = function(store) {
   return {
-    cores: store.cluster.cores,
-    nodes: store.cluster.nodes,
-    memory: store.cluster.memory,
-    podCount: store.workloads.podCount,
-    problemResources: store.workloads.problemResources,
-    memoryUnits: store.cluster.memoryUnits,
+    // cores: store.cluster.cores,
+    // nodes: store.cluster.nodes,
+    // memory: store.cluster.memory,
+    // podCount: store.workloads.podCount,
+    // memoryUnits: store.cluster.memoryUnits,
     isFetching: store.cluster.isFetching,
     user: store.session.user,
     recentEvents: store.events.recentEvents,
     events: store.events.events,
+    eventsRevision: store.events.revision,
+    workloadsRevision: store.workloads.revision,
+    clusterRevision: store.cluster.resourceRevision,
+    clusterResources: store.cluster.resources,
+    clusterMetrics: store.metrics.cluster,
+    namespaceMetrics: store.metrics.namespace,
+    selectedNamespaces: store.usersettings.selectedNamespaces,
+    metricsRevision: store.metrics.revision,
   }
 }
 
@@ -55,6 +66,7 @@ class Overview extends React.Component {
     if (props.user) {
       this.fetch()
     }
+    this.nodes = Object.entries(props.clusterResources).map(([k,v])=> v).filter(v => v.kind === 'Node')
   }
 
   fetch = () => {
@@ -68,73 +80,146 @@ class Overview extends React.Component {
     if (!!nextProps.user && !this.props.user) {
       this.fetch()
     }
+    this.nodes = Object.entries(this.props.clusterResources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+  }
+
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return (this.props.workloadsRevision !== nextProps.workloadsRevision
+      || this.props.clusterRevision !== nextProps.clusterRevision
+      || this.props.metricsRevision !== nextProps.metricsRevision
+      || this.props.eventsRevision !== nextProps.eventsRevision
+      || this.props.selectedNamespaces !== nextProps.selectedNamespaces
+    )
   }
 
   render() {
+
+    const styles = {
+      col: {
+        paddingRight: '0.5rem',
+        paddingLeft: '0.5rem',
+      },
+      wrapper: {
+        position: 'relative',
+        background: 'rgb(99,99,99)',
+        padding: '15px 0.5rem',
+        height: 'calc(100vh - 110px)',
+        border: '1px solid rgba(0,0,0,0.1)',
+      },
+      heatmap: {
+        paddingTop: 20,
+        paddingBottom: 20,
+        paddingRight: '1rem',
+        paddingLeft: '1rem',
+        background: 'rgb(66,66,66)',
+        margin: '-20px -0.5rem 0px',
+        borderBottom: '1px solid rgb(0,0,0)',
+        height: 185,
+      },
+      summaryStatsBox: {
+        // background: 'rgb(66,66,66)',
+        margin: 0,
+        paddingTop: 15,
+        paddingBottom: 0,
+      },
+      listBoxes: {
+        paddingLeft: 16,
+        paddingRight: 16,
+      }
+    }
+
+    let { namespaceMetrics, clusterMetrics, selectedNamespaces } = this.props
+    let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces)
+
+    // nm.summary.netTx.usage += p.network.txBytes
+    // nm.summary.netTx.duration += duration
+
     let { props } = this
     return (
-      <div>
-        <div className="row">
+      <Paper style={styles.wrapper} zDepth={1} className={'overview'}>
+        <div style={{position: 'absolute', top: 5, left: 15, color: 'rgb(120,120,120)', fontSize: 18, fontWeight: 600}}>
+          Allocated Resource Usage
+        </div>
 
-          <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
-            <InfoBox Icon={IconCPU}
-                    color={blueA700}
-                    title="cpu"
-                    total={props.cores}
-                    units="cores"
-            />
+        <div style={styles.heatmap}>
+          <NamespaceBarChart
+            stats={stats}
+            style={{paddingTop: 50}}
+            clusterRevision={props.clusterRevision}/>
+        </div>
+
+        <div className="row" style={styles.summaryStatsBox}>
+
+          <div className="col-xs-4 col-sm-4 col-md-4 col-lg-4 m-b-15" style={styles.col}>
+            <div style={{marginBottom: 15}}>
+              <InfoBox Icon={IconCPU}
+                      color={blueA700}
+                      title="cpu"
+                      total={stats.cpu.total}
+                      units={stats.cpu.units}
+              />
+            </div>
+            <div>
+              <InfoBox Icon={IconMemory}
+                      color={blueA200}
+                      title="mem"
+                      total={stats.memory.total.toFixed(1)}
+                      units={stats.memory.units}
+              />
+            </div>
           </div>
 
-
-          <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
-            <InfoBox Icon={IconMemory}
-                    color={blueA200}
-                    title="mem"
-                    total={props.memory}
-                    units={props.memoryUnits}
-            />
+          <div className="col-xs-4 col-sm-4 col-md-4 col-lg-4 m-b-15" style={styles.col}>
+            <div style={{marginBottom: 15}}>
+              <InfoBox Icon={IconStorage}
+                      color={lightBlueA400}
+                      title="disk"
+                      total={stats.disk.total.toFixed(1)}
+                      units={stats.disk.units}
+              />
+            </div>
+            <div>
+              <InfoBox Icon={IconStorage}
+                      color={lightBlueA400}
+                      title="vols"
+                      total={stats.volumes.total.toFixed(1)}
+                      units={stats.volumes.units}
+              />
+            </div>
           </div>
 
-          <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
-            <InfoBox Icon={IconPods}
-                    color={lightBlueA400}
-                    title="pods"
-                    total={props.podCount}
-            />
-          </div>
-
-          <div className="col-xs-6 col-sm-6 col-md-3 col-lg-3 m-b-15 ">
-            <InfoBox Icon={IconNodes}
-                    color={lightBlue900}
-                    title="nodes"
-                    total={props.nodes}
-            />
+          <div className="col-xs-4 col-sm-4 col-md-4 col-lg-4 m-b-15" style={styles.col}>
+            <div style={{marginBottom: 15}}>
+              <InfoBox Icon={IconNetwork}
+                      color={lightBlue900}
+                      title="net out"
+                      total={stats.netTx.ratio.toFixed(2)}
+                      units={stats.netTx.units}
+              />
+            </div>
+            <div>
+              <InfoBox Icon={IconNetwork}
+                      color={lightBlue900}
+                      title="net in"
+                      total={stats.netRx.ratio.toFixed(2)}
+                      units={stats.netRx.units}
+              />
+            </div>
           </div>
         </div>
 
-        {/*<div className="row">
-          <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-md m-b-15">
-            <NewOrders data={Data.dashBoardPage.newOrders}/>
+        <div className="row" style={styles.listBoxes}>
+          <div className="col-xs-12 col-sm-4 col-md-4 col-lg-4 m-b-15 list" style={styles.col}>
+            <ResourceProblems />
           </div>
-
-          <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 m-b-15">
-            <MonthlySales data={Data.dashBoardPage.monthlySales}/>
+          <div className="col-xs-12 col-sm-4 col-md-4 col-lg-4 m-b-15 list" style={styles.col}>
+            <ResourceCounts />
           </div>
-        </div>*/}
-
-        <div className="row">
-          <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 m-b-15 ">
-            <ResourceProblems problemResources={props.problemResources} events={props.events}/>
+          <div className="col-xs-12 col-sm-4 col-md-4 col-lg-4 m-b-15 list" style={styles.col}>
+            <RecentUpdates />
           </div>
-          <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 m-b-15 ">
-            <RecentUpdates recentEvents={props.recentEvents}/>
-          </div>
-
-          {/*<div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 m-b-15 ">
-            <ResourceUsage />
-          </div>*/}
         </div>
-      </div>
+      </Paper>
     )
   }
 })

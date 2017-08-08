@@ -1,9 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import RaisedButton from 'material-ui/RaisedButton'
 import IconButton from 'material-ui/IconButton'
-import { blueA400, grey200, grey300, grey500, grey800, blueA100, red900, white } from 'material-ui/styles/colors'
+import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource, scaleResource } from '../state/actions/workloads'
@@ -11,8 +10,6 @@ import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 import * as moment from 'moment'
 
-import ChipInput from 'material-ui-chip-input'
-import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
@@ -29,11 +26,12 @@ import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
 import { resourceStatus as resourceStatusIcons } from './icons'
-import { compareStatuses } from '../resource-utils'
+import { compareStatuses } from '../utils/resource-utils'
 
+import FilterBox from './FilterBox'
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
-import KubeKinds from '../kube-kinds'
+import WorkloadCountsPanel from './WorkloadCountsPanel'
 import './WorkloadsPage.css'
 
 import Perf from 'react-addons-perf'
@@ -134,6 +132,7 @@ const styles = {
   paper: {
     padding: 15,
     margin: 5,
+    height: 'calc(100vh - 110px)',
   },
   statusIcon: {
     marginLeft: 10,
@@ -151,6 +150,7 @@ const styles = {
     color: white,
     fontSize: 10,
     zIndex: 100,
+    pointerEvents: 'none',
   },
   actionButton: {
     backgroundColor: 'transparent',
@@ -170,7 +170,7 @@ const styles = {
   },
   actionHoverStyle: {
     backgroundColor: '#999',
-  }
+  },
 }
 
 // use functional component style for representational components
@@ -277,9 +277,9 @@ class WorkloadsPage extends React.Component {
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
-      || this.state.deleteOpen != nextState.deleteOpen
-      || this.state.suspendOpen != nextState.suspendOpen
-      || this.state.scaleOpen != nextState.scaleOpen
+      || this.state.deleteOpen !== nextState.deleteOpen
+      || this.state.suspendOpen !== nextState.suspendOpen
+      || this.state.scaleOpen !== nextState.scaleOpen
   }
 
   handleActionsRequestClose = () => {
@@ -346,9 +346,6 @@ class WorkloadsPage extends React.Component {
       deleteOpen: true,
       actionsOpen: false,
     })
-
-    // this.props.removeResource(...resources)
-    // this.handleRowSelection({})
   }
 
   handleSuspend = (resource) => {
@@ -368,9 +365,6 @@ class WorkloadsPage extends React.Component {
       suspendOpen: true,
       actionsOpen: false,
     })
-
-      // this.props.removeResource(...resources)
-      // this.handleRowSelection({})
   }
 
   handleScale = () => {
@@ -410,7 +404,6 @@ class WorkloadsPage extends React.Component {
     if (replicas !== undefined) {
       this.props.scaleResource(this.state.hoveredResource, replicas)
     }
-    // TODO: need to perform a targeted edit that only scales...
   }
 
   handleRequestCloseSuspend = () => {
@@ -428,7 +421,6 @@ class WorkloadsPage extends React.Component {
     }
     this.handleRowSelection({})
     this.actionsClicked = false
-    // TODO: need to perform a targeted edit that only scales...
   }
 
   componentWillUpdate = () => {
@@ -445,11 +437,11 @@ class WorkloadsPage extends React.Component {
     if (!this.state.actionsOpen) {
       this.actionsClicked = false
     }
-
   }
 
   componentWillReceiveProps = (nextProps) => {
     this.rows = this.resourcesToRows(nextProps.resources)
+    this.setState({filters: nextProps})
   }
 
   renderCell = (column, row) => {
@@ -511,10 +503,16 @@ class WorkloadsPage extends React.Component {
     let { props } = this
 
     return (
-    <div>
       <Paper style={styles.paper}>
         
-        {renderFilters(props)}
+        <FilterBox
+          addFilter={props.addFilter} 
+          removeFilter={props.removeFilter}
+          filterNames={props.filterNames}
+          possibleFilters={props.possibleFilters}
+          />
+
+        <WorkloadCountsPanel resources={props.resources} />
 
         <FilterTable
           className={'workloads'}
@@ -533,7 +531,7 @@ class WorkloadsPage extends React.Component {
           iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
           width={'calc(100vw - 60px)'}
           wrapperStyle={{marginLeft: -15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
-          headerStyle={{backgroundColor: 'rgba(21, 61, 128, 0.5)', color: 'white'}}
+          headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
 
         {this.state.hoveredResource &&
@@ -687,7 +685,6 @@ class WorkloadsPage extends React.Component {
           />
 
       </Paper>
-    </div>
     )
   }
 })))
@@ -712,53 +709,4 @@ class MultiResourceActionButton extends React.Component {
       </FloatingActionButton>
   }
 
-}
-
-
-function renderFilters(props) {
-
-  return <ChipInput
-    value={props.filterNames}
-    onRequestAdd={(filter) => props.addFilter(filter)}
-    onRequestDelete={(filter, index) => props.removeFilter(filter, index)}
-    name={'filters'}
-    dataSource={props.possibleFilters}
-    floatingLabelText={'select by filters...'}
-    defaultValue={['namespace:default']}
-    menuProps={{
-      desktop: true,
-    }}
-    chipRenderer={({ value, isFocused, isDisabled, handleClick, handleRequestDelete }, key) => {
-      
-      var labelText = value;
-      var parts=value.split(":")
-      if (parts.length === 2) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>{parts[0]}:</span>{parts[1]}</span>
-      } else if (parts.length === 1) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>*:</span>{parts[0]}</span>
-      }
-      return (
-        <Chip
-          key={key}
-          style={{
-            margin: '8px 8px 0 0',
-            padding: 0,
-            float: 'left', 
-            pointerEvents: isDisabled ? 'none' : undefined 
-          }}
-          labelStyle={{'lineHeight': '30px'}}
-          backgroundColor={isFocused ? blueA100 : null}
-          onTouchTap={handleClick}
-          onRequestDelete={handleRequestDelete}
-        >
-        {labelText}
-        </Chip>
-      )}
-    }
-    underlineShow={true}
-    fullWidth={true}
-    style={styles.textField}
-    inputStyle={styles.inputStyle}
-    hintStyle={styles.hintStyle}
-  />
 }

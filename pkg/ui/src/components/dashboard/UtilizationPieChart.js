@@ -18,14 +18,27 @@ const styles = {
 export default class UtilizationPieChart extends React.PureComponent {
 
   render() {
-    let { total, used, label } = this.props
+    let { total, used, label, percent } = this.props
 
     if (!total) {
       return null
     }
 
+    let pct = 0
+    if (percent) {
+      pct = (100 * used / total)
+      if (pct < 0.1) {
+        pct = pct.toFixed(2).substr(1)
+      } else if (pct < 1) {
+        pct = pct.toFixed(1)
+      } else {
+        pct = Math.round(pct)
+      }
+    }
+
     return (
-      <div {...this.props}>
+      <div className={this.props.className} 
+        style={{...this.props.style}} onTouchTap={this.props.onTouchTap} data-select-by={this.props['data-select-by']}>
           <ResponsiveContainer>
             <PieChart >
               <Pie
@@ -43,7 +56,10 @@ export default class UtilizationPieChart extends React.PureComponent {
             </PieChart>
           </ResponsiveContainer>
           <div className="utilization">
-            <div className="percentage">{ Math.round(100 * used / total)}</div>
+            {percent ? 
+            <div className="percentage">{pct}</div> :
+            <div className="used">{used}</div>
+            }
             <div className="label">{label}</div>
           </div>
       </div>

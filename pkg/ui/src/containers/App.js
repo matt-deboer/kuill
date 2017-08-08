@@ -36,6 +36,7 @@ class App extends React.Component {
       container: {
         margin: '80px 15px 20px 15px',
         overflowX: 'hidden',
+        overflowY: 'hidden',
         padding: '0 10px 0 10px',
       },
       loginBtn: {

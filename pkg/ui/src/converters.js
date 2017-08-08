@@ -1,5 +1,17 @@
 import * as moment from 'moment'
 
+/**
+ * 
+ * 
+ * @param {Number or String} fromTimestamp 
+ * @param {Number or String} toTimestamp 
+ */
+export function durationInSeconds(fromTimestamp, toTimestamp) {
+  let fromSeconds = typeof fromTimestamp === 'number' ? fromTimestamp : Date.parse(fromTimestamp)
+  let toSeconds = typeof toTimestamp === 'number' ? toTimestamp : Date.parse(toTimestamp)
+  return toSeconds - fromSeconds
+}
+
 export function toHumanizedAge(timestamp) {
   let age = Date.now() - Date.parse(timestamp)
   let humanized = moment.duration(age).humanize()
@@ -34,10 +46,10 @@ export function decodeBase64(input) {
      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2)
      chr3 = ((enc3 & 3) << 6) | enc4
      output = output + String.fromCharCode(chr1)
-     if (enc3 != 64) {
+     if (enc3 !== 64) {
         output = output + String.fromCharCode(chr2)
      }
-     if (enc4 != 64) {
+     if (enc4 !== 64) {
         output = output + String.fromCharCode(chr3)
      }
      chr1 = chr2 = chr3 = ""

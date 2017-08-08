@@ -4,15 +4,19 @@
     cursor: pointer;
   }
 
-  .percentage {
+  .used, .percentage {
     position: absolute;
-    font-size: 28px;
+    font-size: 22px;
     top: 37%;
     left: 50%;
-    margin-left: 6px;
     color: rgb(130, 177, 255);
     font-weight: 600;
     transform: translateX(-50%) translateY(-50%);
+  }
+
+  .percentage {
+    font-size: 28px;
+    margin-left: 6px;
     &:after {
       content: "%";
       font-size: 14px;

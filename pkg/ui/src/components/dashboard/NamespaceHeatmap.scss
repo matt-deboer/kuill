@@ -1,0 +1,147 @@
+$le-20: rgb(93, 188, 247);
+$le-40: rgb(64, 152, 229);
+$le-60: rgb(37, 111, 209);
+$le-80: rgb(28, 87, 191);
+$le-100: rgb(6, 65, 168);
+
+
+.namespace-heatmap {
+  svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .border {
+    stroke: rgb(255, 175, 41);
+  }
+
+  .hex {
+    stroke: rgba(240,240,240,0.7);
+    stroke-width: 2;
+    fill: rgba(21, 61, 128, 0.5);
+
+    &.filtered {
+      fill: rgba(21, 61, 128, 0.1);
+    }
+    transition: fill 600ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  }
+ 
+  &.by-memory .hex.memory-le-20,
+  &.by-cpu .hex.cpu-le-20,
+  &.by-disk .hex.disk-le-20,
+  &.by-net .hex.net-le-20,
+  .usage.le-20 {
+    fill: $le-20;
+    background-color: $le-20;
+  }
+  &.by-memory .hex.memory-le-40,
+  &.by-cpu .hex.cpu-le-40,
+  &.by-disk .hex.disk-le-40,
+  &.by-net .hex.net-le-40,
+  .usage.le-40 {
+    fill: $le-40;
+    background-color: $le-40;
+  }
+  &.by-memory .hex.memory-le-60,
+  &.by-cpu .hex.cpu-le-60,
+  &.by-disk .hex.disk-le-60,
+  &.by-net .hex.net-le-60,
+  .usage.le-60 {
+    fill: $le-60;
+    background-color: $le-60;
+  }
+  &.by-memory .hex.memory-le-80,
+  &.by-cpu .hex.cpu-le-80,
+  &.by-disk .hex.disk-le-80,
+  &.by-net .hex.net-le-80,
+  .usage.le-80 {
+    fill: $le-80;
+    background-color: $le-80;
+  }
+  &.by-memory .hex.memory-le-100,
+  &.by-cpu .hex.cpu-le-100,
+  &.by-disk .hex.disk-le-100,
+  &.by-net .hex.net-le-100,
+  .usage.le-100 {
+    fill: $le-100;
+    background-color: $le-100;
+  }
+
+}
+
+.namespace-heatmap {
+  position: relative;
+  text-align: center;
+  .legend {
+    bottom: 0;
+    height: 10px;
+    width: 200px;
+    margin: 0 auto;
+    display: inline-block;
+    .usage {
+      width: 30px;
+      height: 10px;
+      display: inline-block;
+      color: rgba(255,255,255,0.8);
+      font-size: 9px;
+      text-align: center;
+      line-height: 10px;
+    }
+  }
+}
+.namespace-utilization {
+  .selector {
+    height: 0px;
+    margin-top: -10px;
+    background-color: #757575;
+    bottom: 0;
+    width: 360px;
+    margin: 5px auto 0 auto;
+    display: block;
+    border: 1px solid #757575;
+    position: relative;
+    
+    &:before, 
+    &:after {
+      transition: left 600ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+    }
+  }
+
+  &.by-cpu .selector:after,
+  &.by-cpu .selector:before {
+    left: 25%;
+  }
+
+  &.by-memory .selector:after,
+  &.by-memory .selector:before {
+    left: 75%;
+  }
+
+  // &.by-disk .selector:after,
+  // &.by-disk .selector:before {
+  //   left: 83%;
+  // }
+
+  .selector:after, .selector:before {
+    bottom: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .selector:after {
+    border-color: rgba(117, 117, 117, 0);
+    border-bottom-color: #757575;
+    border-width: 8px;
+    margin-left: -8px;
+  }
+  .selector:before {
+    border-color: rgba(117, 117, 117, 0);
+    border-bottom-color: #757575;
+    border-width: 9px;
+    margin-left: -9px;
+  }
+}

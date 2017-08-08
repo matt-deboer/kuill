@@ -2,3 +2,13 @@ table.filter-table {
   width: inherit !important; }
   table.filter-table tr td input:not(:checked) + div svg, table.filter-table tr th input:not(:checked) + div svg {
     fill: rgba(0, 0, 0, 0.5) !important; }
+  table.filter-table tr th button {
+    min-width: 0 !important;
+    color: inherit !important;
+    border-radius: 0 !important;
+    white-space: normal !important;
+    line-height: 10px !important; }
+    table.filter-table tr th button svg {
+      margin-right: 0 !important; }
+  table.filter-table tr th:first-child, table.filter-table tr td:first-child {
+    padding-left: 15px !important; }
