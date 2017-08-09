@@ -15,10 +15,10 @@ import (
 
 	"encoding/base64"
 
-	log "github.com/sirupsen/logrus"
 	oidc "github.com/coreos/go-oidc"
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -36,11 +36,10 @@ type oidcHandler struct {
 	groupsClaim  string
 	idClaim      string
 	iconURL      string
-	authManager  *Manager
 }
 
 // NewOIDCHandler creates a new oidc handler with the provided configuration items
-func NewOIDCHandler(authManager *Manager, name, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string) (Authenticator, error) {
+func NewOIDCHandler(name, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string) (Authenticator, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("'name' is required")
 	}
@@ -55,7 +54,6 @@ func NewOIDCHandler(authManager *Manager, name, publicURL, oidcProvider, clientI
 		name:        name,
 		groupsClaim: groupsClaim,
 		idClaim:     idClaim,
-		authManager: authManager,
 		iconURL:     iconURL.String(),
 	}
 

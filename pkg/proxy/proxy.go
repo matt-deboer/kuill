@@ -11,9 +11,9 @@ import (
 
 	"net/http/httputil"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/matt-deboer/kapow/pkg/auth"
+	log "github.com/sirupsen/logrus"
 )
 
 var whitelistedHeaders = []string{"Content-Type"}
@@ -89,15 +89,15 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	}
 	wsp.Director = func(incoming *http.Request, out http.Header) {
 		out.Set(usernameHeader, incoming.Header.Get(usernameHeader))
-		if log.GetLevel() >= log.DebugLevel {
+		if traceRequests {
 			log.Debugf("Director: adding header %s: %s", usernameHeader, incoming.Header.Get(usernameHeader))
 		}
 		out.Set(groupHeader, incoming.Header.Get(groupHeader))
-		if log.GetLevel() >= log.DebugLevel {
+		if traceRequests {
 			log.Debugf("Director: adding header %s: %s", groupHeader, incoming.Header.Get(groupHeader))
 		}
 		out.Set("Origin", kubernetesURL)
-		if log.GetLevel() >= log.DebugLevel {
+		if traceRequests {
 			log.Debugf("Director: adding header %s: %s", "Origin", kubernetesURL)
 		}
 	}
