@@ -71,3 +71,7 @@
 
 [[constraint]]
   name = "golang.org/x/oauth2"
+
+[[constraint]]
+  name = "github.com/crewjam/saml"
+  branch = "master"
