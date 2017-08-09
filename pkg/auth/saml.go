@@ -95,7 +95,11 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescri
 		IDPMetadataURL:    idpu,
 		AllowIDPInitiated: true,
 	})
-	http.HandleFunc(path.Join(s.LoginURL(), "metadata"), s.Metadata)
+	// Update the ACS path in order to serve correct metadata
+	s.samlSP.ServiceProvider.AcsURL.Path = s.LoginURL()
+	s.samlSP.ServiceProvider.MetadataURL.Path = path.Join(s.LoginURL(), "metadata")
+
+	http.HandleFunc(s.samlSP.ServiceProvider.MetadataURL.Path, s.Metadata)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", idpMetadataURL, err)
