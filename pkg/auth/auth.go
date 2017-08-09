@@ -188,8 +188,7 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 
 func (m *Manager) keepSessionAlive(session *SessionToken, w http.ResponseWriter) {
 	// If the session expires in less than 1 minute, renew it
-	expiration := session.Expires()
-	if session != nil && session.Valid && expiration < (time.Now().Unix()-int64(time.Minute.Seconds())) {
+	if session != nil && session.Valid && session.Expires() < (time.Now().Unix()-int64(time.Minute.Seconds())) {
 		session = NewSessionToken(session.User(), []string{}, session.claims)
 		m.writeSessionCookie(session, w)
 		if log.GetLevel() >= log.DebugLevel {
