@@ -28,6 +28,7 @@ const (
 
 type oidcHandler struct {
 	name         string
+	description  string
 	nonce        string
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
@@ -39,7 +40,7 @@ type oidcHandler struct {
 }
 
 // NewOIDCHandler creates a new oidc handler with the provided configuration items
-func NewOIDCHandler(name, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string) (Authenticator, error) {
+func NewOIDCHandler(name, description, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string) (Authenticator, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("'name' is required")
 	}
@@ -55,6 +56,12 @@ func NewOIDCHandler(name, publicURL, oidcProvider, clientID, clientSecret string
 		groupsClaim: groupsClaim,
 		idClaim:     idClaim,
 		iconURL:     iconURL.String(),
+	}
+
+	if len(description) > 0 {
+		o.description = description
+	} else {
+		o.description = name
 	}
 
 	appNonce, err := uuid.NewV4()
@@ -108,7 +115,7 @@ func (o *oidcHandler) Name() string {
 
 // Description returns the user-friendly description of this authenticator
 func (o *oidcHandler) Description() string {
-	return o.name
+	return o.description
 }
 
 // Type returns the type of this authenticator
