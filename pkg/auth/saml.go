@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -20,11 +22,13 @@ import (
 
 type samlHandler struct {
 	name            string
+	description     string
 	nonce           string
 	samlSP          *samlsp.Middleware
 	idpMetadata     *metadataSummary
 	groupsAttribute string
 	groupsDelimiter string
+	iconURL         string
 }
 
 type metadataSummary struct {
@@ -33,17 +37,20 @@ type metadataSummary struct {
 	issuerID     string
 }
 
-func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, IDPMetadataURL, groupsAttribute, groupsDelimiter string) (Authenticator, error) {
+// NewSamlHandler creates a new SAML authentication handler
+func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescription, idpMetadataURL, groupsAttribute, groupsDelimiter string) (Authenticator, error) {
 
 	pu, err := url.Parse(publicURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse public url '%s'; %v", publicURL, err)
 	}
 
-	idpu, err := url.Parse(IDPMetadataURL)
+	idpu, err := url.Parse(idpMetadataURL)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", IDPMetadataURL, err)
+		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", idpMetadataURL, err)
 	}
+
+	iconURL := &url.URL{Host: idpu.Host, Path: "favicon.ico", Scheme: idpu.Scheme}
 
 	keyPair, err := tls.LoadX509KeyPair(certFile, privateKeyFile)
 	if err != nil {
@@ -54,18 +61,34 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, IDPMetada
 		return nil, fmt.Errorf("Failed to parse certificate for cert='%s', key='%s'; %v", certFile, privateKeyFile, err)
 	}
 
-	idpMetadata, err := getIDPMetadata(IDPMetadataURL)
+	idpMetadata, err := getIDPMetadata(idpMetadataURL)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &samlHandler{
 		name:        idpShortName,
+		description: idpDescription,
 		idpMetadata: idpMetadata,
+		iconURL:     iconURL.String(),
+	}
+
+	if len(s.name) == 0 {
+		// extract name from entity id
+		name := strings.Replace(idpMetadata.issuerID, "http://", "", 1)
+		name = strings.Replace(name, "https://", "", 1)
+		name = strings.Split(name, "/")[0]
+		parts := strings.Split(name, ".")
+		if len(parts) > 1 {
+			name = parts[len(parts)-2]
+		}
+		s.name = name
+	}
+	if len(s.description) == 0 {
+		s.description = s.name
 	}
 
 	s.samlSP, err = samlsp.New(samlsp.Options{
-
 		URL:               *pu,
 		Key:               keyPair.PrivateKey.(*rsa.PrivateKey),
 		Certificate:       keyPair.Leaf,
@@ -75,9 +98,8 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, IDPMetada
 	http.HandleFunc(path.Join(s.LoginURL(), "metadata"), s.Metadata)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", IDPMetadataURL, err)
+		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", idpMetadataURL, err)
 	}
-
 	return s, nil
 }
 
@@ -88,25 +110,49 @@ func getIDPMetadata(metadataURL string) (*metadataSummary, error) {
 	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Failed to fetch saml metadata from '%s'; %v", metadataURL, resp.StatusCode)
 	}
-	var metadata saml.EntitiesDescriptor
-	err = xml.NewDecoder(resp.Body).Decode(&metadata)
+	var entities saml.EntitiesDescriptor
+	var metadata saml.EntityDescriptor
+
+	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode entity descriptor: %v", err)
+		return nil, fmt.Errorf("Failed to read metadata response; %v", err)
+	}
+	err = xml.NewDecoder(bytes.NewReader(data)).Decode(&entities)
+	if err != nil {
+		if strings.Contains(err.Error(), "have <EntityDescriptor>") {
+			err = xml.NewDecoder(bytes.NewReader(data)).Decode(&metadata)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Failed to decode entity descriptor: %v", err)
+		}
+	} else {
+		metadata = entities.EntityDescriptors[0]
 	}
 
 	summary := &metadataSummary{
-		issuerID: metadata.EntityDescriptors[0].EntityID,
+		issuerID: metadata.EntityID,
 	}
 
-	for _, idpSSODescriptor := range metadata.EntityDescriptors[0].IDPSSODescriptors {
+	if len(metadata.IDPSSODescriptors) > 0 {
+		idpSSODescriptor := metadata.IDPSSODescriptors[0]
 		// Extract the signing key(s)
 		summary.signingCerts = append(summary.signingCerts, extractKeys(idpSSODescriptor)...)
 		// Extract the SSO login endpoint
-		if len(idpSSODescriptor.SingleSignOnServices) > 0 {
-			summary.ssoLoginURL = idpSSODescriptor.SingleSignOnServices[0].Location
-		} else {
+		if len(idpSSODescriptor.SingleSignOnServices) == 0 {
 			return nil, fmt.Errorf("Metadata contains no SSO descriptors")
 		}
+
+		for _, ssoService := range idpSSODescriptor.SingleSignOnServices {
+			if ssoService.Binding == saml.HTTPPostBinding {
+				summary.ssoLoginURL = ssoService.Location
+			}
+		}
+	} else {
+		return nil, fmt.Errorf("Metadata contains no SSO descriptors")
+	}
+
+	if len(summary.ssoLoginURL) == 0 {
+		return nil, fmt.Errorf("Failed to parse sso login url from metadata")
 	}
 
 	return summary, nil
@@ -117,15 +163,11 @@ func extractKeys(d saml.IDPSSODescriptor) []*x509.Certificate {
 	for _, keyDesc := range d.KeyDescriptors {
 		if keyDesc.Use == "signing" || keyDesc.Use == "" {
 
-			pemBytes := []byte("-----BEGIN RSA PRIVATE KEY-----\n" +
-				string(keyDesc.KeyInfo.Certificate) +
-				"\n-----END CERTIFICATE-----")
-
-			pemBlock, rest := pem.Decode(pemBytes)
-			if rest != nil {
-				log.Errorf("Failed to decode signing cert from pem bytes %v", string(pemBytes))
+			certBytes, err := base64.StdEncoding.DecodeString(keyDesc.KeyInfo.Certificate)
+			if err != nil {
+				log.Errorf("Failed to decode signing cert from pem bytes: %v", err)
 			} else {
-				cert, err := x509.ParseCertificate(pemBlock.Bytes)
+				cert, err := x509.ParseCertificate(certBytes)
 				if err != nil {
 					log.Errorf("Failed to parse signing certificate; %v", err)
 				} else {
@@ -144,7 +186,7 @@ func (s *samlHandler) Name() string {
 
 // Description returns the user-friendly description of this authenticator
 func (s *samlHandler) Description() string {
-	return s.name
+	return s.description
 }
 
 // Type returns the type of this authenticator
@@ -159,12 +201,12 @@ func (s *samlHandler) LoginURL() string {
 
 // PostWithCredentials returns true if this authenticator expects username/password credentials be POST'd
 func (s *samlHandler) PostWithCredentials() bool {
-	return true
+	return false
 }
 
 // IconURL returns an icon URL to signify this login method; empty string implies a default can be used
 func (s *samlHandler) IconURL() string {
-	return ""
+	return s.iconURL
 }
 
 // Metadata returns the metadata for this service provider

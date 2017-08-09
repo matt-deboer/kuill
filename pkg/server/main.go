@@ -88,8 +88,13 @@ func main() {
 			EnvVar: envBase + "OIDC_PROVIDER",
 		},
 		cli.StringFlag{
-			Name:   "oidc-provider-name",
+			Name:   "oidc-provider-description",
 			Usage:  "The OIDC provider display name",
+			EnvVar: envBase + "OIDC_PROVIDER_DESCRIPTION",
+		},
+		cli.StringFlag{
+			Name:   "oidc-provider-name",
+			Usage:  "The OIDC provider short name (identifier)",
 			EnvVar: envBase + "OIDC_PROVIDER_NAME",
 		},
 		cli.StringFlag{
@@ -132,37 +137,37 @@ func main() {
 				with the provider`,
 			EnvVar: envBase + "OIDC_CREDENTIALS_IN_QUERY",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-idp-metadata-url",
 			Usage:  `The metadata URL for a SAML identity provider`,
 			EnvVar: envBase + "SAML_IDP_METADATA_URL",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-idp-shortname",
 			Usage:  `The short name to use for the saml identity provider`,
 			EnvVar: envBase + "SAML_IDP_SHORTNAME",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-idp-description",
 			Usage:  `The description for the saml identity provider`,
 			EnvVar: envBase + "SAML_IDP_DESCRIPTION",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-sp-cert",
-			Usage:  `The certificate to use for this service provider`,
+			Usage:  `The certificate file to use for this service provider`,
 			EnvVar: envBase + "SAML_SP_CERT",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-sp-key",
-			Usage:  `The private key to use for this service provider`,
+			Usage:  `The private key file to use for this service provider`,
 			EnvVar: envBase + "SAML_SP_KEY",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-groups-attribute",
 			Usage:  `The name of the attribute containing the user's groups`,
 			EnvVar: envBase + "SAML_GROUPS_ATTRIBUTE",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:   "saml-groups-delimiter",
 			Usage:  `The delimiter that, if specified, will be used to split single group values into multiple groups`,
 			EnvVar: envBase + "SAML_GROUPS_DELIMITER",
@@ -326,6 +331,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 		oidcHandler, err := auth.NewOIDCHandler(
 			oidcFlags["oidc-provider-name"].(string),
+			c.String("oidc-provider-description"),
 			oidcFlags["public-url"].(string),
 			provider,
 			oidcFlags["oidc-client-id"].(string),
@@ -342,9 +348,10 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		log.Warnf("OpenID+Connect authenticator is not enabled; %s", err)
 	}
 
+	log.Printf("public-url is: %s", c.String("public-url"))
+
 	samlFlags, err := getRequiredFlags(c, map[string]string{
 		"public-url":            "string",
-		"saml-idp-metadata-url": "string",
 		"saml-groups-attribute": "string",
 		"saml-sp-cert":          "string",
 		"saml-sp-key":           "string",
@@ -356,7 +363,8 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 			samlFlags["saml-sp-key"].(string),
 			samlFlags["saml-sp-cert"].(string),
 			c.String("saml-idp-shortname"),
-			samlFlags["saml-idp-metadata-url"].(string),
+			c.String("saml-idp-description"),
+			c.String("saml-idp-metadata-url"),
 			samlFlags["saml-groups-attribute"].(string),
 			c.String("saml-groups-delimiter"),
 		)
