@@ -10,9 +10,11 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/crewjam/saml"
 	"github.com/crewjam/saml/samlsp"
+	jwt "github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -197,5 +199,24 @@ func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*Ses
 }
 
 func (s *samlHandler) sessionTokenFromAssertion(assertion *saml.Assertion) (*SessionToken, error) {
-	return nil, nil
+
+	// TODO: confirm that the assertion has already been validated by this point
+	username := assertion.Subject.NameID.Value
+	groups := []string{}
+	for _, ast := range assertion.AttributeStatements {
+		for _, attr := range ast.Attributes {
+			if s.groupsAttribute == attr.FriendlyName || s.groupsAttribute == attr.Name {
+				for _, attrVal := range attr.Values {
+					if len(s.groupsDelimiter) > 0 {
+						groups = append(groups, strings.Split(attrVal.Value, s.groupsDelimiter)...)
+					} else {
+						groups = append(groups, attrVal.Value)
+					}
+				}
+			}
+		}
+	}
+	return NewSessionToken(username, groups, jwt.MapClaims{
+		"s2i": assertion.Issuer.Value,
+	}), nil
 }
