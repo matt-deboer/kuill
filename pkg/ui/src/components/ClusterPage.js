@@ -132,7 +132,7 @@ class ClusterPage extends React.Component {
     }
     this.selectedIds = {}
     // this.rows = this.resourcesToRows(props.resources)
-    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFilterred)
+    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
     this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
     this.columns = [
       // {
@@ -349,7 +349,7 @@ class ClusterPage extends React.Component {
 
   componentWillReceiveProps = (nextProps) => {
     // this.rows = this.resourcesToRows(nextProps.resources)
-    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFilterred)
+    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
     this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
   }
 
@@ -479,7 +479,7 @@ class ClusterPage extends React.Component {
           iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
           iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
           width={'calc(100vw - 60px)'}
-          revision={props.resourceRevision + props.metricsRevision}
+          revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
           wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
           headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
