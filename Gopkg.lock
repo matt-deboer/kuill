@@ -8,10 +8,22 @@
   revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
 
 [[projects]]
+  name = "github.com/beevik/etree"
+  packages = ["."]
+  revision = "abae5fc32af8862e420d52e686a7e6ec14111685"
+  version = "v0"
+
+[[projects]]
   branch = "master"
   name = "github.com/coreos/go-oidc"
   packages = ["."]
   revision = "a4973d9a4225417aecf5d450a9522f00c1f7130f"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/crewjam/saml"
+  packages = [".","logger","samlsp","xmlenc"]
+  revision = "446329e8c4c41e3a72b7e9aa08d8f8fad7228eea"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -44,6 +56,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/jonboulle/clockwork"
+  packages = ["."]
+  revision = "2eee05ed794112d45db504eb05aa693efd2b8b09"
+  version = "v0.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/nu7hatch/gouuid"
   packages = ["."]
@@ -56,6 +74,12 @@
   revision = "5475d973ea70916980bee28c2b674f3dc3eaed0a"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/russellhaering/goxmldsig"
+  packages = [".","etreeutils","types"]
+  revision = "605161228693b2efadce55323c9c661a40c5fbaa"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "a3f95b5c423586578a4e099b11a46c2479628cac"
@@ -66,6 +90,12 @@
   name = "github.com/urfave/cli"
   packages = ["."]
   revision = "b99aa811b4c1dd84cc6bccb8499c82c72098085a"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ripemd160"]
+  revision = "b176d7def5d71bdd214203491f89843ed217f420"
 
 [[projects]]
   branch = "master"
@@ -118,6 +148,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4635c099932f2997416976bbbba574f73eaec43903665a984f7a45eb137bfda9"
+  inputs-digest = "135a45e6266c2b0a7b08de3c45abd709b9398fbac7c40ba094b843708c5437e7"
   solver-name = "gps-cdcl"
   solver-version = 1

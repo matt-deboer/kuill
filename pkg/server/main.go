@@ -11,12 +11,12 @@ import (
 
 	"encoding/base64"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/matt-deboer/kapow/pkg/auth"
 	"github.com/matt-deboer/kapow/pkg/metrics"
 	"github.com/matt-deboer/kapow/pkg/proxy"
 	"github.com/matt-deboer/kapow/pkg/templates"
 	"github.com/matt-deboer/kapow/pkg/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"golang.org/x/oauth2"
 )
@@ -79,7 +79,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "public-url",
-			Usage:  "The public-facing URL for this app, used to compose the OIDC redirect_uri",
+			Usage:  "The public-facing URL for this app, used to compose callbacks for IDPs",
 			EnvVar: envBase + "PUBLIC_URL",
 		},
 		cli.StringFlag{
@@ -290,7 +290,6 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		}
 
 		oidcHandler, err := auth.NewOIDCHandler(
-			authManager,
 			flags["oidc-provider-name"].(string),
 			flags["public-url"].(string),
 			provider,
