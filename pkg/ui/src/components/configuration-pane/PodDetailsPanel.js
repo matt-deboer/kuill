@@ -48,6 +48,11 @@ const styles = {
     padding: 2,
     height: rowHeight,
     overflow: 'visible',
+  },
+  valueStyle: {
+    fontFamily: 'Open Sans, monospace',
+    margin: 0,
+    fontSize: 13,
   }
 }
 
@@ -121,7 +126,7 @@ function tableRow(key, val) {
 function renderValue(value) {
   let rendered = value
   if (typeof value === 'object') {
-    rendered = yaml.safeDump(value)
+    rendered = <pre style={styles.valueStyle}>{yaml.safeDump(value)}</pre>
   }
-  return <pre style={{margin: 0, fontSize: 13}}>{rendered}</pre>
+  return rendered
 }
