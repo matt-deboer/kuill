@@ -337,7 +337,7 @@ class TerminalViewer extends React.Component {
         </div>
         <XTerm  
           style={{
-            height: `${window.innerHeight - props.contentTop - 90}px`,
+            height: `${window.innerHeight - props.contentTop - 120}px`,
             backgroundColor: (this.state.terminalOpen ? grey900 : grey500),
             padding: '10px 10px 15px 10px',
             fontSize: '12px',
