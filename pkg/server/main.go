@@ -132,6 +132,41 @@ func main() {
 				with the provider`,
 			EnvVar: envBase + "OIDC_CREDENTIALS_IN_QUERY",
 		},
+		cli.BoolFlag{
+			Name:   "saml-idp-metadata-url",
+			Usage:  `The metadata URL for a SAML identity provider`,
+			EnvVar: envBase + "SAML_IDP_METADATA_URL",
+		},
+		cli.BoolFlag{
+			Name:   "saml-idp-shortname",
+			Usage:  `The short name to use for the saml identity provider`,
+			EnvVar: envBase + "SAML_IDP_SHORTNAME",
+		},
+		cli.BoolFlag{
+			Name:   "saml-idp-description",
+			Usage:  `The description for the saml identity provider`,
+			EnvVar: envBase + "SAML_IDP_DESCRIPTION",
+		},
+		cli.BoolFlag{
+			Name:   "saml-sp-cert",
+			Usage:  `The certificate to use for this service provider`,
+			EnvVar: envBase + "SAML_SP_CERT",
+		},
+		cli.BoolFlag{
+			Name:   "saml-sp-key",
+			Usage:  `The private key to use for this service provider`,
+			EnvVar: envBase + "SAML_SP_KEY",
+		},
+		cli.BoolFlag{
+			Name:   "saml-groups-attribute",
+			Usage:  `The name of the attribute containing the user's groups`,
+			EnvVar: envBase + "SAML_GROUPS_ATTRIBUTE",
+		},
+		cli.BoolFlag{
+			Name:   "saml-groups-delimiter",
+			Usage:  `The delimiter that, if specified, will be used to split single group values into multiple groups`,
+			EnvVar: envBase + "SAML_GROUPS_DELIMITER",
+		},
 		cli.StringFlag{
 			Name:   "username-header",
 			Value:  "X-Remote-User",
@@ -268,7 +303,7 @@ func serveUI(w http.ResponseWriter, r *http.Request) {
 
 func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
-	flags, err := getRequiredFlags(c, map[string]string{
+	oidcFlags, err := getRequiredFlags(c, map[string]string{
 		"public-url":                "string",
 		"oidc-provider-name":        "string",
 		"oidc-provider":             "string",
@@ -282,22 +317,22 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 	if err == nil {
 
-		additionalScopes := strings.Split(flags["oidc-additional-scopes"].(string), ",")
+		additionalScopes := strings.Split(oidcFlags["oidc-additional-scopes"].(string), ",")
 
-		provider := flags["oidc-provider"].(string)
-		if flags["oidc-credentials-in-query"].(bool) {
+		provider := oidcFlags["oidc-provider"].(string)
+		if oidcFlags["oidc-credentials-in-query"].(bool) {
 			oauth2.RegisterBrokenAuthHeaderProvider(provider)
 		}
 
 		oidcHandler, err := auth.NewOIDCHandler(
-			flags["oidc-provider-name"].(string),
-			flags["public-url"].(string),
+			oidcFlags["oidc-provider-name"].(string),
+			oidcFlags["public-url"].(string),
 			provider,
-			flags["oidc-client-id"].(string),
-			flags["oidc-client-secret"].(string),
+			oidcFlags["oidc-client-id"].(string),
+			oidcFlags["oidc-client-secret"].(string),
 			additionalScopes,
-			flags["oidc-user-claim"].(string),
-			flags["oidc-groups-claim"].(string),
+			oidcFlags["oidc-user-claim"].(string),
+			oidcFlags["oidc-groups-claim"].(string),
 		)
 		if err != nil {
 			log.Fatal(err)
@@ -305,6 +340,32 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		authManager.RegisterAuthenticator(oidcHandler)
 	} else {
 		log.Warnf("OpenID+Connect authenticator is not enabled; %s", err)
+	}
+
+	samlFlags, err := getRequiredFlags(c, map[string]string{
+		"public-url":            "string",
+		"saml-idp-metadata-url": "string",
+		"saml-groups-attribute": "string",
+		"saml-sp-cert":          "string",
+		"saml-sp-key":           "string",
+	})
+
+	if err == nil {
+		samlHandler, err := auth.NewSamlHandler(
+			samlFlags["public-url"].(string),
+			samlFlags["saml-sp-key"].(string),
+			samlFlags["saml-sp-cert"].(string),
+			c.String("saml-idp-shortname"),
+			samlFlags["saml-idp-metadata-url"].(string),
+			samlFlags["saml-groups-attribute"].(string),
+			c.String("saml-groups-delimiter"),
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		authManager.RegisterAuthenticator(samlHandler)
+	} else {
+		log.Warnf("SAML authenticator is not enabled; %s", err)
 	}
 
 	passwordFile := c.String("password-file")
