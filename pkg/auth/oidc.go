@@ -40,7 +40,7 @@ type oidcHandler struct {
 }
 
 // NewOIDCHandler creates a new oidc handler with the provided configuration items
-func NewOIDCHandler(name, description, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string) (Authenticator, error) {
+func NewOIDCHandler(name, description, publicURL, oidcProvider, clientID, clientSecret string, additionalScopes []string, idClaim string, groupsClaim string, nonce string) (Authenticator, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("'name' is required")
 	}
@@ -64,8 +64,12 @@ func NewOIDCHandler(name, description, publicURL, oidcProvider, clientID, client
 		o.description = name
 	}
 
-	appNonce, err := uuid.NewV4()
-	o.nonce = appNonce.String()
+	if len(nonce) > 0 {
+		o.nonce = nonce
+	} else {
+		appNonce, _ := uuid.NewV4()
+		o.nonce = appNonce.String()
+	}
 	o.httpCtx = context.Background()
 
 	provider, err := oidc.NewProvider(o.httpCtx, oidcProvider)
