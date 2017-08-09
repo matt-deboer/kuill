@@ -339,6 +339,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 			additionalScopes,
 			oidcFlags["oidc-user-claim"].(string),
 			oidcFlags["oidc-groups-claim"].(string),
+			c.String("oidc-nonce"),
 		)
 		if err != nil {
 			log.Fatal(err)
