@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -101,9 +101,6 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescri
 
 	http.HandleFunc(s.samlSP.ServiceProvider.MetadataURL.Path, s.Metadata)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse idp-metadata-url '%s'; %v", idpMetadataURL, err)
-	}
 	return s, nil
 }
 
@@ -117,15 +114,16 @@ func getIDPMetadata(metadataURL string) (*metadataSummary, error) {
 	var entities saml.EntitiesDescriptor
 	var metadata saml.EntityDescriptor
 
-	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read metadata response; %v", err)
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Parsing metadata from %s ...", metadataURL)
 	}
-	err = xml.NewDecoder(bytes.NewReader(data)).Decode(&entities)
+
+	var buff bytes.Buffer
+	tee := io.TeeReader(resp.Body, &buff)
+	err = xml.NewDecoder(tee).Decode(&entities)
 	if err != nil {
 		if strings.Contains(err.Error(), "have <EntityDescriptor>") {
-			err = xml.NewDecoder(bytes.NewReader(data)).Decode(&metadata)
+			err = xml.NewDecoder(bytes.NewReader(buff.Bytes())).Decode(&metadata)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("Failed to decode entity descriptor: %v", err)
@@ -150,6 +148,7 @@ func getIDPMetadata(metadataURL string) (*metadataSummary, error) {
 		for _, ssoService := range idpSSODescriptor.SingleSignOnServices {
 			if ssoService.Binding == saml.HTTPPostBinding {
 				summary.ssoLoginURL = ssoService.Location
+				break
 			}
 		}
 	} else {
