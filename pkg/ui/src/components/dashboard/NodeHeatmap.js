@@ -1,12 +1,7 @@
 import React from 'react'
-// import { GridGenerator, HexGrid, Layout, Path, Hexagon, Text, Pattern, Hex } from 'react-hexgrid'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { blueA400, grey200, blueA100, red900, white } from 'material-ui/styles/colors'
 import { zoneLabel } from '../../utils/filter-utils'
 import UtilizationPieChart from './UtilizationPieChart'
 import HexagonChart from './HexagonChart'
-import d3 from 'd3'
-import ReactFauxDOM from 'react-faux-dom'
 import './NodeHeatmap.css'
 
 const styles = {
