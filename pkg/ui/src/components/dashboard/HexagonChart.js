@@ -67,7 +67,7 @@ function renderHexChart(items) {
   let hasLabels = false
   let orderedGroups = []
   for (let item of items) {
-    let g = ('group' in item ? item.group : '__default__')
+    let g = (item.group || '__default__')
     if (!(g in featuresByGroup)) {
       orderedGroups.push(g)
     }

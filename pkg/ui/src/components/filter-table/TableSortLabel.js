@@ -4,12 +4,14 @@ import { TableHeaderColumn } from 'material-ui/Table'
 import SortDesc from 'material-ui/svg-icons/navigation/arrow-drop-up'
 import SortAsc from 'material-ui/svg-icons/navigation/arrow-drop-down'
 import Sortable from 'material-ui/svg-icons/action/swap-vert'
+import Unsortable from 'material-ui/svg-icons/image/lens'
 import FlatButton from 'material-ui/FlatButton'
 
 const orderIcons = {
   '': <Sortable style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
   'asc': <SortAsc style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
   'desc': <SortDesc style={{fill: 'inherit', height: '20px', width: '20px'}}/>,
+  'unsortable': <Unsortable style={{fill: 'transparent', color: 'transparent', height: '20px', width: '20px'}}/>,
 }
 
 export default class TableSortLabel extends React.Component {
@@ -107,33 +109,15 @@ export default class TableSortLabel extends React.Component {
 
     let { props } = this;
     
-    // let iconStyle = {...styles.icon, ...props.iconStyle}
-    // if (props.sortable) {
-    //   if (!props.active) {
-    //     iconStyle = {...iconStyle, ...styles.inactiveIcon, ...props.iconInactiveStyle}
-    //   }
-    // } else {
-    //   iconStyle = {...styles.icon, ...styles.unsortableIcon}
-    // }
-
     return (
       <TableHeaderColumn style={props.style} key={props.key}>
         <FlatButton
-          label={props.text}
+          label={props.text || "&nbsp;"}
           labelPosition={'before'}
           labelStyle={styles.label}
           onTouchTap={this.onRequestSort}
-          icon={props.sortable && orderIcons[this.state.order]}
+          icon={orderIcons[props.sortable ? this.state.order : 'unsortable']}
           />
-
-        {/* {props.text}
-        <IconButton
-          style={styles.button}
-          onTouchTap={this.onRequestSort}
-          iconStyle={iconStyle}
-          >
-          {orderIcons[this.state.order]}
-        </IconButton> */}
       </TableHeaderColumn> 
     )
   }
