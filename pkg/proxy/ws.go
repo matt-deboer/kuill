@@ -139,9 +139,17 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// http://tools.ietf.org/html/draft-ietf-hybi-websocket-multiplexing-01
 	connBackend, resp, err := dialer.Dial(backendURL.String(), requestHeader)
 	if err != nil {
-		buff := &bytes.Buffer{}
-		buff.ReadFrom(resp.Body)
-		log.Errorf("WebsocketProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, resp.Status, buff.String())
+		status := "<none>"
+		body := ""
+		if resp != nil {
+			status = resp.Status
+			if resp.Body != nil {
+				buff := &bytes.Buffer{}
+				buff.ReadFrom(resp.Body)
+				body = buff.String()
+			}
+		}
+		log.Errorf("WebsocketProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
 		return
 	}
 	defer connBackend.Close()
