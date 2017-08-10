@@ -9,13 +9,18 @@ addons:
   apt:
     packages:
     - upx-ucl
+cache:
+  directories:
+    - "/pkg/ui/node_modules"
+before_install:
+  - npm i -g npm@4.2.0
 install:
 - go get github.com/golang/dep/cmd/dep
 - dep ensure
 script:
 - make release-ui
-- make docker
 - upx bin/kapow
+- make docker
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
