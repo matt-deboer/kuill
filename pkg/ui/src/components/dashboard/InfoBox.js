@@ -101,9 +101,6 @@ export default class InfoBox extends React.PureComponent {
           {name: 'Page G', uv: 3490, pv: 4300, amt: 2100},
     ]
 
-
-    //width={336} height={60}
-
     return (
       <Paper style={styles.wrapper} className={'infobox'}>
 
@@ -111,8 +108,7 @@ export default class InfoBox extends React.PureComponent {
           <AreaChart data={data} margin={{top: 5, right: 0, left: 0, bottom: 5}}>
             <Area type='monotone' dataKey='uv' stroke='rgb(41, 98, 255)' fill='rgba(41, 98, 255, 0.3)' />
           </AreaChart>
-        </ResponsiveContainer>
-        
+        </ResponsiveContainer>        
         
         <span style={styles.iconSpan}>
           <span style={styles.text}>{title}</span>
@@ -124,9 +120,6 @@ export default class InfoBox extends React.PureComponent {
         <div style={styles.content}>
           <div style={styles.total}>{total}</div>
           <div style={styles.units}>{units}</div>
-          {/*<span style={styles.negative}>-</span><span style={styles.total}>{allocated}</span>
-          <hr/>
-          <span style={styles.remains}>{total - allocated}</span>*/}
         </div>
       </Paper>
       );

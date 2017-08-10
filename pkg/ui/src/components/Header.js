@@ -242,8 +242,8 @@ class Header extends React.Component {
               icon={<Avatar email={props.user} name={props.user} color={blueA200} round={true} size={32} style={styles.avatar}/>}
               labelStyle={{textTransform: 'none', color: '#9e9e9e'}}
               style={{margin: 0}}
-              buttonStyle={{height: 48}}
             />
+            {/* buttonStyle={{height: 48}} */}
             <Popover
               open={this.state.profileOpen}
               anchorEl={this.state.profileAnchor}

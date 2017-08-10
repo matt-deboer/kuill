@@ -4,9 +4,9 @@ set -e
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 # starts up kapow locally, pointed at the apiserver from minikube
-make build
 
 kubectl config use-context minikube
+apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
 
 ${SCRIPT_DIR}/get-certs.sh
 
@@ -21,6 +21,6 @@ ${ROOT}/bin/kapow \
   --kubernetes-client-ca ${ROOT}/certs/ca.pem \
   --kubernetes-client-cert ${ROOT}/certs/server-cert.pem \
   --kubernetes-client-key ${ROOT}/certs/server-key.pem \
-  --kubernetes-api https://master.aws.lab.k8s.getty.im \
+  --kubernetes-api $apiserver \
   --anonymous-groups system:masters \
   --kubeconfig ~/.kube/config
