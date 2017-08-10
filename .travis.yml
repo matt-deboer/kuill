@@ -1,0 +1,36 @@
+language: go
+services:
+- docker
+go:
+- 1.8
+addons:
+  apt:
+    packages:
+    - upx-ucl
+install:
+- go get github.com/golang/dep/cmd/dep
+- dep ensure
+script:
+- make release-ui
+- make docker
+- upx bin/kapow
+after_deploy:
+- make docker VERSION=$TRAVIS_TAG
+- docker login -u $DOCKER_USER -p $DOCKER_PASS
+- export REPO=mattdeboer/kapow
+- docker push $REPO:$TRAVIS_TAG
+- docker tag $REPO:$TRAVIS_TAG $REPO:latest
+- docker push $REPO:latest
+env:
+  global:
+  - secure: PfV2T/Vu6ic3e4YPFtLIw1DWhQOsZelwwk5e5kN9ngQ3os2o66N2S9VBliuy4dS6sHC+ArYDSEqBwUi2pjlZXomavjgs2QzUeflhr6LNk8mXXR6cIhs71pKJ/uI2eHU8rFgut9FaDowEz2kxdpXKTRchUAjNe7FwF8PCJohZ53GwJyN4Q8QzhcdT2+L7ypWtifCL8ni4RuZylMiSk7DEAIB78ruDhzxwVtoTrvUjlTWjku8zN6xhNT6SFv5aV6FzwXX+A0V7wap8eUTeSgXFXg5MpjZktut7pJ3O1n7bNcvkawrP4btxwLSyMiEi4xo0rOZbmVCScVuaLRlSAQfqbKbntLedJAV7lRqsJFmR8STqpQFDpIbW1uQynAkolcESomTP8dEirIx8PNqgJju7JHDY3HXOMsCywSe4ErxhRb3EmlKnO62X79vLHKI4IrsWjdz6Mtzq8f4P1cqtcDECei90DyYp5O4zva5cTdlkqdYBc1ZFmn0QIEif5fSMMnhf+FT8z6cc4MeqiexZN2KPO9autXWwz2JTEraRnCiZBvOjeVeqejUvK5lKiRutIiNNHsXcXAaI8H/JUfSZW/NJe5ybkOePBOUO00TEVltV9Jrulmqq2UlL3Oz7grsOMliquT5bp2CAuSXnXwU41xWZVaz77Ir+1uuPbkpoliecCf8=
+  - secure: JOeNFbN4OCQ1nBGVqmjHWYfDmnlaEQsSBMYuMoZ71jEBYyP1TZALJsv+k0pd263EGS2TshQ7ODSWDfM/Zl3CaEO1sUDhn/hvytd3WoiXz4v/wy/QbfZdRejk0XjNxbU4mAwsRfGv1Z4Mo1Jd1StLEIP7c8PAh5wpDiusW3vwaAnsy5+riz1pxU546RgkJvsoXInp/4EMIDB8QZQ4igIslBlRwwv4Sn4YcIE4khJNl73DgM4r8sxupdfQiProYlRe0zcJRkqVUckHibmUQUiM7YHavqJiKPANzWaM+JQnGCohZmnS6ED1IzYJIGU9STvtgUo2GVOpdlvJNSXqma1+M/noXhFru+bmdc0G8Tqd3sTpCMouD+0iWIRN6mB6LRNy9Rzf5nWqhisv2NU6DGjZNe9V/jQSBX7ZSwOj11aXv8yQLqG7NZw8ioB9jnjxOGZqujoyqrgF+3q2O3F9GyNHtQofXivnp5PLOQ1teUvGjKh2U6DpjEAb1f7kCQh+9//PcuGFOSSEnAsC0/SvkW8gFpQI7x6e0m4jOsV8ZlYOm6aa9K5K3jpH3pB7Mq4gWeyVcKoSog7k2DE5EZ+rI7LLhuv2KQSAdA2caAh6av1AFbFjC6VCqXwYP5mwKAEJq8pEWGlrhsF1P/Nya9LTUXT4cX4naY9154lH0RvWFHrOX0Q=
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: lq0mEuK2HbH6AvF5IiJFvrwbODcCa4XRATMmiGGNUgxteZxe/ez2HxxOk1p6XclR4DePVe9eSK+Qf+q6MJgw1eyYgpVz6HnVaoOekZmuc64P3Ro1jpwKJR1EvrbDtpJLWcT96Yixy6zC7Ez1BwqQsSWRYSecwK0q2XTfdYgV/Lt/rh0p6L0abRctvHuNe+Fxazp2+cRzKI/sCJJTB5X3jaG2hSAnQOkEwUF2P0+68t7S75C9tLYNmEuK1zDQDoq0DN1VDRAcgCxKA4jeq2ebcCjEDUOP/l1TeCX0loEUVA7IMyFRDSe1wfcQPWjMjKxSbqNowg6UTR1TcO0vUE/1wY0ZbXFbyyiQ9pijT25IqwH1LPRmZE9CUjfEdVirAxthiCXI5bHgVd6lWqkuXWU2hdHBFc9c6tq7/TDn2s/1JihaIeH4I8C3/xkQfLD3ZYjJEKSIya0gU3KgGaTqk5ekaq2AXjkfvtXVA9CbjXSHkci6qweCfcT+npk11Q1bnfvmX3UjUmn0GJlp27T61NE5iLz6TRCTpYsWQZTLMNS9aVHTUtS5YdaCVLyg9nAGvXF04f1MIYp+oBAvxyQuDLuPDVB4NSpYzWMyuX0AocWs3h4aOdTil7I5Zne8vBosBs3UJoeZxmRx+slEeTa38uwvMHVhg2ELhXwaLsnjklacK+U=
+  file: bin/kapow
+  on:
+    repo: matt-deboer/kapow
+    tags: true
