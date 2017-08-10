@@ -26,8 +26,6 @@ items:
   subjects:
     - kind: ServiceAccount
       name: kapow
-    - kind: User
-      name: kapow
   roleRef:
     kind: Role
     name: kapow-serviceaccount
@@ -86,21 +84,8 @@ items:
     ports:
     - name: kapow
       port: 8443
+      targetPort: 8443
+      nodePort: 30443
     selector:
       name: kapow
     type: NodePort
-
-- kind: Ingress
-  apiVersion: extensions/v1beta1
-  metadata:
-    namespace: kube-system
-    name: kapow
-  spec:
-    rules:
-    - host: ui.${domain}
-      http:
-        paths:
-        - path: /
-          backend:
-            serviceName: kapow
-            servicePort: 8443
