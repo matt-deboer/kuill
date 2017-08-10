@@ -24,7 +24,6 @@ function renderHexChart(items) {
   let el = ReactFauxDOM.createElement('div')
   let height = 100
 
-  var d;
   let itemCount = items.length
 
   // how many hexes will fit in each size increment?
@@ -55,7 +54,6 @@ function renderHexChart(items) {
       return this.stream.point(x * dx / 2, -(y - (2 - (y & 1)) / 3) * dy / 2)
     }
   }))
-  let identity_generator = d3.geo.path().projection(function(d) { return d })
   
   let svg = d3.select(el).append('svg').attr('width', width).attr('height', height)
   let vis = svg.append('g').attr('transform', `translate(${radius+2},${radius+2})`)
@@ -197,13 +195,18 @@ function computeBorders(features, allFeatures) {
   let prevPointKey = ''
   let currentSeg = firstSegment
   points.push(currentSeg[0])
-  // let processedSegments = {}
+
   let reversed = false
+  let removeCurrentSegment = function(segs, currentSeg) {
+    let _filter = function(e) { return e !== currentSeg._key }
+    return segs.filter(_filter)
+  }
+
   while (!!currentSeg) {
     delete segments[currentSeg._key]
 
-    segmentKeysByPoint[currentSeg._k1] = segmentKeysByPoint[currentSeg._k1].filter(e => e !== currentSeg._key)
-    segmentKeysByPoint[currentSeg._k2] = segmentKeysByPoint[currentSeg._k2].filter(e => e !== currentSeg._key)
+    segmentKeysByPoint[currentSeg._k1] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k1], currentSeg)
+    segmentKeysByPoint[currentSeg._k2] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k2], currentSeg)
 
     let pointToAdd = prevPointKey === currentSeg._k2 ? currentSeg[0] : currentSeg[1]
 
@@ -212,7 +215,6 @@ function computeBorders(features, allFeatures) {
     } else {
       points.push(pointToAdd)
     }
-    // processedSegments[currentSeg._key]=true
     // Now find the next segment
     let pointKey = prevPointKey === currentSeg._k2 ? currentSeg._k1 : currentSeg._k2 
     let nextSegKey = segmentKeysByPoint[pointKey][0]
@@ -228,18 +230,6 @@ function computeBorders(features, allFeatures) {
   return points
 }
 
-function lineDistance(x1,y1, x2, y2) {
-    var xs = 0;
-    var ys = 0;
-
-    xs = x2 - x1;
-    xs = xs * xs;
-
-    ys = y2 - y1;
-    ys = ys * ys;
-
-    return Math.sqrt(xs + ys);
-}
 /**
  * Calculate the neighboring item indicies 
  * for a given item index; note that some 
@@ -267,15 +257,15 @@ function neighbors(d, rows, itemCount) {
   return n
 }
 
-function group(n, itemCount) {
-  if (n <= (itemCount / 3)) {
-    return 0
-  } else if (n <= (2 * itemCount / 3)) {
-    return 1
-  } else {
-    return 2
-  }
-}
+// function group(n, itemCount) {
+//   if (n <= (itemCount / 3)) {
+//     return 0
+//   } else if (n <= (2 * itemCount / 3)) {
+//     return 1
+//   } else {
+//     return 2
+//   }
+// }
 
 /**
  * 
@@ -308,19 +298,19 @@ function newHex(d) {
  * i.e., the ending point of one segment matches the starting point of the next segment.
  * @param {Array} segments an array of line segments, in the form of [[x1,y1],[x2,y2]] 
  */
-function segmentsContiguous(segments) {
-  let prevSeg = null
-  let consecutive = 0
-  for (let seg of segments) {
-    if (prevSeg) {
-      if (prevSeg[1][0] === seg[0][0] && prevSeg[1][1] === seg[0][1]) {
-        ++consecutive
-      } else {
-        console.warn(`break after ${consecutive}: [${prevSeg[1][0]},${prevSeg[1][1]}] !== [${seg[0][0]},${seg[0][1]}]`)
-        consecutive = 0
-      }
-    }
-    prevSeg = seg
-  }
-  return consecutive === segments.length
-}
+// function segmentsContiguous(segments) {
+//   let prevSeg = null
+//   let consecutive = 0
+//   for (let seg of segments) {
+//     if (prevSeg) {
+//       if (prevSeg[1][0] === seg[0][0] && prevSeg[1][1] === seg[0][1]) {
+//         ++consecutive
+//       } else {
+//         console.warn(`break after ${consecutive}: [${prevSeg[1][0]},${prevSeg[1][1]}] !== [${seg[0][0]},${seg[0][1]}]`)
+//         consecutive = 0
+//       }
+//     }
+//     prevSeg = seg
+//   }
+//   return consecutive === segments.length
+// }
