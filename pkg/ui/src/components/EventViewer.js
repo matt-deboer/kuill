@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableHeaderColumn
 } from 'material-ui/Table'
-import * as moment from 'moment'
 import sizeMe from 'react-sizeme'
 import { eventType as eventTypeIcons } from './icons'
 import { toHumanizedAge } from '../converters'

@@ -1,6 +1,5 @@
 import React from 'react'
-import {blueA400, grey200, grey300, grey500, grey800, blueA100, red900, white } from 'material-ui/styles/colors'
-import { Link } from 'react-router-dom'
+import {blueA400, blueA100 } from 'material-ui/styles/colors'
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
 

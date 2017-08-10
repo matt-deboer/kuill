@@ -2,7 +2,7 @@ import React from 'react'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/RaisedButton'
-import { grey300, grey800, red900 } from 'material-ui/styles/colors'
+import { grey300, grey800 } from 'material-ui/styles/colors'
 import { Link } from 'react-router-dom'
 import { linkForResource } from '../routes'
 

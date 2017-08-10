@@ -191,12 +191,12 @@ export default class DiscreteBarChart extends React.PureComponent {
       .range([height, 0])
 
     // Define and draw axes
-    var yAxis = d3.svg.axis()
-      .scale(y)
-      .orient('left')
-      .ticks(5)
-      .tickSize(-width, 0, 0)
-      .tickFormat( function(d) { return d } )
+    // var yAxis = d3.svg.axis()
+    //   .scale(y)
+    //   .orient('left')
+    //   .ticks(5)
+    //   .tickSize(-width, 0, 0)
+    //   .tickFormat( function(d) { return d } )
 
     var xAxis = d3.svg.axis()
       .scale(x)
@@ -269,7 +269,7 @@ export default class DiscreteBarChart extends React.PureComponent {
         return y(buckets) + y(0.0001)/*y(d.dy)*/
       })
 
-    var rect = groups.selectAll('rect')
+    groups.selectAll('rect')
       .data(function(d) { return d})
       .enter()
       .append('rect')

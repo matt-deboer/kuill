@@ -15,7 +15,6 @@ import { linkForResource } from '../routes'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
-import IconDelete from 'material-ui/svg-icons/action/delete'
 
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
@@ -538,27 +537,27 @@ class ClusterPage extends React.Component {
   }
 })))
 
-class DeleteButton extends React.Component {
+// class DeleteButton extends React.Component {
   
-  constructor(props) {
-    super(props);
-    this.state = {
-      disabled: props.disabled,
-    }
-  }
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       disabled: props.disabled,
+//     }
+//   }
 
-  setDisabled = (disabled) => {
-    this.setState({disabled: disabled})
-  }
+//   setDisabled = (disabled) => {
+//     this.setState({disabled: disabled})
+//   }
 
-  render() {
-    let { props } = this
-    return <FloatingActionButton {...props} disabled={this.state.disabled}>
-       <IconDelete/>
-      </FloatingActionButton>
-  }
+//   render() {
+//     let { props } = this
+//     return <FloatingActionButton {...props} disabled={this.state.disabled}>
+//        <IconDelete/>
+//       </FloatingActionButton>
+//   }
 
-}
+// }
 
 
 function renderFilters(props) {

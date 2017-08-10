@@ -4,7 +4,6 @@ import { TableHeaderColumn } from 'material-ui/Table'
 import SortDesc from 'material-ui/svg-icons/navigation/arrow-drop-up'
 import SortAsc from 'material-ui/svg-icons/navigation/arrow-drop-down'
 import Sortable from 'material-ui/svg-icons/action/swap-vert'
-import IconButton from 'material-ui/IconButton'
 import FlatButton from 'material-ui/FlatButton'
 
 const orderIcons = {
@@ -108,14 +107,14 @@ export default class TableSortLabel extends React.Component {
 
     let { props } = this;
     
-    let iconStyle = {...styles.icon, ...props.iconStyle}
-    if (props.sortable) {
-      if (!props.active) {
-        iconStyle = {...iconStyle, ...styles.inactiveIcon, ...props.iconInactiveStyle}
-      }
-    } else {
-      iconStyle = {...styles.icon, ...styles.unsortableIcon}
-    }
+    // let iconStyle = {...styles.icon, ...props.iconStyle}
+    // if (props.sortable) {
+    //   if (!props.active) {
+    //     iconStyle = {...iconStyle, ...styles.inactiveIcon, ...props.iconInactiveStyle}
+    //   }
+    // } else {
+    //   iconStyle = {...styles.icon, ...styles.unsortableIcon}
+    // }
 
     return (
       <TableHeaderColumn style={props.style} key={props.key}>

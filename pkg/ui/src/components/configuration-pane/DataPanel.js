@@ -1,6 +1,6 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
-import { grey100, grey600 } from 'material-ui/styles/colors'
+import { grey100 } from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
@@ -9,7 +9,6 @@ import {
 } from 'material-ui/Table'
 import IconButton from 'material-ui/IconButton'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import IconCopy from 'material-ui/svg-icons/content/content-copy'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 import Subheader from 'material-ui/Subheader'

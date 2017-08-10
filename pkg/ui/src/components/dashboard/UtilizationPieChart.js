@@ -1,19 +1,7 @@
 import React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { blueA400, grey600, blueA100, red900, white } from 'material-ui/styles/colors'
-import IconButton from 'material-ui/IconButton'
+import { blueA400, grey600 } from 'material-ui/styles/colors'
 import './UtilizationPieChart.css'
-
-const styles = {
-  legend: {
-    paddingTop: 20,
-  },
-  pieChartDiv: {
-    height: 100,
-    textAlign: 'center',
-    position: 'relative',
-  }
-}
 
 export default class UtilizationPieChart extends React.PureComponent {
 
