@@ -1,8 +1,8 @@
 kapow
 ==============
 
-<!--[![Build Status](https://travis-ci.org/matt-deboer/kapow.svg?branch=master)](https://travis-ci.org/matt-deboer/kapow)
-[![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kapow.svg)](https://hub.docker.com/r/mattdeboer/kapow/)-->
+[![Build Status](https://travis-ci.org/matt-deboer/kapow.svg?branch=master)](https://travis-ci.org/matt-deboer/kapow)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kapow.svg)](https://hub.docker.com/r/mattdeboer/kapow/)
 
 **_kubernetes authenticating proxy operations window !_**
 Ok, it's not just for _ops_, but I was already committed to the acronym :)
