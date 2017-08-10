@@ -18,7 +18,7 @@ install:
 - go get github.com/golang/dep/cmd/dep
 - dep ensure
 script:
-- make release-ui
+- make release
 - upx bin/kapow
 - make docker
 after_deploy:
