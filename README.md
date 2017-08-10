@@ -44,11 +44,6 @@ Test Drive
 
 ### Getting Started On `minikube`
 
-<div style="background-color: rgba(255,120,120,0.7); padding: 10px;">
-<h5 style="font-size: 15px;">Warning!<h5>
-<p>This guide does not yet work properly...</p>
-</div>
-
 ---
 
 Prerequisites:
@@ -66,12 +61,15 @@ Prerequisites:
     minikube start \
     --kubernetes-version v1.7.0 \
     --extra-config apiserver.Authorization.Mode=RBAC \
-    --extra-config apiserver.requestheader-allowed-names=auth-proxy \
-    --extra-config apiserver.requestheader-client-ca-file=/var/lib/localkube/certs/ca.crt \
-    --extra-config apiserver.requestheader-username-headers=X-Remote-User \
-    --extra-config apiserver.requestheader-group-headers=X-Remote-Group \
-    --extra-config apiserver.requestheader-extra-headers-prefix=X-Remote-Extra-
+    --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
+    --extra-config apiserver.Authentication.RequestHeader.ClientCAFile=/var/lib/localkube/certs/ca.crt \
+    --extra-config apiserver.Authentication.RequestHeader.UsernameHeaders=X-Remote-User \
+    --extra-config apiserver.Authentication.RequestHeader.GroupHeaders=X-Remote-Group \
+    --extra-config apiserver.Authentication.RequestHeader.ExtraHeaderPrefixes=X-Remote-Extra-
     ```
+    _**note**: the command-line flags above are different than would be used to configure the apiserver
+    on a standard deployment_
+
 
 1. Create a clusterrolebinding for kube-system:default service account (allows kube-dns to work in minikube+RBAC)
 
@@ -82,16 +80,22 @@ Prerequisites:
 1. Generate certificates for `kapow` using the minikube cluster ca (and a little help from the `cfssl` docker image)
 
     ```sh
-    mkdir -p ~/.minikube/certs/auth-proxy 
+    mkdir -p ~/.minikube/certs/auth-proxy
+    ```
+    ```sh
+    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.key' > ~/.minikube/certs/auth-proxy/ca.key
+    ```
+    ```sh
+    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.crt' > ~/.minikube/certs/auth-proxy/ca.crt
     ```
     ```sh
     docker run --rm \
-      -v ~/.minikube/certs/:/certs \
+      -v ~/.minikube/certs/auth-proxy:/certs/auth-proxy \
       -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
       -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
         echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
-        cfssl gencert -ca /certs/ca.pem -ca-key /certs/ca-key.pem -config /ca-config.json - | \
-        cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && cp /certs/ca.pem ./ca.pem'
+        cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /ca-config.json - | \
+        cfssljson -bare auth-proxy - && rm -f auth-proxy.csr'
     ```
 
 1. Create a secret containing the certs (for use by `kapow`)
