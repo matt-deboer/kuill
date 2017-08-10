@@ -100,8 +100,9 @@ func NewAuthManager() (*Manager, error) {
 
 func (m *Manager) buildLoginMethodsResponse() ([]byte, error) {
 	loginMethods := []map[string]interface{}{}
-	for _, authN := range m.authenticators {
+	for id, authN := range m.authenticators {
 		loginMethods = append(loginMethods, map[string]interface{}{
+			"id":         id,
 			"name":       authN.Name(),
 			"desc":       authN.Description(),
 			"type":       authN.Type(),
@@ -118,11 +119,13 @@ func (m *Manager) buildLoginMethodsResponse() ([]byte, error) {
 
 // RegisterAuthenticator registers an authentication provider
 func (m *Manager) RegisterAuthenticator(authn Authenticator) error {
+	key := fmt.Sprintf("%s:%s", authn.Type(), authn.Name())
 	m.mutex.Lock()
-	if _, ok := m.authenticators[authn.Name()]; ok {
-		return fmt.Errorf("An authenticator already exists with name '%s'", authn.Name())
+	defer m.mutex.Unlock()
+	if _, ok := m.authenticators[key]; ok {
+		return fmt.Errorf("An authenticator already exists with key '%s'", key)
 	}
-	m.authenticators[authn.Name()] = authn
+	m.authenticators[key] = authn
 
 	var handlerFunc http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		sessionToken, err := authn.Authenticate(w, r)
@@ -139,8 +142,8 @@ func (m *Manager) RegisterAuthenticator(authn Authenticator) error {
 	if err != nil {
 		return fmt.Errorf("Problem marshalling cached authenticators response: %v", err)
 	}
-	log.Infof("Enabled %s authenticator: %s => %s", authn.Type(), authn.Name(), authn.LoginURL())
-	m.mutex.Unlock()
+	log.Infof("Enabled authenticator: %s => %s", key, authn.LoginURL())
+
 	return nil
 }
 

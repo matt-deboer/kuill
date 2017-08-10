@@ -370,7 +370,10 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		authManager.RegisterAuthenticator(samlHandler)
+		err = authManager.RegisterAuthenticator(samlHandler)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		log.Warnf("SAML authenticator is not enabled; %s", err)
 	}
@@ -381,7 +384,10 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		authManager.RegisterAuthenticator(pwFileAuthN)
+		err = authManager.RegisterAuthenticator(pwFileAuthN)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if !c.Bool("disable-anonymous") {
@@ -390,10 +396,16 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		if len(anonymousGroups) > 0 {
 			groups = strings.Split(anonymousGroups, ",")
 		}
-		authManager.RegisterAuthenticator(
+		err = authManager.RegisterAuthenticator(
 			auth.NewAnonymousHandler(
 				c.String("anonymous-user"),
 				groups))
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Infof("Anonymous authenticator disabled")
 	}
 
 }

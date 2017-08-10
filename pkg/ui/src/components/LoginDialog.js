@@ -129,9 +129,9 @@ export default function LoginDialog(props) {
             {
               props.loginLinks.map(loginMethod => 
                 <RaisedButton
-                  key={loginMethod.name}
+                  key={loginMethod.id}
                   href={loginMethod.url}
-                  onTouchTap={() => console.log(`clicked ${loginMethod.name}`)}
+                  onTouchTap={() => console.log(`clicked ${loginMethod.id}`)}
                   primary={true}
                   fullWidth={true}
                   icon={getIcon(loginMethod)}
