@@ -349,8 +349,6 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		log.Warnf("OpenID+Connect authenticator is not enabled; %s", err)
 	}
 
-	log.Printf("public-url is: %s", c.String("public-url"))
-
 	samlFlags, err := getRequiredFlags(c, map[string]string{
 		"public-url":            "string",
 		"saml-groups-attribute": "string",

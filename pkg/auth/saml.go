@@ -117,6 +117,7 @@ func getIDPMetadata(metadataURL string) (*metadataSummary, error) {
 	var entities saml.EntitiesDescriptor
 	var metadata saml.EntityDescriptor
 
+	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read metadata response; %v", err)
