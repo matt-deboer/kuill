@@ -54,13 +54,17 @@ items:
           secret:
             secretName: auth-proxy-certs
         containers:
-        - image: mattdeboer/kapow:v1.0-RC1
+        - image: mattdeboer/kapow
           name: kapow
           volumeMounts: 
           - name: auth-proxy-certs
             mountPath: /certs
             readOnly: true
           env:
+          - name: KAPOW_PORT
+            value: "18443"
+          - name: KAPOW_ANONYMOUS_GROUPS
+            value: system:masters
           - name: KAPOW_SERVER_CERT
             value: /certs/auth-proxy.pem
           - name: KAPOW_SERVER_KEY
@@ -71,8 +75,12 @@ items:
             value: /certs/auth-proxy-key.pem
           - name: KAPOW_KUBERNETES_CLIENT_CA
             value: /certs/ca.pem
+          - name: KAPOW_VERBOSE
+            value: "true"
+          - name: KAPOW_TRACE_REQUESTS
+            value: "true"
           ports:
-          - containerPort: 8443
+          - containerPort: 18443
             name: https
         
 - kind: Service
@@ -83,8 +91,8 @@ items:
   spec:
     ports:
     - name: kapow
-      port: 8443
-      targetPort: 8443
+      port: 18443
+      targetPort: 18443
       nodePort: 30443
     selector:
       name: kapow
