@@ -62,7 +62,7 @@ items:
             readOnly: true
           env:
           - name: KAPOW_PORT
-            value: "18443"
+            value: "8443"
           - name: KAPOW_ANONYMOUS_GROUPS
             value: system:masters
           - name: KAPOW_SERVER_CERT
@@ -74,13 +74,13 @@ items:
           - name: KAPOW_KUBERNETES_CLIENT_KEY
             value: /certs/auth-proxy-key.pem
           - name: KAPOW_KUBERNETES_CLIENT_CA
-            value: /certs/ca.crt
+            value: /certs/ca.pem
           - name: KAPOW_VERBOSE
             value: "true"
           - name: KAPOW_TRACE_REQUESTS
             value: "true"
           ports:
-          - containerPort: 18443
+          - containerPort: 8443
             name: https
         
 - kind: Service
@@ -91,8 +91,8 @@ items:
   spec:
     ports:
     - name: kapow
-      port: 18443
-      targetPort: 18443
+      port: 8443
+      targetPort: 8443
       nodePort: 30443
     selector:
       name: kapow
