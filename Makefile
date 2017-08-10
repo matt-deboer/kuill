@@ -54,6 +54,9 @@ dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules
 	# now move to the ui dir and run dev
 	cd pkg/ui && npm run dev
 
+start-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
+	cd pkg/ui && npm start
+	
 clean-ui:
 	@rm -rf pkg/ui/build
 
