@@ -64,12 +64,19 @@ Prerequisites:
 
     ```sh
     minikube start \
+    --kubernetes-version v1.7.0 \
     --extra-config apiserver.Authorization.Mode=RBAC \
     --extra-config apiserver.requestheader-allowed-names=auth-proxy \
     --extra-config apiserver.requestheader-client-ca-file=/var/lib/localkube/certs/ca.crt \
     --extra-config apiserver.requestheader-username-headers=X-Remote-User \
     --extra-config apiserver.requestheader-group-headers=X-Remote-Group \
     --extra-config apiserver.requestheader-extra-headers-prefix=X-Remote-Extra-
+    ```
+
+1. Create a clusterrolebinding for kube-system:default service account (allows kube-dns to work in minikube+RBAC)
+
+    ```sh
+    kubectl create clusterrolebinding kube-system-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
     ```
 
 1. Generate certificates for `kapow` using the minikube cluster ca (and a little help from the `cfssl` docker image)
@@ -81,8 +88,9 @@ Prerequisites:
     docker run --rm \
       -v ~/.minikube/certs/:/certs \
       -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
-      -c 'echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
-        cfssl gencert -ca /certs/ca.pem -ca-key /certs/ca-key.pem - | \
+      -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
+        echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
+        cfssl gencert -ca /certs/ca.pem -ca-key /certs/ca-key.pem -config /ca-config.json - | \
         cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && cp /certs/ca.pem ./ca.pem'
     ```
 
@@ -97,7 +105,7 @@ Prerequisites:
 
     ```sh
     curl -sL https://raw.githubusercontent.com/matt-deboer/kapow/master/hack/deploy/kapow-minikube.yml | \
-       kubectl --context minikube create -f -
+       kubectl --context minikube apply -f -
     ```
 
 1. View it in your browser
