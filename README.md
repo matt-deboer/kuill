@@ -44,13 +44,17 @@ Test Drive
 
 ### Getting Started On `minikube`
 
----
-
 Prerequisites:
 
 - `minikube`
 - `docker`
 
+<div style="padding: 10px; background-color: rgba(99,99,99,0.5);">
+TL;DR ? -> clone the repo, and run: &nbsp; <code>hack/test-drive-minikube.sh</code>
+</div>
+<div style="padding: 10px; background-color: #7a612e;">
+TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kapow/master/hack/test-drive-minikube.sh)"</code>
+</div>
 
 1. Start a new `minikube` cluster.
 
