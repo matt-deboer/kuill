@@ -248,7 +248,10 @@ class ClusterPage extends React.Component {
       {
         id: 'pad_right',
         label: '',
-        headerStyle: styles.header,
+        headerStyle: {...styles.header,
+          color: 'transparent',
+          pointerEvents: 'none',
+        },
         style: { ...styles.cell,
           width: 16,
         },
