@@ -1,7 +1,8 @@
 import React from 'react'
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey500, blueA100, red900 } from 'material-ui/styles/colors'
+import IconButton from 'material-ui/IconButton'
+import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../state/actions/access'
@@ -9,8 +10,6 @@ import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 import * as moment from 'moment'
 
-import ChipInput from 'material-ui-chip-input'
-import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
@@ -27,7 +26,10 @@ import { arraysEqual } from '../comparators'
 import { resourceStatus as resourceStatusIcons } from './icons'
 import { compareStatuses } from '../utils/resource-utils'
 
-import KubeKinds from '../kube-kinds'
+import FilterBox from './FilterBox'
+import ConfirmationDialog from './ConfirmationDialog'
+import ScaleDialog from './ScaleDialog'
+import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import './AccessControlsPage.css'
 
 import Perf from 'react-addons-perf'
@@ -53,7 +55,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
-    }
+    },
   } 
 }
 
@@ -84,6 +86,8 @@ const styles = {
   header: {
     fontWeight: 600,
     fontSize: '13px',
+    color: white,
+    fill: white,
   },
   iconButton: {
     float: 'left',
@@ -106,15 +110,54 @@ const styles = {
     border: '1px solid #000',
     borderRadius: '3px',
     boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
+    display: 'flex',
   },
   paper: {
     padding: 15,
     margin: 5,
-  }
+    height: 'calc(100vh - 110px)',
+  },
+  statusIcon: {
+    marginLeft: 10,
+  },
+  actionContainer: {
+    position: 'relative',
+    display: 'inline-block',
+    float: 'left',
+  },
+  actionLabel: {
+    position: 'absolute',
+    bottom: 0,
+    textAlign: 'center',
+    width: '100%',
+    color: white,
+    fontSize: 10,
+    zIndex: 100,
+    pointerEvents: 'none',
+  },
+  actionButton: {
+    backgroundColor: 'transparent',
+    marginTop: 4,
+    marginBottom: 4,
+    color: grey200,
+    fontSize: 18,
+    fontWeight: 600,
+  },
+  actionButtonLabel: {
+    textTransform: 'none',
+    color: grey300,
+  },
+  actionIcon: {
+    color: white,
+    marginTop: -4,
+  },
+  actionHoverStyle: {
+    backgroundColor: '#999',
+  },
 }
 
 // use functional component style for representational components
-export default sizeMe({ monitorWidth: true }) (
+export default sizeMe({ monitorWidth: true, monitorHeight: true }) (
 withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class AccessControlsPage extends React.Component {
 
@@ -122,10 +165,13 @@ class AccessControlsPage extends React.Component {
     super(props);
     this.state = {
       actionsOpen: false,
+      deleteOpen: false,
       hoveredRow: -1,
       hoveredResources: null,
+      selectedResources: [],
     }
     this.selectedIds = {}
+    this.deleteEnabled = false
     this.rows = this.resourcesToRows(props.resources)
     this.columns = [
       {
@@ -134,7 +180,7 @@ class AccessControlsPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '100px',
+          width: 120,
         }
       },
       {
@@ -143,7 +189,7 @@ class AccessControlsPage extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '35%',
+          // width: '35%',
         },
       },
       {
@@ -156,31 +202,25 @@ class AccessControlsPage extends React.Component {
         }
       },
       {
-        id: 'status',
-        label: 'status',
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: 48,
-          verticalAlign: 'middle',
-        },
-        sortable: true,
-        comparator: compareStatuses,
-      },
-      {
         id: 'age',
         label: 'age',
         sortable: true,
-        headerStyle: styles.header,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+        },
         style: { ...styles.cell,
-          width: 100,
+          width: 90,
         }
       },
       {
         id: 'actions',
         label: 'actions ',
-        headerStyle: styles.header,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          lineHeight: '50px',
+        },
         style: { ...styles.cell,
-          width: '34px',
+          width: 55,
         },
         className: 'resource-actions',
       },
@@ -197,6 +237,7 @@ class AccessControlsPage extends React.Component {
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
+      || this.state.deleteOpen !== nextState.deleteOpen
   }
 
   handleActionsRequestClose = () => {
@@ -210,8 +251,23 @@ class AccessControlsPage extends React.Component {
   handleRowSelection = (selectedIds) => {
     if (!this.actionsClicked) {
       this.selectedIds = selectedIds
-      this.deleteButton.setDisabled(Object.keys(selectedIds).length === 0)
+      this.deleteEnabled = this.canDelete(selectedIds)
+      this.suspendEnabled = this.canSuspend(selectedIds)
+      this.deleteButton.setDisabled(!this.deleteEnabled)
     }
+  }
+
+  canSuspend = (selectedIds) => {
+    for (let id in selectedIds) {
+      if ('spec' in this.props.resources[id] && !!this.props.resources[id].spec.replicas) {
+        return true
+      }
+    }
+    return false
+  }
+
+  canDelete = (selectedIds) => {
+    return Object.keys(selectedIds).length > 0
   }
 
   handleCellClick = (rowId, colId, resource, col) => {
@@ -232,15 +288,37 @@ class AccessControlsPage extends React.Component {
     }
   }
 
-  handleDelete = () => {
-    if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
-      let resources = []
+  handleDelete = (resource) => {
+    let resources = []
+    if (resource) {
+      resources.push(resource)
+    } else if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
       for (let id in this.selectedIds) {
         resources.push(this.props.resources[id])
       }
-      this.props.removeResource(...resources)
-      this.handleRowSelection({})
     }
+
+    this.setState({
+      selectedResources: resources,
+      deleteOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleRequestCloseDelete = () => {
+    this.setState({
+      deleteOpen: false,
+      selectedResources: [],
+    })
+  }
+
+  handleConfirmDelete = () => {
+    this.setState({
+      selectedResources: [],
+      deleteOpen: false,
+    })
+    this.props.removeResource(...this.state.selectedResources)
+    this.handleRowSelection({})
   }
 
   componentWillUpdate = () => {
@@ -253,10 +331,15 @@ class AccessControlsPage extends React.Component {
     Perf.stop()
     let m = Perf.getLastMeasurements()
     Perf.printWasted(m)
+
+    if (!this.state.actionsOpen) {
+      this.actionsClicked = false
+    }
   }
 
   componentWillReceiveProps = (nextProps) => {
     this.rows = this.resourcesToRows(nextProps.resources)
+    this.setState({filters: nextProps})
   }
 
   renderCell = (column, row) => {
@@ -273,7 +356,15 @@ class AccessControlsPage extends React.Component {
         let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
         return moment.duration(age).humanize()
       case 'status':
-        return resourceStatusIcons[row.statusSummary]
+        return <div style={styles.statusIcon}>{resourceStatusIcons[row.statusSummary]}</div>
+      case 'pods':
+        if (row.kind === 'Deployment' || row.kind === 'ReplicaSet' || row.kind === 'ReplicationController') {
+          return `${(row.status.readyReplicas || 0)} / ${row.spec.replicas}`
+        } else if (row.kind === 'StatefulSet') {
+          return `${(row.status.replicas || 0)} / ${row.spec.replicas}`
+        } else {
+          return ''
+        }
       default:
         return ''
     }
@@ -293,6 +384,14 @@ class AccessControlsPage extends React.Component {
         return row.metadata.creationTimestamp
       case 'status':
         return row.statusSummary
+      case 'pods':
+        if (row.kind === 'Deployment' || row.kind === 'ReplicaSet' || row.kind === 'ReplicationController') {
+          return (row.status.readyReplicas || 0)
+        } else if (row.kind === 'StatefulSet') {
+          return (row.status.replicas || 0)
+        } else {
+          return -1
+        }
       default:
         return ''
     }
@@ -302,16 +401,24 @@ class AccessControlsPage extends React.Component {
     let { props } = this
 
     return (
-    <div>
       <Paper style={styles.paper}>
         
-        {renderFilters(props)}
+        <FilterBox
+          addFilter={props.addFilter} 
+          removeFilter={props.removeFilter}
+          filterNames={props.filterNames}
+          possibleFilters={props.possibleFilters}
+          />
+
+        <FilteredResourceCountsPanel 
+          resources={props.resources} 
+          style={{backgroundColor: 'rgb(99,99,99)'}}/>
 
         <FilterTable
           className={'access'}
           columns={this.columns}
           data={this.rows}
-          height={`${window.innerHeight - 290}px`}
+          height={'calc(100vh - 310px)'}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
@@ -320,7 +427,11 @@ class AccessControlsPage extends React.Component {
           getCellValue={this.getCellValue}
           selectedIds={this.selectedIds}
           stripedRows={false}
-          width={'calc(100vw - 130px)'}
+          iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
+          iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
+          width={'calc(100vw - 60px)'}
+          wrapperStyle={{marginLeft: -15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
+          headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
 
         {this.state.hoveredResource &&
@@ -334,28 +445,31 @@ class AccessControlsPage extends React.Component {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
         >
-          {KubeKinds.access[this.state.hoveredResource.kind].hasLogs &&
-          <FloatingActionButton mini={true} style={styles.miniButton}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
-            data-rh="View Logs...">  
-            <IconLogs/>
-          </FloatingActionButton>
-          }
+          
+          <div style={styles.actionContainer}>
+            <div style={styles.actionLabel}>edit</div>
+            <IconButton
+              onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
+              style={styles.actionButton}
+              hoveredStyle={styles.actionHoverStyle}
+              iconStyle={styles.actionIcon}
+              >
+              <IconEdit/>
+            </IconButton>
+          </div>
 
-          {KubeKinds.access[this.state.hoveredResource.kind].hasTerminal &&
-          <FloatingActionButton mini={true} style={styles.miniButton}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
-            data-rh="Open Terminal...">
-            <IconShell/>
-          </FloatingActionButton>
-          }
+          <div style={styles.actionContainer}>
+            <div style={styles.actionLabel}>delete</div>
+            <IconButton
+              onTouchTap={()=>{ this.handleDelete(this.state.hoveredResources)} }
+              style={styles.actionButton}
+              hoveredStyle={styles.actionHoverStyle}
+              iconStyle={styles.actionIcon}
+              >
+              <IconDelete/>
+            </IconButton>
+          </div>
 
-          {/* TODO: need to check whether this resource can actually be edited by the user */}
-          <FloatingActionButton mini={true} style={styles.miniButton}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-            data-rh="Edit...">
-            <IconEdit/>
-          </FloatingActionButton >
         </Popover>
         }
         <Link to="/access/new" >
@@ -364,20 +478,23 @@ class AccessControlsPage extends React.Component {
           </FloatingActionButton>
         </Link>
 
-        <DeleteButton backgroundColor={red900} 
+        <MultiResourceActionButton backgroundColor={red900} 
           mini={true} 
           style={styles.deleteResourceButton} 
-          disabled={Object.keys(this.selectedIds).length === 0}
+          disabled={!this.deleteEnabled}
           onTouchTap={this.handleDelete}
-          ref={(ref)=>{this.deleteButton = ref}}/>
+          ref={(ref)=>{this.deleteButton = ref}}
+          data-rh={'Delete Selected...'}
+          data-rh-at={'bottom'}>
+            <IconDelete/>
+        </MultiResourceActionButton>
 
       </Paper>
-    </div>
     )
   }
 })))
 
-class DeleteButton extends React.Component {
+class MultiResourceActionButton extends React.Component {
   
   constructor(props) {
     super(props);
@@ -393,57 +510,8 @@ class DeleteButton extends React.Component {
   render() {
     let { props } = this
     return <FloatingActionButton {...props} disabled={this.state.disabled}>
-       <IconDelete/>
+       {props.children}
       </FloatingActionButton>
   }
 
-}
-
-
-function renderFilters(props) {
-
-  return <ChipInput
-    value={props.filterNames}
-    onRequestAdd={(filter) => props.addFilter(filter)}
-    onRequestDelete={(filter, index) => props.removeFilter(filter, index)}
-    name={'filters'}
-    dataSource={props.possibleFilters}
-    floatingLabelText={'select by filters...'}
-    defaultValue={['namespace:default']}
-    menuProps={{
-      desktop: true,
-    }}
-    chipRenderer={({ value, isFocused, isDisabled, handleClick, handleRequestDelete }, key) => {
-      
-      var labelText = value;
-      var parts=value.split(":")
-      if (parts.length === 2) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>{parts[0]}:</span>{parts[1]}</span>
-      } else if (parts.length === 1) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>*:</span>{parts[0]}</span>
-      }
-      return (
-        <Chip
-          key={key}
-          style={{
-            margin: '8px 8px 0 0',
-            padding: 0,
-            float: 'left', 
-            pointerEvents: isDisabled ? 'none' : undefined 
-          }}
-          labelStyle={{'lineHeight': '30px'}}
-          backgroundColor={isFocused ? blueA100 : null}
-          onTouchTap={handleClick}
-          onRequestDelete={handleRequestDelete}
-        >
-        {labelText}
-        </Chip>
-      )}
-    }
-    underlineShow={true}
-    fullWidth={true}
-    style={styles.textField}
-    inputStyle={styles.inputStyle}
-    hintStyle={styles.hintStyle}
-  />
 }
