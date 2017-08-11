@@ -519,7 +519,7 @@ class WorkloadsPage extends React.Component {
           className={'workloads'}
           columns={this.columns}
           data={this.rows}
-          height={'calc(100vh - 310px)'}
+          height={'calc(100vh - 350px)'}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
