@@ -173,6 +173,11 @@ func main() {
 			EnvVar: envBase + "SAML_GROUPS_DELIMITER",
 		},
 		cli.StringFlag{
+			Name:   "saml-audience",
+			Usage:  `The audience that will be used to verify incoming assertions; defaults to using the metadata url of this service provider`,
+			EnvVar: envBase + "SAML_AUDIENCE",
+		},
+		cli.StringFlag{
 			Name:   "username-header",
 			Value:  "X-Remote-User",
 			Usage:  "The header name passed to the Kubernetes API containing the user's identity",
@@ -366,6 +371,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 			c.String("saml-idp-metadata-url"),
 			samlFlags["saml-groups-attribute"].(string),
 			c.String("saml-groups-delimiter"),
+			c.String("saml-audience"),
 		)
 		if err != nil {
 			log.Fatal(err)
