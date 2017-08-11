@@ -31,11 +31,12 @@ Other than the purely cosmetic differences, **Kapow** acts as an authenticating 
 Setup
 ---
 
-Since **kapow** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
+As **kapow** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
 
 Part of this equation involves configuring **kapow** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
 
-_See the `minikube` test drive below for a concrete example._
+Additionally, `kapow` must be configured to integrate with one or more identity providers, of which SAML2 and
+OpenID+Connect are currently supported.
 
 ---
 
