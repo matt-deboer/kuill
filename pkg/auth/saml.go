@@ -20,6 +20,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const redirectTargetURLCookie = "loginTarget"
+
 type samlHandler struct {
 	name            string
 	description     string
@@ -29,6 +31,8 @@ type samlHandler struct {
 	groupsAttribute string
 	groupsDelimiter string
 	iconURL         string
+	audience        string
+	publicURL       string
 }
 
 type metadataSummary struct {
@@ -38,7 +42,7 @@ type metadataSummary struct {
 }
 
 // NewSamlHandler creates a new SAML authentication handler
-func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescription, idpMetadataURL, groupsAttribute, groupsDelimiter string) (Authenticator, error) {
+func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescription, idpMetadataURL, groupsAttribute, groupsDelimiter, audience string) (Authenticator, error) {
 
 	pu, err := url.Parse(publicURL)
 	if err != nil {
@@ -71,6 +75,7 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescri
 		description: idpDescription,
 		idpMetadata: idpMetadata,
 		iconURL:     iconURL.String(),
+		publicURL:   publicURL,
 	}
 
 	if len(s.name) == 0 {
@@ -97,9 +102,20 @@ func NewSamlHandler(publicURL, privateKeyFile, certFile, idpShortName, idpDescri
 	})
 	// Update the ACS path in order to serve correct metadata
 	s.samlSP.ServiceProvider.AcsURL.Path = s.LoginURL()
-	s.samlSP.ServiceProvider.MetadataURL.Path = path.Join(s.LoginURL(), "metadata")
+	metadataPath := path.Join(s.LoginURL(), "metadata")
 
-	http.HandleFunc(s.samlSP.ServiceProvider.MetadataURL.Path, s.Metadata)
+	if len(audience) > 0 {
+		s.audience = audience
+		audienceURL, err := url.Parse(audience)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid audience '%s': %v", audience, err)
+		}
+		s.samlSP.ServiceProvider.MetadataURL = *audienceURL
+	} else {
+		s.samlSP.ServiceProvider.MetadataURL.Path = metadataPath
+	}
+
+	http.HandleFunc(metadataPath, s.Metadata)
 
 	return s, nil
 }
@@ -223,6 +239,12 @@ func (s *samlHandler) Metadata(w http.ResponseWriter, r *http.Request) {
 func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
 
 	if r.Method == "GET" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     redirectTargetURLCookie,
+			Value:    r.Header.Get("referer"),
+			HttpOnly: true,
+			Path:     s.LoginURL(),
+		})
 		http.Redirect(w, r, s.idpMetadata.ssoLoginURL, http.StatusTemporaryRedirect)
 	} else if r.Method == "POST" {
 
@@ -236,6 +258,20 @@ func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*Ses
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return nil, nil
 		}
+
+		target := s.publicURL
+		cookie, _ := r.Cookie(redirectTargetURLCookie)
+		if cookie != nil {
+			target = cookie.Value
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Parsed redirect target: %s", target)
+			}
+		}
+
+		query := r.URL.Query()
+		query.Set("target", target)
+		r.URL.RawQuery = query.Encode()
+
 		return s.sessionTokenFromAssertion(assertion)
 
 	} else {
