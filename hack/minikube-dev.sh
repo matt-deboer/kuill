@@ -5,8 +5,15 @@ SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 # starts up kapow locally, pointed at the apiserver from minikube
 
+status=$(minikube status)
+
+if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
+  ${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
+fi
+
 kubectl config use-context minikube
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
+
 
 ${SCRIPT_DIR}/get-certs.sh
 
