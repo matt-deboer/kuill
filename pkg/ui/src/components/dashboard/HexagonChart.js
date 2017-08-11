@@ -1,8 +1,67 @@
 import React from 'react'
 import d3 from 'd3'
 import ReactFauxDOM from 'react-faux-dom'
+import PropTypes from 'prop-types'
 
 export default class HexagonChart extends React.PureComponent {
+
+
+  static propTypes = {
+    /**
+     * Called with an object where keys are the selected items' indicies
+     */
+    onSelection: PropTypes.func,
+    /**
+     * An array of objects {name, value}
+     */
+    items: PropTypes.array.isRequired,
+    /**
+     * An object with keys defining the initially selected items
+     */
+    initialSelection: PropTypes.object,
+
+    min: PropTypes.number,
+    max: PropTypes.number,
+    buckets: PropTypes.number,
+    colorRange: PropTypes.array,
+  }
+
+  static defaultProps = {
+    onSelection: function() {},
+    initialSelection: {},
+    // colorRange: ['rgb(0,88,229)','rgb(255,155,26)'],
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      selected: props.initialSelection,
+      hovered: null,
+    }
+    for (let fn of ['handleSelectHex']) {
+      this[fn] = this[fn].bind(this)
+    }
+  }
+
+  handleSelectHex = (d) => {
+    let selection = d.properties.index
+    let selected
+    if (d3.event.shiftKey) {
+      selected = {...this.state.selected}
+      if (selection in selected) {
+        delete selected[selection]
+      } else {
+        selected[selection]=true
+      }
+    } else {
+      selected = {}
+      if (Object.keys(this.state.selected).length > 1 || !(selection in this.state.selected)) {
+        selected[selection]=true
+      }
+    }
+    this.setState({selected: selected})
+    this.props.onSelection(selected)
+  }
 
   render() {
     let { items } = this.props
@@ -13,221 +72,224 @@ export default class HexagonChart extends React.PureComponent {
     //   items.push({name: `i-${i}`, group: group(i, itemCount), label: `${i}_${group(i, itemCount)}`})
     // }
 
-    return renderHexChart(items)
-  }
-}
-/**
- * 
- * @param {Array} items 
- */
-function renderHexChart(items) {
-  let el = ReactFauxDOM.createElement('div')
-  let height = 100
-
-  let itemCount = items.length
-
-  // how many hexes will fit in each size increment?
-  // TODO: this is currently pinned to maxWidth: 300; need to model it
-  let radius = 15
-  if (itemCount <= 11) {
-    radius = 26
-  } else if (itemCount <= 24) {
-    radius = 19
-  } else if (itemCount <= 40) {
-    radius = 15
-  } else if (itemCount <= 96) {
-    radius = 10
-  } else if (itemCount <= 207) {
-    radius = 7
-  } else {
-    // TODO: too many items; have to start grouping them
-    // together by bins
-  }
-  let rows = Math.floor(height / (1.5 * radius))
-  let cols = (itemCount - (itemCount % rows)) / rows
-  let width = (cols * radius * 2) + (2 * radius)
-
-  const dx = radius * 2 * Math.sin(Math.PI / 3);
-  const dy = radius * 1.5;
-  let path_generator = d3.geo.path().projection(d3.geo.transform({
-    point: function(x, y) {
-      return this.stream.point(x * dx / 2, -(y - (2 - (y & 1)) / 3) * dy / 2)
-    }
-  }))
-  
-  let svg = d3.select(el).append('svg').attr('width', width).attr('height', height)
-  let vis = svg.append('g').attr('transform', `translate(${radius+2},${radius+2})`)
-
-  let featureCollections = []
-  let allFeatures = []
-  let borders = []
-  let index = 0
-
-  let featuresByGroup = {}
-  let hasLabels = false
-  let orderedGroups = []
-  for (let item of items) {
-    let g = (item.group || '__default__')
-    if (!(g in featuresByGroup)) {
-      orderedGroups.push(g)
-    }
-    let features = featuresByGroup[g] = featuresByGroup[g] || []
-    let increment = Math.max(Math.floor(((index % rows) - 1) / 2), 0)
-    if (!!item.label) {
-      hasLabels = true
-    }
-    let hex = newHex({
-      x: Math.ceil(index / rows) + increment,
-      y: -(index % rows),
-      i: index,
-      group: g,
-      label: item.label,
-      classes: item.classes ? item.classes.join(' ') : '',
-      n: neighbors(index, rows, itemCount),
-    })
-    features.push(hex)
-    allFeatures[index]=hex
-    ++index
+    return this.renderHexChart(items)
   }
 
-  for (let g of orderedGroups) {
-    let features = featuresByGroup[g]
-    let fc = {
-      type: 'FeatureCollection',
-      features: features,
-      properties: {
-        group: g,
+  /**
+   * 
+   * @param {Array} items 
+   */
+  renderHexChart = (items) => {
+    let el = ReactFauxDOM.createElement('div')
+    let height = 100
+
+    let itemCount = items.length
+
+    // how many hexes will fit in each size increment?
+    // TODO: this is currently pinned to maxWidth: 300; need to model it
+    let radius = 15
+    if (itemCount <= 11) {
+      radius = 26
+    } else if (itemCount <= 24) {
+      radius = 19
+    } else if (itemCount <= 40) {
+      radius = 15
+    } else if (itemCount <= 96) {
+      radius = 10
+    } else if (itemCount <= 207) {
+      radius = 7
+    } else {
+      // TODO: too many items; have to start grouping them
+      // together by bins
+    }
+    let rows = Math.floor(height / (1.5 * radius))
+    let cols = (itemCount - (itemCount % rows)) / rows
+    let width = (cols * radius * 2) + (2 * radius)
+
+    const dx = radius * 2 * Math.sin(Math.PI / 3);
+    const dy = radius * 1.5;
+    let path_generator = d3.geo.path().projection(d3.geo.transform({
+      point: function(x, y) {
+        return this.stream.point(x * dx / 2, -(y - (2 - (y & 1)) / 3) * dy / 2)
       }
-    }
+    }))
+    
+    let svg = d3.select(el).append('svg').attr('width', width).attr('height', height)
+    let vis = svg.append('g').attr('transform', `translate(${radius+2},${radius+2})`)
 
-    featureCollections.push(fc) 
-    let points = computeBorders(features, allFeatures)
-   
-    borders.push({
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: points,
-      },
-      properties: {
-        group: g,
+    let featureCollections = []
+    let allFeatures = []
+    let borders = []
+    let index = 0
+
+    let featuresByGroup = {}
+    let hasLabels = false
+    let orderedGroups = []
+    for (let item of items) {
+      let g = (item.group || '__default__')
+      if (!(g in featuresByGroup)) {
+        orderedGroups.push(g)
       }
-    })
-  }
-  
-  for (let fc of featureCollections) {
-
-    let eachHex = vis.selectAll('.hex.' + fc.properties.group)
-      .data(fc.features).enter()
-
-    eachHex.append('path')
-      .attr('class', function(d) { return 'hex ' + d.properties.classes})
-      .attr('d', path_generator)
-
-    if (hasLabels) {
-      eachHex.append('text')
-        .attr("text-anchor", "middle")
-        .attr("font-size", "7px")
-        .attr("fill", "#FFF")
-        .attr("x", function(d) {
-            return path_generator.centroid(d)[0]
-        })
-        .attr("y", function(d) {
-            return path_generator.centroid(d)[1]
-        })
-        .attr('dy', 4)
-        .text(function(d){return d.properties.label})
+      let features = featuresByGroup[g] = featuresByGroup[g] || []
+      let increment = Math.max(Math.floor(((index % rows) - 1) / 2), 0)
+      if (!!item.label) {
+        hasLabels = true
+      }
+      let hex = newHex({
+        x: Math.ceil(index / rows) + increment,
+        y: -(index % rows),
+        i: index,
+        group: g,
+        label: item.label,
+        classes: item.classes ? item.classes.join(' ') : '',
+        n: neighbors(index, rows, itemCount),
+      })
+      features.push(hex)
+      allFeatures[index]=hex
+      ++index
     }
-  }
 
-  if (borders.length > 1) {
-    for (let border of borders) {
-      let b = vis.selectAll('.border.'+border.properties.group)
-        .data([border])
-        .enter()
+    for (let g of orderedGroups) {
+      let features = featuresByGroup[g]
+      let fc = {
+        type: 'FeatureCollection',
+        features: features,
+        properties: {
+          group: g,
+        }
+      }
 
-      b.append('path')
-        .attr('class', 'border '+border.properties.group)
+      featureCollections.push(fc) 
+      let points = this.computeBorder(features, allFeatures)
+    
+      borders.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: points,
+        },
+        properties: {
+          group: g,
+        }
+      })
+    }
+    
+    for (let fc of featureCollections) {
+
+      let eachHex = vis.selectAll('.hex.' + fc.properties.group)
+        .data(fc.features).enter()
+
+      eachHex.append('path')
+        .attr('class', function(d) { return 'hex ' + d.properties.classes})
         .attr('d', path_generator)
-        .attr("stroke-width", 2)
-        .attr("stroke-linejoin", "round")
-        .attr("fill", "none")
+        .on('mouseup', this.handleSelectHex)
+
+      if (hasLabels) {
+        eachHex.append('text')
+          .attr("text-anchor", "middle")
+          .attr("font-size", "7px")
+          .attr("fill", "#FFF")
+          .attr("pointer-events", "none")
+          .attr("x", function(d) {
+              return path_generator.centroid(d)[0]
+          })
+          .attr("y", function(d) {
+              return path_generator.centroid(d)[1]
+          })
+          .attr('dy', 4)
+          .text(function(d){return d.properties.label})
+      }
     }
+
+    if (borders.length > 1) {
+      for (let border of borders) {
+        let b = vis.selectAll('.border.'+border.properties.group)
+          .data([border])
+          .enter()
+
+        b.append('path')
+          .attr('class', 'border '+border.properties.group)
+          .attr('d', path_generator)
+          .attr("stroke-width", 2)
+          .attr("stroke-linejoin", "round")
+          .attr("fill", "none")
+      }
+    }
+
+    return el.toReact()
   }
 
-  return el.toReact()
-}
+  computeBorder = (features, allFeatures) => {
+    let segments = {}
+    let segmentKeysByPoint = {}
+    let firstSegment = null
+    for (let f of features) {
+      for (let j=0; j <6; ++j) {
+        let neighborIndex = f.properties.neighbors[j]
+        let neighbor = allFeatures[neighborIndex]
+        if (!neighbor || f.properties.group !== neighbor.properties.group) {
+          let p1 = f.geometry.coordinates[0][j]          
+          let p2 = f.geometry.coordinates[0][(j+1)]
 
-function computeBorders(features, allFeatures) {
-  let segments = {}
-  let segmentKeysByPoint = {}
-  let firstSegment = null
-  for (let f of features) {
-    for (let j=0; j <6; ++j) {
-      let neighborIndex = f.properties.neighbors[j]
-      let neighbor = allFeatures[neighborIndex]
-      if (!neighbor || f.properties.group !== neighbor.properties.group) {
-        let p1 = f.geometry.coordinates[0][j]          
-        let p2 = f.geometry.coordinates[0][(j+1)]
+          let seg = [p1,p2]
+          let key = JSON.stringify(seg)
+          let k1 = JSON.stringify(p1)
+          let k2 = JSON.stringify(p2)
 
-        let seg = [p1,p2]
-        let key = JSON.stringify(seg)
-        let k1 = JSON.stringify(p1)
-        let k2 = JSON.stringify(p2)
+          let _k1s = segmentKeysByPoint[k1] = segmentKeysByPoint[k1] || []
+          _k1s.push(key)
+          let _k2s = segmentKeysByPoint[k2] = segmentKeysByPoint[k2] || []
+          _k2s.push(key)
 
-        let _k1s = segmentKeysByPoint[k1] = segmentKeysByPoint[k1] || []
-        _k1s.push(key)
-        let _k2s = segmentKeysByPoint[k2] = segmentKeysByPoint[k2] || []
-        _k2s.push(key)
-
-        seg._key = key
-        seg._k1 = k1
-        seg._k2 = k2
-        segments[key] = seg
-        if (!firstSegment) {
-          firstSegment = seg
+          seg._key = key
+          seg._k1 = k1
+          seg._k2 = k2
+          segments[key] = seg
+          if (!firstSegment) {
+            firstSegment = seg
+          }
         }
       }
     }
-  }
 
-  let points = []
-  let prevPointKey = ''
-  let currentSeg = firstSegment
-  points.push(currentSeg[0])
+    let points = []
+    let prevPointKey = ''
+    let currentSeg = firstSegment
+    points.push(currentSeg[0])
 
-  let reversed = false
-  let removeCurrentSegment = function(segs, currentSeg) {
-    let _filter = function(e) { return e !== currentSeg._key }
-    return segs.filter(_filter)
-  }
-
-  while (!!currentSeg) {
-    delete segments[currentSeg._key]
-
-    segmentKeysByPoint[currentSeg._k1] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k1], currentSeg)
-    segmentKeysByPoint[currentSeg._k2] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k2], currentSeg)
-
-    let pointToAdd = prevPointKey === currentSeg._k2 ? currentSeg[0] : currentSeg[1]
-
-    if (reversed) {
-      points.unshift(pointToAdd)
-    } else {
-      points.push(pointToAdd)
+    let reversed = false
+    let removeCurrentSegment = function(segs, currentSeg) {
+      let _filter = function(e) { return e !== currentSeg._key }
+      return segs.filter(_filter)
     }
-    // Now find the next segment
-    let pointKey = prevPointKey === currentSeg._k2 ? currentSeg._k1 : currentSeg._k2 
-    let nextSegKey = segmentKeysByPoint[pointKey][0]
-    prevPointKey = pointKey
-    // should only be one key left now...
-    currentSeg = segments[nextSegKey]
-    if (!currentSeg && !reversed) {
-      reversed = true
-      currentSeg = firstSegment
-      prevPointKey = firstSegment._k1
+
+    while (!!currentSeg) {
+      delete segments[currentSeg._key]
+
+      segmentKeysByPoint[currentSeg._k1] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k1], currentSeg)
+      segmentKeysByPoint[currentSeg._k2] = removeCurrentSegment(segmentKeysByPoint[currentSeg._k2], currentSeg)
+
+      let pointToAdd = prevPointKey === currentSeg._k2 ? currentSeg[0] : currentSeg[1]
+
+      if (reversed) {
+        points.unshift(pointToAdd)
+      } else {
+        points.push(pointToAdd)
+      }
+      // Now find the next segment
+      let pointKey = prevPointKey === currentSeg._k2 ? currentSeg._k1 : currentSeg._k2 
+      let nextSegKey = segmentKeysByPoint[pointKey][0]
+      prevPointKey = pointKey
+      // should only be one key left now...
+      currentSeg = segments[nextSegKey]
+      if (!currentSeg && !reversed) {
+        reversed = true
+        currentSeg = firstSegment
+        prevPointKey = firstSegment._k1
+      }
     }
+    return points
   }
-  return points
 }
 
 /**
