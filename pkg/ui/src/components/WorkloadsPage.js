@@ -31,7 +31,7 @@ import { compareStatuses } from '../utils/resource-utils'
 import FilterBox from './FilterBox'
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
-import WorkloadCountsPanel from './WorkloadCountsPanel'
+import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import './WorkloadsPage.css'
 
 import Perf from 'react-addons-perf'
@@ -261,6 +261,7 @@ class WorkloadsPage extends React.Component {
         headerStyle: styles.header,
         style: { ...styles.cell,
           width: 55,
+          lineHeight: '50px',
         },
         className: 'resource-actions',
       },
@@ -512,7 +513,7 @@ class WorkloadsPage extends React.Component {
           possibleFilters={props.possibleFilters}
           />
 
-        <WorkloadCountsPanel resources={props.resources} />
+        <FilteredResourceCountsPanel resources={props.resources} />
 
         <FilterTable
           className={'workloads'}
