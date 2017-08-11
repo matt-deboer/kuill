@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import IconButton from 'material-ui/IconButton'
-import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
+import { blueA400, grey200, grey300, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../state/actions/access'
@@ -13,8 +13,6 @@ import * as moment from 'moment'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
@@ -24,11 +22,9 @@ import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
 import { resourceStatus as resourceStatusIcons } from './icons'
-import { compareStatuses } from '../utils/resource-utils'
 
 import FilterBox from './FilterBox'
 import ConfirmationDialog from './ConfirmationDialog'
-import ScaleDialog from './ScaleDialog'
 import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import './AccessControlsPage.css'
 
@@ -488,6 +484,17 @@ class AccessControlsPage extends React.Component {
           data-rh-at={'bottom'}>
             <IconDelete/>
         </MultiResourceActionButton>
+
+        <ConfirmationDialog 
+          open={this.state.deleteOpen}
+          title={'Delete Resource(s):'}
+          message={`Are you sure you want to delete the following ` +
+           `${this.state.selectedResources.length > 1 ? this.state.selectedResources.length + ' ' : ''}` +
+           `resource${this.state.selectedResources.length > 1 ? 's':''}?`}
+          resources={this.state.selectedResources}
+          onRequestClose={this.handleRequestCloseDelete}
+          onConfirm={this.handleConfirmDelete}
+          />
 
       </Paper>
     )
