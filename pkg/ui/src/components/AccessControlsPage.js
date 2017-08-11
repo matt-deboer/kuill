@@ -418,7 +418,7 @@ class AccessControlsPage extends React.Component {
           className={'access'}
           columns={this.columns}
           data={this.rows}
-          height={'calc(100vh - 310px)'}
+          height={'calc(100vh - 350px)'}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
