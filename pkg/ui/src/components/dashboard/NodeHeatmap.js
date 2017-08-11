@@ -1,7 +1,11 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { zoneLabel } from '../../utils/filter-utils'
 import UtilizationPieChart from './UtilizationPieChart'
 import HexagonChart from './HexagonChart'
+import { connect } from 'react-redux'
+import { setFilterNames } from '../../state/actions/cluster'
+import { hostnameLabel } from '../../utils/filter-utils'
 import './NodeHeatmap.css'
 
 const styles = {
@@ -31,7 +35,33 @@ const styles = {
 
 const usageQuantiles = [20, 40, 60, 80, 100]
 
-export default class NodeHeatmap extends React.PureComponent {
+const mapStateToProps = function(store) {
+  return {
+    filterNames: store.cluster.filterNames,
+    resourceRevision: store.cluster.resourceRevision,
+  }
+}
+
+const mapDispatchToProps = function(dispatch, ownProps) {
+  return {
+    setFilterNames: function(filterNames) {
+      dispatch(setFilterNames(filterNames))
+    },
+  } 
+}
+
+export default connect(mapStateToProps, mapDispatchToProps) (
+class NodeHeatmap extends React.PureComponent {
+
+  static propTypes = {
+    nodes: PropTypes.array.isRequired,
+  }
+
+  static defaultProps = {
+    onSelection: function() {},
+    initialSelection: {},
+    // colorRange: ['rgb(0,88,229)','rgb(255,155,26)'],
+  }
 
   constructor(props) {
     super(props)
@@ -48,6 +78,15 @@ export default class NodeHeatmap extends React.PureComponent {
     this.setState({
       selectBy: event.currentTarget.dataset.selectBy,
     })
+  }
+
+  handleSelectNodes = (selection) => {
+    let filterNames = []
+    for (let nodeIndex in selection) {
+      let node = this.props.nodes[nodeIndex]
+      filterNames.push(`hostname:${node.metadata.labels[hostnameLabel]}`)
+    }
+    this.props.setFilterNames(filterNames)
   }
 
   render() {
@@ -76,7 +115,7 @@ export default class NodeHeatmap extends React.PureComponent {
         if (n.metadata.labels && zoneLabel in n.metadata.labels) {
           zone = n.metadata.labels[zoneLabel]
         }
-        let item = {group: zone, classes: []}
+        let item = {group: zone, classes: [], name: n.metadata.labels[hostnameLabel]}
         if (!n.isFiltered) {
           let metricsForNode = nodeMetrics[n.metadata.name]
           if (!metricsForNode) {
@@ -109,7 +148,7 @@ export default class NodeHeatmap extends React.PureComponent {
     return (
       <div style={styles.wrapper} className="row">
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 node-heatmap by-${this.state.selectBy}`}>
-           <HexagonChart items={items}/>
+           <HexagonChart items={items} onSelection={this.handleSelectNodes}/>
           <div className="legend">
             <div className="title">{`% ${this.state.selectBy} used by node`}</div>
             {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)}
@@ -143,4 +182,4 @@ export default class NodeHeatmap extends React.PureComponent {
       </div>
     )
   }
-}
+})
