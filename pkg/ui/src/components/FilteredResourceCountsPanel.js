@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default class WorkloadCountsPanel extends React.PureComponent {
+export default class FilteredResourceCountsPanel extends React.PureComponent {
 
   render() {
 
@@ -48,7 +48,7 @@ export default class WorkloadCountsPanel extends React.PureComponent {
     counts.sort((a,b)=>a.name.localeCompare(b.name))
 
     return (
-      <div style={styles.counts}>
+      <div style={{...styles.counts, ...props.style}}>
         {counts.map((count)=>
           <div style={styles.countItem}>{count.name}:<span style={styles.count}>{count.value}</span></div>  
         )}
