@@ -138,7 +138,7 @@ class LogViewer extends React.Component {
         <XTerm 
           className={'logs'} 
           style={{
-            height: `${window.innerHeight - props.contentTop - 90}px`,
+            height: `${window.innerHeight - props.contentTop - 120}px`,
             backgroundColor: grey900,
             padding: 10,
             fontSize: '12px',
