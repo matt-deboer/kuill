@@ -50,6 +50,9 @@ pkg/ui/test-proxy/node_modules:
 pkg/ui/node_modules:
 	cd pkg/ui && npm install
 
+analyze-ui:
+	cd pkg/ui && npm run build && npm run analyze
+
 dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
 	# now move to the ui dir and run dev
 	cd pkg/ui && npm run dev
