@@ -1,4 +1,3 @@
-import math from 'mathjs'
 
 export function calculateTotals(resources, selectedNamespaces) {
   let countsByKind = {}
@@ -38,8 +37,6 @@ const statUnits = {
     targetUnit: 'kibibytes/sec',
   },
 }
-
-math.createUnit('cores', {prefixes: 'long'})
 
 export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces) {
   
@@ -101,16 +98,6 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
   } else {
     return stats
   }
-  // if (namespacesFiltered && Object.keys(namespaceMetrics).length > 0) {
-     
-  // } else if (!!clusterMetrics && Object.keys(clusterMetrics).length > 0) {
-  //   for (let s in stats) {
-  //     let m = clusterMetrics
-  //     accumulateStats(stats, s, m)
-  //   }
-  // } else {
-  //   return stats
-  // }
 
   for (let s in stats) {
     let stat = stats[s]
@@ -119,10 +106,10 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     let statUnit = statUnits[s]
     if ('targetUnit' in statUnit) {
       if (statUnit.targetUnit.includes('/')) {
-        stat.ratio = math.unit(`${stat.ratio} ${statUnit.baseUnit}`).toNumber(statUnit.targetUnit)
+        stat.ratio = convert(stat.ratio, statUnit.baseUnit, statUnit.targetUnit)
       } else {
-        stat.usage = math.unit(`${stat.usage} ${statUnit.baseUnit}`).toNumber(statUnit.targetUnit)
-        stat.total = math.unit(`${stat.total} ${statUnit.baseUnit}`).toNumber(statUnit.targetUnit)
+        stat.usage = convert(stat.usage, statUnit.baseUnit, statUnit.targetUnit)
+        stat.total = convert(stat.total, statUnit.baseUnit, statUnit.targetUnit)
       }
       stat.units = statUnit.targetUnit
     }
@@ -138,5 +125,56 @@ function accumulateStats(stats, stat, m) {
     } else {
       stats[stat].total += (m[stat].total || 0)
     }
+  }
+}
+
+function convert(value, baseUnit, targetUnit) {
+  let base = baseUnit.split('/')
+  let target = targetUnit.split('/')
+  
+  if (base.length !== target.length) {
+    return value
+  } else {
+    let v = value
+    for (let i=0; i < base.length; ++i) {
+      let bu = base[i]
+      let tu = target[i]
+      if (bu !== tu) {
+        switch (bu) {
+          case "bytes":
+            switch (tu) {
+              case "kibibytes":
+                v = v / 1024
+                break
+              case "mebibytes":
+                v = v / ( 1024 * 1024 )
+                break
+              case "gibibytes":
+                v = v / ( 1024 * 1024 * 1024 )
+                break
+              default:
+            }
+            break
+          case "cores":
+            switch (tu) {
+              case "millicores":
+                v = v * 1000
+                break
+              default:
+            }
+            break
+          case "millicores":
+            switch (tu) {
+              case "cores":
+              v = v / 1000
+              break
+              default:
+            }
+            break
+          default:
+        }
+      }
+    }
+    return v
   }
 }
