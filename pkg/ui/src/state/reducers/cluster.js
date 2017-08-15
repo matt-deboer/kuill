@@ -5,7 +5,6 @@ import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../utils/filter-utils'
-import math from 'mathjs'
 
 const initialState = {
   // the filter names in string form
@@ -27,10 +26,6 @@ const initialState = {
   isFetching: false,
   fetchBackoff: 0,
   fetchError: null,
-  cores: 0,
-  memory: 0,
-  memoryUnits: '',
-  nodes: 0,
   clusterMetrics: null,
   problemResources: {},
   namespaceMetrics: {},
@@ -288,8 +283,6 @@ function doReceiveResources(state, resources) {
     if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
       newState.problemResources[resource.key] = resource
     }
-
-    updateComputeResources(newState, resource)
   })
 
   let [number, units] = newState.memory.toString().split(' ')
@@ -324,27 +317,6 @@ function visitResources(resources, ...visitors) {
     for (let visitor of visitors) {
       visitor(resource)
     }
-  }
-}
-
-function updateComputeResources(state, resource) {
-  if (resource.kind === 'Node') {
-    if (!resource.metrics) {
-      resource.metrics = {summary: {cpu: {}, memory: {}}}
-    }
-    let cores = parseInt(resource.status.allocatable.cpu, 10)
-    resource.metrics.summary.memory.total = 
-        math.unit(resource.status.allocatable.memory.replace('Ki',' kibibytes').replace('Gi',' gibibytes'))
-
-    state.cores += cores
-    if (state.memory === 0) {
-      state.memory = resource.metrics.summary.memory.total
-    } else {
-      state.memory = math.add(state.memory, resource.metrics.summary.memory.total)
-    }
-    resource.metrics.summary.cpu.total = 1000 * cores
-    resource.metrics.summary.memory.total = resource.metrics.summary.memory.total.toNumber('bytes')
-    ++state.nodes
   }
 }
 
