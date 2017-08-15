@@ -266,12 +266,17 @@ func main() {
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
-		redirectAddr := fmt.Sprintf(":%d", redirectPort)
-
-		go http.ListenAndServe(redirectAddr, http.HandlerFunc(redirectTLS))
 
 		log.Infof("%s!@%s listening on %s", version.Name, version.Version, addr)
-		log.Fatal(http.ListenAndServeTLS(addr, serverCert, serverKey, nil))
+		if redirectPort != port {
+			redirectAddr := fmt.Sprintf(":%d", redirectPort)
+			log.Infof("Redirecting http => https on %s", version.Name, version.Version, addr)
+			go http.ListenAndServe(redirectAddr, http.HandlerFunc(redirectTLS))
+
+			log.Fatal(http.ListenAndServeTLS(addr, serverCert, serverKey, nil))
+		} else {
+			log.Fatal(ListenAndServeTLSWithRedirect(addr, serverCert, serverKey))
+		}
 	}
 	app.Run(os.Args)
 }
