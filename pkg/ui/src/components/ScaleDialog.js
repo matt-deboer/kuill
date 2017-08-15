@@ -17,6 +17,10 @@ export default class ScaleDialog extends React.PureComponent {
     }
   }
 
+  handleConfirm = () => {
+    this.props.onConfirm(this.replicaText.input.value)
+  }
+
   render() {
 
     let { props } = this
@@ -45,9 +49,7 @@ export default class ScaleDialog extends React.PureComponent {
         label="Scale"
         primary={true}
         keyboardFocused={true}
-        onTouchTap={()=> {
-          props.onConfirm(this.replicaText.input.value)}
-        }
+        onTouchTap={this.handleConfirm}
       />,
     ];
 
@@ -67,10 +69,24 @@ export default class ScaleDialog extends React.PureComponent {
           floatingLabelText="New desired number of replicas:"
           ref={ (ref) => { 
             this.replicaText = ref 
+            if (this.replicaText) {
+              this.replicaText.input.onkeydown = this.numbersOnly
+            }
           }}
         />
       </Dialog>
     )
   }
-}
 
+  numbersOnly = (event) => {
+    let keyCode = ('which' in event) ? event.which : event.keyCode
+    let isNumeric = (keyCode >= 48 /* KeyboardEvent.DOM_VK_0 */ && keyCode <= 57 /* KeyboardEvent.DOM_VK_9 */) ||
+      (keyCode >= 96 /* KeyboardEvent.DOM_VK_NUMPAD0 */ && keyCode <= 105 /* KeyboardEvent.DOM_VK_NUMPAD9 */)
+    let modifiers = (event.altKey || event.ctrlKey || event.shiftKey)
+    let allowedNonNumerics = (keyCode === 8 /* backspace */ || keyCode === 9 /* tab */)
+    if (keyCode === 13 /* enter */) {
+      this.handleConfirm()
+    } 
+    return (isNumeric || allowedNonNumerics) && !modifiers
+  }
+}
