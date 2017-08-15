@@ -120,7 +120,7 @@ class ResourceInfo extends React.Component {
 
   componentWillReceiveProps = (props) => {
     
-    if ((props.resource !== this.state.resource) 
+    if (!sameResourceVersion(this.state.resource,props.resource)
       || (props.editor.contents !== this.props.editor.contents)
       || (props.resource && this.state.resource && props.resource.metadata.resourceVersion )
     ) {
