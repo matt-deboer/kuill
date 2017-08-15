@@ -1,4 +1,4 @@
-import { TextDecoder } from 'text-encoding'
+import { TextDecoder } from 'text-encoding-utf-8'
 
 // const escape = parseInt('033', 8);
 const colorCodes = [153,215,230,147,14,10,11,159,255].map(val => `\x1B[38;5;${val}m`)

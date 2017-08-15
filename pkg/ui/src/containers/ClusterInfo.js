@@ -5,10 +5,17 @@ import { editResource, requestResource, applyResourceChanges } from '../state/ac
 import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
-import EditorPage from '../components/EditorPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
 import { sameResource } from '../utils/resource-utils'
+import Loadable from 'react-loadable'
+import LoadingComponentStub from '../components/LoadingComponentStub'
+
+const AsyncEditorPage = Loadable({
+  loader: () => import('../components/EditorPage'),
+  loading: LoadingComponentStub
+})
+
 
 const mapStateToProps = function(store) {
   return { 
@@ -172,7 +179,7 @@ class ClusterInfo extends React.Component {
 
     return (<div>
       
-      <EditorPage 
+      <AsyncEditorPage 
         open={!!this.state.resource && !!this.state.editor.contents && this.props.location.search === '?view=edit'}
         onEditorApply={this.props.onEditorApply}
         onEditorCancel={this.onEditorCancel}
