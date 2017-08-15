@@ -52,6 +52,12 @@ class EditorPage extends React.Component {
     // }
   }
 
+  componentWillReceiveProps = (props) => {
+    if (!this.contents) {
+      this.contents = props.contents
+    }
+  }
+
   onSelectionChange = (selection, event) => {
     this.props.onSelectionChange && this.props.onSelectionChange(selection, event)
   }
@@ -110,7 +116,7 @@ class EditorPage extends React.Component {
           height={`${window.innerHeight - 300}px`}
           width={`100%`}
           editorProps={{$blockScrolling: true}}
-          value={props.contents}
+          value={this.contents}
           ref={(ref) => {
             if (!!ref) {
               this.editor = ref.editor
