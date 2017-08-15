@@ -46,6 +46,12 @@ func main() {
 			Usage:  "The port on which the server will listen",
 			EnvVar: envBase + "PORT",
 		},
+		cli.IntFlag{
+			Name:   "redirect-port",
+			Value:  80,
+			Usage:  "The port which ansers http requests by redirecting to the https port",
+			EnvVar: envBase + "REDIRECT_PORT",
+		},
 		cli.StringFlag{
 			Name:   "server-cert",
 			Usage:  "The PEM-encoded cert file use by the app for TLS communication",
@@ -247,6 +253,7 @@ func main() {
 		}
 
 		port := requiredInt(c, "port")
+		redirectPort := requiredInt(c, "redirect-port")
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
@@ -259,10 +266,20 @@ func main() {
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
+		redirectAddr := fmt.Sprintf(":%d", redirectPort)
+
+		go http.ListenAndServe(redirectAddr, http.HandlerFunc(redirectTLS))
+
 		log.Infof("%s!@%s listening on %s", version.Name, version.Version, addr)
 		log.Fatal(http.ListenAndServeTLS(addr, serverCert, serverKey, nil))
 	}
 	app.Run(os.Args)
+}
+
+func redirectTLS(w http.ResponseWriter, req *http.Request) {
+	http.Redirect(w, req,
+		"https://"+req.Host+req.URL.String(),
+		http.StatusMovedPermanently)
 }
 
 func argError(c *cli.Context, msg string, args ...interface{}) {
