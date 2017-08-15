@@ -1,8 +1,6 @@
 import React from 'react'
 import Overview from './containers/Overview'
 import Workloads from './containers/Workloads'
-import NewWorkload from './containers/NewWorkload'
-import Cluster from './containers/Cluster'
 import AccessControls from './containers/AccessControls'
 import WorkloadInfo from './containers/WorkloadInfo'
 import ClusterInfo from './containers/ClusterInfo'
@@ -11,6 +9,18 @@ import IconAccessControls from 'material-ui/svg-icons/hardware/security'
 import IconCluster from 'material-ui/svg-icons/maps/layers'
 import Apps from 'material-ui/svg-icons/navigation/apps'
 import KubeKinds from './kube-kinds'
+import Loadable from 'react-loadable'
+import LoadingComponentStub from './components/LoadingComponentStub'
+
+const AsyncNewWorkload = Loadable({
+  loader: () => import('./containers/NewWorkload'),
+  loading: LoadingComponentStub
+})
+
+const AsyncCluster = Loadable({
+  loader: () => import('./containers/Cluster'),
+  loading: LoadingComponentStub
+})
 
 const routes = [
   { 
@@ -32,7 +42,7 @@ const routes = [
   },
   { 
     path: '/workloads/new',
-    component: NewWorkload,
+    component: AsyncNewWorkload,
   },
   { 
     path: '/workloads/:namespace/:kind/:name',
@@ -41,7 +51,7 @@ const routes = [
   { 
     path: '/cluster',
     name: 'Cluster',
-    component: Cluster,
+    component: AsyncCluster,
     icon: <IconCluster/>,
     inMenu: true,
     exact: true,
