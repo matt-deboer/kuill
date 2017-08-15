@@ -8,9 +8,7 @@ import { editResource, removeResource, scaleResource } from '../state/actions/wo
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
 import PodTemplatePane from './configuration-pane/PodTemplatePane'
-import LogViewer from './LogViewer'
 import EventViewer from './EventViewer'
-import TerminalViewer from './TerminalViewer'
 
 import IconConfiguration from 'material-ui/svg-icons/action/list'
 import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
@@ -43,8 +41,20 @@ import { resourceStatus as resourceStatusIcons } from './icons'
 
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
-
 import './ResourceInfoPage.css'
+
+import Loadable from 'react-loadable'
+import LoadingComponentStub from '../components/LoadingComponentStub'
+
+const AsyncTerminalViewer = Loadable({
+  loader: () => import('./TerminalViewer'),
+  loading: LoadingComponentStub
+})
+
+const AsyncLogViewer = Loadable({
+  loader: () => import('./LogViewer'),
+  loading: LoadingComponentStub
+})
 
 const mapStateToProps = function(store) {
   return {
@@ -282,7 +292,7 @@ class ResourceInfoPage extends React.Component {
     if (enableLogsTab) {
       tabs.push({
         name: 'logs',
-        component: LogViewer,
+        component: AsyncLogViewer,
         icon: <IconLogs/>,
         props: {logs: logs},
       })
@@ -290,7 +300,7 @@ class ResourceInfoPage extends React.Component {
     if (enableTerminalTab) {
       tabs.push({
         name: 'terminal',
-        component: TerminalViewer,
+        component: AsyncTerminalViewer,
         icon: <IconTerminal/>,
         props: {logs: logs},
       })
