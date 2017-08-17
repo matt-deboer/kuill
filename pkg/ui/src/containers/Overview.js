@@ -152,6 +152,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconCPU}
                       color={blueA700}
                       title="cpu"
+                      usage={stats.cpu.usage.toFixed(1)}
                       total={stats.cpu.total}
                       units={stats.cpu.units}
               />
@@ -160,6 +161,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconMemory}
                       color={blueA200}
                       title="mem"
+                      usage={stats.memory.usage.toFixed(1)}
                       total={stats.memory.total.toFixed(1)}
                       units={stats.memory.units}
               />
@@ -171,6 +173,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconStorage}
                       color={lightBlueA400}
                       title="disk"
+                      usage={stats.disk.usage.toFixed(1)}
                       total={stats.disk.total.toFixed(1)}
                       units={stats.disk.units}
               />
@@ -179,6 +182,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconStorage}
                       color={lightBlueA400}
                       title="vols"
+                      usage={stats.volumes.usage.toFixed(1)}
                       total={stats.volumes.total.toFixed(1)}
                       units={stats.volumes.units}
               />
