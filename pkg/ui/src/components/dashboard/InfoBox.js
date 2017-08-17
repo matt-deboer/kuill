@@ -1,5 +1,4 @@
 import React from 'react'
-// import { ResponsiveContainer, AreaChart, Area } from 'recharts'
 import Paper from 'material-ui/Paper'
 import { white, grey800 } from 'material-ui/styles/colors'
 import typography from 'material-ui/styles/typography'
@@ -8,7 +7,14 @@ import './InfoBox.css'
 export default class InfoBox extends React.PureComponent {
 
   render() {
-    const {color, title, total, units, Icon} = this.props;
+    const {color, title, total, units, Icon} = this.props
+
+    let hasUsage = false
+    let utilization = 0
+    if ('usage' in this.props && total > 0) {
+      hasUsage = true
+      utilization = Math.round(100 * this.props.usage / total)
+    }
 
     const styles = {
       wrapper: {
@@ -35,7 +41,9 @@ export default class InfoBox extends React.PureComponent {
         color: grey800
       },
       total: {
-        display: 'block',
+        position: 'absolute',
+        paddingRight: 10,
+        paddingTop: 5,
         fontWeight: 600,
         fontSize: 30,
         lineHeight: '36px',
@@ -44,12 +52,13 @@ export default class InfoBox extends React.PureComponent {
         width: '100%',
         right: 0,
         top: 0,
+        zIndex: 3,
       },
       units: {
         fontSize: 16,
         lineHeight: '16px',
         color: 'rgb(150,150,150)',
-        paddingTop: 40,
+        paddingTop: 38,
         paddingRight: 10,
         position: 'absolute',
         height: 60,
@@ -57,6 +66,7 @@ export default class InfoBox extends React.PureComponent {
         width: '100%',
         right: 0,
         top: 0,
+        zIndex: 3,
       },
       remains: {
         display: 'block',
@@ -80,7 +90,8 @@ export default class InfoBox extends React.PureComponent {
         height: 58,
         width: 58,
         textAlign: 'center',
-        backgroundColor: color
+        backgroundColor: color,
+        zIndex: 2,
       },
       icon: {
         height: 30,
@@ -92,14 +103,7 @@ export default class InfoBox extends React.PureComponent {
     }
 
     return (
-      <Paper style={styles.wrapper} className={'infobox'}>
-
-        {/* <ResponsiveContainer style={{}}>
-          <AreaChart data={data} margin={{top: 5, right: 0, left: 0, bottom: 5}}>
-            <Area type='monotone' dataKey='uv' stroke='rgb(41, 98, 255)' fill='rgba(41, 98, 255, 0.3)' />
-          </AreaChart>
-        </ResponsiveContainer>         */}
-        
+      <Paper style={styles.wrapper} className={'infobox'}>        
         <span style={styles.iconSpan}>
           <span style={styles.text}>{title}</span>
           <Icon color={white}
@@ -108,6 +112,12 @@ export default class InfoBox extends React.PureComponent {
         </span>
 
         <div style={styles.content}>
+          { hasUsage &&
+          <div className="usage-container">
+            <div className="usage" style={{width: `calc(${utilization}%)`}}/>
+            <div className="usage-border"/>
+          </div>
+          }
           <div style={styles.total}>{total}</div>
           <div style={styles.units}>{units}</div>
         </div>

@@ -1,9 +1,36 @@
 .infobox {
   .recharts-responsive-container {
-    // position: absolute !important;
-    width: calc(100% - 60px) !important;
+    width: calc(100% - 65px) !important;
     height: 60px !important;
-    margin-left: 60px;
+    margin-left: 65px;
     padding-top: 1px;
-  } 
+  }
+  .usage-container {
+    width: calc(100% - 68px);
+    position: relative;
+    left: 68px;
+
+    .usage {
+      position: absolute;
+      top: 0px;
+      margin-top: -2px;
+      height: 52px;
+      padding: 0;
+      background: linear-gradient(to right, rgba(33,33,33,0), rgba(33,33,33,1));
+      -webkit-transform: skew(-15deg);
+      -ms-transform: skew(-15deg);
+      transform: skew(-15deg);
+      z-index: 1;
+    }
+    .usage-border {
+      position: absolute;
+      overflow: hidden;
+      top: 0px;
+      height: 49px;
+      border: 4px solid rgb(77,77,77);
+      z-index: 2;
+      width: 100%;
+      margin-top: -5px;
+    }
+  }
 }
