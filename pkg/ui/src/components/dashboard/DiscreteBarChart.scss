@@ -6,24 +6,30 @@ path.domain {
 g.group {
   // fill-opacity: 0.5;
   // stroke-opacity: 0.7;
-  fill-opacity: 1;
-  stroke-opacity: 1;
-  pointer-events: all;
+  fill-opacity: 0.8;
+  stroke-opacity: 0.8;
+  pointer-events: none;
   
   &.deselected {
     fill-opacity: 0.2;
     stroke-opacity: 0.2;
   }
 
+  rect.hover {
+    pointer-events: all;
+  }
+
   &:hover {
     rect:not(.hover) {
-      stroke: rgba(180,180,180,0.6) !important;
+      fill-opacity: 1;
+      stroke-opacity: 1;
+      // stroke: rgba(180,180,180,0.6) !important;
     }
   }
 
   &:hover {
-    fill-opacity: 1;
-    stroke-opacity: 1;
+    // fill-opacity: 1;
+    // stroke-opacity: 1;
     cursor: pointer;
   }
 }
@@ -31,4 +37,7 @@ g.group {
 g.x.axis {
   fill: rgb(180,180,180);
   pointer-events: none;
+  g.tick {
+    pointer-events: none;
+  }
 }

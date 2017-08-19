@@ -32,7 +32,7 @@ export default class DiscreteBarChart extends React.PureComponent {
     min: 0, 
     max: 100, 
     buckets: 10, 
-    colorRange: ['rgb(0,88,229)','rgb(255,155,26)'],
+    colorRange: ['rgb(0,88,229)','rgb(247, 202, 24)'],
   }
 
   constructor(props) {
@@ -161,7 +161,7 @@ export default class DiscreteBarChart extends React.PureComponent {
       colors.push(color(i))
     }
 
-    var margin = {top: 0, right: 0, bottom: 60, left: 0};
+    var margin = {top: 10, right: 0, bottom: 70, left: 0};
 
     var width = 340 - margin.left - margin.right,
         height = 150 - margin.top - margin.bottom;
@@ -184,7 +184,7 @@ export default class DiscreteBarChart extends React.PureComponent {
     // Set x, y and colors
     var x = d3.scale.ordinal()
       .domain(dataset.map(function(d) { return d[0].x }))
-      .rangeRoundBands([10, width-10], 0.20)
+      .rangeRoundBands([10, width], 0.20)
 
     var y = d3.scale.linear()
       .domain([0,20])
@@ -266,9 +266,9 @@ export default class DiscreteBarChart extends React.PureComponent {
       .attr('y', function(d) { return 0 /*y(d.y) - y(d.dy + d.y0)*/ })
       .attr('width', x.rangeBand())
       .attr('height', function(d) {
-        return y(buckets) + y(0.0001)/*y(d.dy)*/
+        return y(buckets) + y(-10)/*y(d.dy)*/
       })
-
+      
     groups.selectAll('rect')
       .data(function(d) { return d})
       .enter()
@@ -276,10 +276,37 @@ export default class DiscreteBarChart extends React.PureComponent {
       .style('fill', function(d,) { return colors[d.dy] })
       .style('stroke', function(d) { return colors[d.dy] })
       .attr('class', function(d) { return `dy_${d.dy} y0_${d.y0} y_${d.y}` })
-      .attr('x', function(d) { return x(d.x); })
-      .attr('y', function(d) { return y(d.dy + d.y + (d.dy)) })
+      .attr('x', function(d) { return x(d.x) + 5; })
+      .attr('y', function(d) { return y(d.dy + d.y + (d.dy)) + y(-1) })
       .attr('height', function(d) { return y(d.dy + d.y0) - y(d.dy + d.y0 + d.y) })
-      .attr('width', x.rangeBand())
+      .attr('width', function() {
+        let xrb = x.rangeBand()
+        return xrb - 10
+      }())
+
+    groups.selectAll('rect.highlight')
+      .data(function(d) { 
+        let max = null
+        for (let di of d) {
+          if (di.y === 1) {
+            max = di
+          } else {
+            break
+          }
+        }
+        return [max]
+      })
+      .enter()
+      .append('rect')
+      .attr('class', 'highlight')
+      .attr('x', function(d) { return x(d.x) + 15 })
+      .attr('y', function(d) { return 0 + 5})
+      .attr('rx', 5)
+      .attr('ry', 5)
+      .attr('width', x.rangeBand() - 30)
+      .attr('height', function(d) {
+        return y(buckets) + y(-7.5)/*y(d.dy)*/
+      })
 
 
     svg.append('g')
@@ -288,11 +315,12 @@ export default class DiscreteBarChart extends React.PureComponent {
       .call(xAxis)
       .attr('font-size', '12px')
 
-    if (data.length > 5) {
-      let rotation = 90//Math.max(30 + data.length, 70)
+    if (data.length > 3) {
+      let rotation = 90
       svg.selectAll('g.x.axis g.tick text')
         .attr('transform', `rotate(-${rotation}, 25, 40)`)
         .style('text-anchor', 'left')
+      
     }
   // Draw legend
   // var legend = svg.selectAll('.legend')
@@ -321,4 +349,3 @@ export default class DiscreteBarChart extends React.PureComponent {
   }
 
 }
-
