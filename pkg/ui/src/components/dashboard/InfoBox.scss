@@ -16,11 +16,25 @@
       margin-top: -2px;
       height: 52px;
       padding: 0;
-      background: linear-gradient(to right, rgba(33,33,33,0), rgba(33,33,33,1));
       -webkit-transform: skew(-15deg);
       -ms-transform: skew(-15deg);
       transform: skew(-15deg);
-      z-index: 1;
+      &.avg {
+        border-right: 4px solid rgb(180,180,180);
+      }
+      &.current {
+        background: linear-gradient(to right, rgba(33,33,33,0.5), rgba(33,33,33,1));
+        z-index: 2;
+      }
+      &.limit {
+        // background: transparent;
+        z-index: 1;
+        background: linear-gradient(to right, rgba(247, 202, 24, 0), rgba(247, 202, 24, 0.25));
+        // border-right: 4px solid rgb(247, 202, 24);
+        // border-width: 0 20px 0 0;
+        // border-style: solid;
+        // border-image: linear-gradient(to right, rgba(247, 202, 24, 0), rgba(247, 202, 24, 0.5)) 1 100%;
+      }
     }
     .usage-border {
       position: absolute;
@@ -31,6 +45,62 @@
       z-index: 2;
       width: 100%;
       margin-top: -5px;
+      pointer-events: all;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.react-hint {
+  &.infobox {
+    margin-bottom: -30px;
+    // .react-hint__content {
+    //   border: solid 1px black;
+      
+    // }
+  }
+}
+
+.react-hint {
+  &.infobox {
+    margin-bottom: -30px;
+
+    &:after {
+      border-bottom-color: #999;
+      border-top-color: #999;
+    }
+
+    .react-hint__content {
+      position: relative;
+      background: #999 !important;
+      border: 1px solid #000000;
+      height: 100px;
+      width: 180px;
+    }
+    .react-hint__content:after, .react-hint__content:before {
+      top: 100%;
+      left: 50%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .react-hint__content:after {
+      border-color: rgba(153, 153, 153, 0);
+      border-top-color: #999;
+      border-width: 10px;
+      margin-left: -10px;
+    }
+    .react-hint__content:before {
+      border-color: rgba(0, 0, 0, 0);
+      border-top-color: #000000;
+      border-width: 11px;
+      margin-left: -11px;
     }
   }
 }

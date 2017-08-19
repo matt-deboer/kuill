@@ -7,13 +7,48 @@ import './InfoBox.css'
 export default class InfoBox extends React.PureComponent {
 
   render() {
-    const {color, title, total, units, Icon} = this.props
+    let {color, title, total, units, Icon} = this.props
 
     let hasUsage = false
+    let hasLimit = false
     let utilization = 0
+    let usage = 0
+    let limit = 0
+    let limitPercent = 0
     if ('usage' in this.props && total > 0) {
       hasUsage = true
+      usage = this.props.usage
       utilization = Math.round(100 * this.props.usage / total)
+    }
+    if ('limit' in this.props && total > 0) {
+      hasLimit = true
+      limit = this.props.limit
+      limitPercent = 50
+      utilization = Math.round(50 * this.props.usage / limit)
+    }
+
+    if (total > 0 && total < 1) {
+      if (total < 0.1) {
+        total = total.toFixed(2)
+      } else {
+        total = total.toFixed(1)
+      }
+    } else if (total > 99) {
+      total = Math.round(total)
+    } else {
+      total = total.toFixed(1)
+    }
+
+    if (usage > 0 && usage < 1) {
+      if (usage < 0.1) {
+        usage = usage.toFixed(2)
+      } else {
+        usage = usage.toFixed(1)
+      }
+    } else if (usage > 99) {
+      usage = Math.round(usage)
+    } else {
+      usage = usage.toFixed(1)
     }
 
     const styles = {
@@ -33,6 +68,7 @@ export default class InfoBox extends React.PureComponent {
         top: 0,
         right: 0,
         width: '100%',
+        pointerEvents: 'none',
       },
       number: {
         display: 'block',
@@ -53,6 +89,7 @@ export default class InfoBox extends React.PureComponent {
         right: 0,
         top: 0,
         zIndex: 3,
+        pointerEvents: 'none',
       },
       units: {
         fontSize: 16,
@@ -66,7 +103,8 @@ export default class InfoBox extends React.PureComponent {
         width: '100%',
         right: 0,
         top: 0,
-        zIndex: 3,
+        zIndex: 11,
+        pointerEvents: 'none',
       },
       remains: {
         display: 'block',
@@ -91,7 +129,7 @@ export default class InfoBox extends React.PureComponent {
         width: 58,
         textAlign: 'center',
         backgroundColor: color,
-        zIndex: 2,
+        zIndex: 10,
       },
       icon: {
         height: 30,
@@ -106,16 +144,16 @@ export default class InfoBox extends React.PureComponent {
       <Paper style={styles.wrapper} className={'infobox'}>        
         <span style={styles.iconSpan}>
           <span style={styles.text}>{title}</span>
-          <Icon color={white}
-                style={styles.icon}
-          />
+          <Icon color={white} style={styles.icon} />
         </span>
 
         <div style={styles.content}>
           { hasUsage &&
           <div className="usage-container">
-            <div className="usage" style={{width: `calc(${utilization}%)`}}/>
-            <div className="usage-border"/>
+            <div className="usage current" style={{width: `calc(${utilization}%)`}}/>
+            {/* <div className="usage average" style={{width: `calc(12%)`}}/> */}
+            <div className="usage limit" style={{width: `calc(${limitPercent}%)`}}/>
+            <div className="usage-border" data-rh={`This is the tooltip`} data-rh-cls={'infobox'}/>
           </div>
           }
           <div style={styles.total}>{total}</div>
