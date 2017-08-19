@@ -6,6 +6,7 @@ import { clearErrors } from '../state/actions/errors'
 import IconButton from 'material-ui/IconButton'
 import IconError from 'material-ui/svg-icons/action/info'
 import IconClearError from 'material-ui/svg-icons/action/delete'
+import IconRetry from 'material-ui/svg-icons/av/loop'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/FlatButton'
@@ -142,6 +143,14 @@ class ErrorsDialog extends React.Component {
                     onTouchTap={props.clearError.bind(this, error)}>
                     <IconClearError/>
                   </IconButton>
+                </TableRowColumn>
+                <TableRowColumn style={{ width: 48, height: 28, padding: 4}}>
+                  {!!error.retry &&
+                    <IconButton iconStyle={{color: grey500}} data-rh={error.retry.text}
+                      onTouchTap={error.retry.action}>
+                      <IconRetry/>
+                    </IconButton>
+                  }
                 </TableRowColumn>
                 <TableRowColumn style={{ width: 48, height: 28, padding: 4}}>
                   <IconButton disableTouchRipple={true} hoveredStyle={{cursor: 'default'}} iconStyle={{color: red900}}>{errorIcons[error.severity]}</IconButton>

@@ -11,8 +11,8 @@ export default (state = initialState, action) => {
   switch (action.type) {
     
     case types.ADD_ERROR:
-      return doAddError(state, action.error, action.severity, 
-          action.message, action.retryText, action.retryAction)
+      return doAddError(state, action.error, action.id, action.severity, 
+          action.message, action.retryText, action.retryAction)    
     case types.CLEAR_ERRORS:
       return doClearErrors(state, action.errors)
 
@@ -21,15 +21,15 @@ export default (state = initialState, action) => {
   }
 }
 
-function doAddError(state, error, severity, message, retryText, retryAction) {
+function doAddError(state, error, id, severity, message, retryText, retryAction) {
   let err = {
-    id: ++errorId,
+    id: id,
     object: error,
     severity: severity,
     message: message,
     retry : {
       text: retryText,
-      action: retryAction,
+      action: retryAction && retryAction.bind(null,{id: id})
     }
   }
   let errors = state.errors.slice(0)

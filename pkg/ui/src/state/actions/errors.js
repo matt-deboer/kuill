@@ -6,14 +6,31 @@ for (let type of [
   types[type] = `errors.${type}`
 }
 
+var nextErrorId = 0
+
 export function addError(error, severity, message, retryText, retryAction) {
-  return {
-    type: types.ADD_ERROR,
-    error: error,
-    severity: severity,
-    message: message,
-    retryText: retryText,
-    retryAction: retryAction,
+  
+  return function(dispatch, getState) {
+    
+    let errorId = ++nextErrorId
+    let action = null
+    if (!!retryAction) {
+      // wrap the retry action in a function which first clears the associated error
+      action = function(error) {
+        dispatch(clearErrors(error))
+        retryAction()
+      }
+    }
+
+    dispatch({
+      type: types.ADD_ERROR,
+      error: error,
+      id: errorId,
+      severity: severity,
+      message: message,
+      retryText: retryText,
+      retryAction: action,
+    })
   }
 }
 
