@@ -39,6 +39,7 @@ const initialState = {
   },
   isFetching: false,
   countsByKind: {},
+  countsByNamespace: {},
   fetchBackoff: 0,
   fetchError: null,
   watches: null,
@@ -243,6 +244,8 @@ function doUpdateResource(state, resource, isNew) {
   if (isNew) {
     newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0 
     newState.countsByKind[resource.kind]++
+    newState.countsByNamespace[resource.metadata.namespace] = newState.countsByNamespace[resource.metadata.namespace] || 0 
+    newState.countsByNamespace[resource.metadata.namespace]++
   }
 
   if (isNew && resource.kind === 'Pod') {
@@ -295,6 +298,12 @@ function doRemoveResource(state, resource) {
     delete podsByNode[resource.spec.nodeName][resource.key]
     let countsByKind = {...state.countsByKind}
     countsByKind[resource.kind] -= 1
+    let countsByNamespace = {...state.countsByNamespace}
+    countsByNamespace[resource.metadata.namespace] -= 1
+
+    if (countsByNamespace[resource.metadata.namespace] === 0) {
+      delete countsByNamespace[resource.metadata.namespace]
+    }
 
     return { ...state,
       countsByKind: countsByKind,
@@ -398,6 +407,8 @@ function doReceiveResources(state, resources) {
     }
     newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0
     newState.countsByKind[resource.kind]++
+    newState.countsByNamespace[resource.metadata.namespace] = newState.countsByNamespace[resource.metadata.namespace] || 0 
+    newState.countsByNamespace[resource.metadata.namespace]++
   })
 
   for (let ownerKey in unnresolvedOwnership) {
