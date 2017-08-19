@@ -34,6 +34,7 @@ const mapStateToProps = function(store) {
     recentEvents: store.events.recentEvents,
     events: store.events.events,
     eventsRevision: store.events.revision,
+    countsByNamespace: store.workloads.countsByNamespace,
     workloadsRevision: store.workloads.revision,
     clusterRevision: store.cluster.resourceRevision,
     clusterResources: store.cluster.resources,
@@ -89,6 +90,7 @@ class Overview extends React.Component {
       || this.props.metricsRevision !== nextProps.metricsRevision
       || this.props.eventsRevision !== nextProps.eventsRevision
       || this.props.selectedNamespaces !== nextProps.selectedNamespaces
+      || this.props.countsByNamespace !== nextProps.countsByNamespace
     )
   }
 
@@ -128,8 +130,8 @@ class Overview extends React.Component {
       }
     }
 
-    let { namespaceMetrics, clusterMetrics, selectedNamespaces } = this.props
-    let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces)
+    let { namespaceMetrics, clusterMetrics, selectedNamespaces, countsByNamespace } = this.props
+    let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, countsByNamespace)
 
     // nm.summary.netTx.usage += p.network.txBytes
     // nm.summary.netTx.duration += duration
@@ -152,7 +154,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconCPU}
                       color={blueA700}
                       title="cpu"
-                      usage={stats.cpu.usage.toFixed(1)}
+                      usage={stats.cpu.usage}
                       total={stats.cpu.total}
                       units={stats.cpu.units}
               />
@@ -161,8 +163,8 @@ class Overview extends React.Component {
               <InfoBox Icon={IconMemory}
                       color={blueA200}
                       title="mem"
-                      usage={stats.memory.usage.toFixed(1)}
-                      total={stats.memory.total.toFixed(1)}
+                      usage={stats.memory.usage}
+                      total={stats.memory.total}
                       units={stats.memory.units}
               />
             </div>
@@ -173,8 +175,8 @@ class Overview extends React.Component {
               <InfoBox Icon={IconStorage}
                       color={lightBlueA400}
                       title="disk"
-                      usage={stats.disk.usage.toFixed(1)}
-                      total={stats.disk.total.toFixed(1)}
+                      usage={stats.disk.usage}
+                      total={stats.disk.total}
                       units={stats.disk.units}
               />
             </div>
@@ -182,8 +184,8 @@ class Overview extends React.Component {
               <InfoBox Icon={IconStorage}
                       color={lightBlueA400}
                       title="vols"
-                      usage={stats.volumes.usage.toFixed(1)}
-                      total={stats.volumes.total.toFixed(1)}
+                      usage={stats.volumes.usage}
+                      total={stats.volumes.total}
                       units={stats.volumes.units}
               />
             </div>
@@ -194,7 +196,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconNetwork}
                       color={lightBlue900}
                       title="net out"
-                      total={stats.netTx.ratio.toFixed(2)}
+                      total={stats.netTx.ratio}
                       units={stats.netTx.units}
               />
             </div>
@@ -202,7 +204,7 @@ class Overview extends React.Component {
               <InfoBox Icon={IconNetwork}
                       color={lightBlue900}
                       title="net in"
-                      total={stats.netRx.ratio.toFixed(2)}
+                      total={stats.netRx.ratio}
                       units={stats.netRx.units}
               />
             </div>
