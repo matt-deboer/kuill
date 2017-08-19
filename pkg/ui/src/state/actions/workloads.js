@@ -440,7 +440,8 @@ function watchResources(dispatch, getState) {
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.workloads) {
-        if (!(kind in disabledKinds)) {
+        let kubeKind = KubeKinds.workloads[kind]
+        if (!(kind in disabledKinds) && (!('watchable' in kubeKind) || kubeKind.watchable)) {
           let watch = watches[kind]
           if (!!watch && watch.closed()) {
             watch.destroy()
@@ -455,7 +456,8 @@ function watchResources(dispatch, getState) {
       }
     } else {
       for (let kind in KubeKinds.workloads) {
-        if (!(kind in disabledKinds)) {
+        let kubeKind = KubeKinds.workloads[kind]
+        if (!(kind in disabledKinds) && (!('watchable' in kubeKind) || kubeKind.watchable)) {
           watches[kind] = new ResourceKindWatcher({
             kind: kind, 
             dispatch: dispatch,
