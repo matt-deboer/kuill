@@ -11,6 +11,7 @@ const mapStateToProps = function(store) {
     selectedNamespaces: store.usersettings.selectedNamespaces,
     clusterMetrics: store.metrics.cluster,
     namespaceMetrics: store.metrics.namespace,
+    countsByNamespace: store.workloads.countsByNamespace,
   }
 }
 
@@ -81,20 +82,28 @@ class NamespaceBarChart extends React.PureComponent {
   render() {
 
     let { props } = this
-    let { clusterMetrics, namespaceMetrics, stats } = props
+    let { clusterMetrics, namespaceMetrics, stats, countsByNamespace } = props
     if (!clusterMetrics || !namespaceMetrics) {
       return null
     }
 
     let items = {}
     let max = {cpu: -100, memory: -100, volumes: -100}
-    for (let ns in namespaceMetrics) {
-      let metrics = namespaceMetrics[ns]
-      for (let m of ['cpu','memory','volumes']) {
-        let u = 100 * metrics[m].ratio
-        max[m] = Math.max(u, max[m])
-        items[m] = items[m] || []
-        items[m].push({name: ns, value: u})
+    
+    for (let ns in countsByNamespace) {
+      if (ns in namespaceMetrics) {
+        let metrics = namespaceMetrics[ns]
+        for (let m of ['cpu','memory','volumes']) {
+          let u = 100 * metrics[m].ratio
+          max[m] = Math.max(u, max[m])
+          items[m] = items[m] || []
+          items[m].push({name: ns, value: u})
+        }
+      } else {
+        for (let m of ['cpu','memory','volumes']) {
+          items[m] = items[m] || []
+          items[m].push({name: ns, value: 0})
+        }
       }
     }
 
@@ -109,10 +118,6 @@ class NamespaceBarChart extends React.PureComponent {
             initialSelection={this.props.selectedNamespaces}
             max={max[this.state.selectBy]}
             />
-          <div className="legend">
-            <div className="title">{`relative ${this.state.selectBy} used by namespace`}</div>
-            {/* {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)} */}
-          </div> 
         </div>
 
         <div className={`col-xs-12 col-sm-7 col-md-6 col-lg-6 namespace-utilization by-${this.state.selectBy}`}>
@@ -169,10 +174,13 @@ class NamespaceBarChart extends React.PureComponent {
               data-select-by={'netTx'}
               onTouchTap={this.handleSelect}
               /> */}
-
           </div>
           <div className="selector">
           </div>
+          <div className="legend">
+            <div className="title">{`relative ${this.state.selectBy} used by namespace`}</div>
+            {/* {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)} */}
+          </div> 
         </div>  
       </div>
     )
