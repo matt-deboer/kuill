@@ -25,14 +25,70 @@ a:hover {
   margin-bottom: 15px; }
 
 /* customize tooltips */
-.react-hint {
-  font-family: 'Open Sans', sans-serif !important; }
-  .react-hint:after {
-    border-bottom-color: #787878;
-    border-top-color: #787878; }
-  .react-hint .react-hint__content {
-    background: #787878;
-    border-radius: 3px;
-    padding: 2px 8px;
-    font-weight: 600;
-    font-size: 13px; }
+.react-hint--top:after {
+  border-bottom-color: #999;
+  border-top-color: #999; }
+
+.react-hint--top .react-hint__content {
+  position: relative;
+  background: #999 !important;
+  border: 1px solid #000000;
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 13px; }
+
+.react-hint--top .react-hint__content:after, .react-hint--top .react-hint__content:before {
+  top: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none; }
+
+.react-hint--top .react-hint__content:after {
+  border-color: rgba(153, 153, 153, 0);
+  border-top-color: #999;
+  border-width: 7px;
+  margin-left: -7px; }
+
+.react-hint--top .react-hint__content:before {
+  border-color: transparent;
+  border-top-color: #000000;
+  border-width: 8px;
+  margin-left: -8px; }
+
+.react-hint--bottom:after {
+  border-bottom-color: #999;
+  border-top-color: #999; }
+
+.react-hint--bottom .react-hint__content {
+  position: relative;
+  background: #999 !important;
+  border: 1px solid #000000;
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 13px; }
+
+.react-hint--bottom .react-hint__content:after, .react-hint--bottom .react-hint__content:before {
+  bottom: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none; }
+
+.react-hint--bottom .react-hint__content:after {
+  border-color: rgba(153, 153, 153, 0);
+  border-bottom-color: #999;
+  border-width: 7px;
+  margin-left: -7px; }
+
+.react-hint--bottom .react-hint__content:before {
+  border-color: transparent;
+  border-bottom-color: #000000;
+  border-width: 8px;
+  margin-left: -8px; }
