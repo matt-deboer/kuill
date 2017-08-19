@@ -117,7 +117,7 @@ let kinds = {
       base: 'apis/storage.k8s.io/v1',
       plural: 'storageclasses',
       abbrev: 'Sc',
-      // watchable: false,
+      watchable: false,
     },
     // ComponentStatus: {
     //   base: 'api/v1',
@@ -128,7 +128,7 @@ let kinds = {
       base: 'api/v1',
       plural: 'namespaces',
       abbrev: 'Ns',
-      // watchable: false,
+      watchable: false,
     },
     ResourceQuota: {
       base: 'api/v1',
