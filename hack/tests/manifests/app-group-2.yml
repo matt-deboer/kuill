@@ -1,0 +1,21 @@
+kind: List
+apiVersion: v1
+items:
+
+- kind: Namespace
+  apiVersion: v1
+  metadata:
+    name: app-group-2
+
+- kind: ResourceQuota
+  apiVersion: v1
+  metadata:
+    name: compute-resources
+    namespace: app-group-2
+  spec:
+    hard:
+      pods: "4"
+      requests.cpu: "0.4"
+      requests.memory: 200Ki
+      limits.cpu: "0.5"
+      limits.memory: 300Ki
