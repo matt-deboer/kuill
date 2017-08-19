@@ -38,7 +38,7 @@ const statUnits = {
   },
 }
 
-export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces) {
+export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, allNamespaces) {
   
   let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
   
@@ -101,7 +101,7 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
 
   for (let s in stats) {
     let stat = stats[s]
-    stat.ratio = (stat.usage / stat.total)
+    stat.ratio = stat.total === 0 ? 0 : (stat.usage / stat.total)
 
     let statUnit = statUnits[s]
     if ('targetUnit' in statUnit) {
