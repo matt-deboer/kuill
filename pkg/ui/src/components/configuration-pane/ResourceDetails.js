@@ -178,7 +178,7 @@ let kinds = {
     getData: (resource) => {
       return [
         ['Created:', `${resource.metadata.creationTimestamp} (${toHumanizedAge(resource.metadata.creationTimestamp)} ago)`],  
-        ['Parameters:', `${Object.entries(resource.parameters).map(([key,val])=> key + '=' + val).join(', ')}`],
+        ['Parameters:', `${resource.parameters ? Object.entries(resource.parameters).map(([key,val])=> key + '=' + val).join(', ') : ''}`],
         ['Provisioner:', resource.provisioner],
       ]
     },
