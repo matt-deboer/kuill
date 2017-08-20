@@ -42,11 +42,11 @@ class ClusterPage extends React.Component {
             <NodesTab />
           </Tab>
 
-          <Tab label="Persistent-Volumes" value="persistentvolumes">
+          <Tab label="Persistent Volumes" value="persistentvolumes">
             <ClusterResourceTab kind="PersistentVolume" />
           </Tab>
 
-          <Tab label="Storage-Classes" value="storageclasses">
+          <Tab label="Storage Classes" value="storageclasses">
             <ClusterResourceTab kind="StorageClass" />
           </Tab>
 
