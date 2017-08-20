@@ -50,7 +50,7 @@ export default class FilteredResourceCountsPanel extends React.PureComponent {
     return (
       <div style={{...styles.counts, ...props.style}}>
         {counts.map((count)=>
-          <div style={styles.countItem}>{count.name}:<span style={styles.count}>{count.value}</span></div>  
+          <div key={count.name} style={styles.countItem}>{count.name}:<span style={styles.count}>{count.value}</span></div>  
         )}
       </div> 
     )
