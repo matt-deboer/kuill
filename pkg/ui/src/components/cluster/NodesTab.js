@@ -3,16 +3,15 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../state/actions/cluster'
+import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
 import sizeMe from 'react-sizeme'
-import {Tabs, Tab} from 'material-ui/Tabs'
-import FilterTable from './filter-table/FilterTable'
+import FilterTable from '../filter-table/FilterTable'
 import * as moment from 'moment'
 
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../routes'
+import { linkForResource } from '../../routes'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
@@ -20,15 +19,16 @@ import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
-import { arraysEqual } from '../comparators'
-import { resourceStatus as resourceStatusIcons } from './icons'
-import { compareStatuses } from '../utils/resource-utils'
-import NodeHeatmap from './dashboard/NodeHeatmap'
-import { hostnameLabel } from '../utils/filter-utils'
+import { arraysEqual } from '../../comparators'
+import { resourceStatus as resourceStatusIcons } from '../icons'
+import { compareStatuses } from '../../utils/resource-utils'
+import NodeHeatmap from '../dashboard/NodeHeatmap'
+import { hostnameLabel } from '../../utils/filter-utils'
 // import BrowserUsage from './dashboard/BrowserUsage'
 // import Data from '../data'
-import KubeKinds from '../kube-kinds'
-import './ClusterPage.css'
+import KubeKinds from '../../kube-kinds'
+import FilterBox from '../FilterBox'
+import './NodesTab.css'
 
 import Perf from 'react-addons-perf'
 
@@ -40,6 +40,7 @@ const mapStateToProps = function(store) {
     resourceRevision: store.cluster.resourceRevision,
     nodeMetrics: store.metrics.node,
     metricsRevision: store.metrics.revision,
+    resources: store.cluster.resources,
   }
 }
 
@@ -130,7 +131,7 @@ const styles = {
 // use functional component style for representational components
 export default sizeMe({ monitorWidth: true }) (
 withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class ClusterPage extends React.Component {
+class NodesTab extends React.Component {
 
   constructor(props) {
     super(props);
@@ -140,19 +141,9 @@ class ClusterPage extends React.Component {
       hoveredResources: null,
     }
     this.selectedIds = {}
-    // this.rows = this.resourcesToRows(props.resources)
     this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
     this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
     this.columns = [
-      // {
-      //   id: 'kind',
-      //   label: 'kind',
-      //   sortable: true,
-      //   headerStyle: styles.header,
-      //   style: { ...styles.cell,
-      //     width: '100px',
-      //   }
-      // },
       {
         id: 'status',
         label: 'status',
@@ -468,174 +459,66 @@ class ClusterPage extends React.Component {
     let { props } = this
 
     return (
-    <div>
-        <Tabs
-          style={{background: 'white'}}
-          tabItemContainerStyle={styles.tabs}
-          contentContainerStyle={{overflow: 'hidden'}}
-          inkBarStyle={styles.tabsInkBar}
-          >
-          <Tab label="Nodes" value="nodes">
-            <Paper style={styles.paper}>
-              <NodeHeatmap nodes={this.nodes} nodeMetrics={props.nodeMetrics} resourceRevision={props.resourceRevision}/>
-              {renderFilters(props)}
-
-              <FilterTable
-                className={'cluster'}
-                columns={this.columns}
-                data={this.rows}
-                height={'calc(100vh - 430px)'}
-                displayRowCheckbox={false}
-                onCellClick={this.handleCellClick.bind(this)}
-                hoveredRow={this.state.hoveredRow}
-                onRenderCell={this.renderCell}
-                getCellValue={this.getCellValue}
-                stripedRows={false}
-                iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
-                iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
-                width={'calc(100vw - 60px)'}
-                revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
-                wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
-                headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
-                />
-
-              {this.state.hoveredResource &&
-              <Popover
-                className="actions-popover"
-                style={styles.popover}
-                open={this.state.actionsOpen}
-                anchorEl={this.state.actionsAnchor}
-                onRequestClose={this.handleActionsRequestClose}
-                zDepth={0}
-                anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-                targetOrigin={{horizontal: 'left', vertical: 'top'}}
-              >
-                {KubeKinds.cluster[this.state.hoveredResource.kind].hasLogs &&
-                <FloatingActionButton mini={true} style={styles.miniButton}
-                  onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
-                  data-rh="View Logs...">  
-                  <IconLogs/>
-                </FloatingActionButton>
-                }
-
-                {KubeKinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
-                <FloatingActionButton mini={true} style={styles.miniButton}
-                  onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
-                  data-rh="Open Terminal...">
-                  <IconShell/>
-                </FloatingActionButton>
-                }
-
-                {/* TODO: need to check whether this resource can actually be edited by the user */}
-                <FloatingActionButton mini={true} style={styles.miniButton}
-                  onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-                  data-rh="Edit...">
-                  <IconEdit/>
-                </FloatingActionButton >
-              </Popover>
-              }
-              {/* <Link to="/cluster/new" >
-                <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
-                  <IconAdd />
-                </FloatingActionButton>
-              </Link>
-
-              <DeleteButton backgroundColor={red900} 
-                mini={true} 
-                style={styles.deleteResourceButton} 
-                disabled={Object.keys(this.selectedIds).length === 0}
-                onTouchTap={this.handleDelete}
-                ref={(ref)=>{this.deleteButton = ref}}/> */}
-
-            </Paper>
-
-
-
-          </Tab>
-
-          <Tab label="PersistentVolumes" value="persistentvolumes">
-            
-          </Tab>
-
-          <Tab label="StorageClasses" value="storageclasses">
-            
-          </Tab>
-
-        </Tabs>
-
+      <Paper style={styles.paper}>
+        <NodeHeatmap nodes={this.nodes} nodeMetrics={props.nodeMetrics} resourceRevision={props.resourceRevision}/>
         
-    </div>
+        <FilterBox
+          addFilter={props.addFilter} 
+          removeFilter={props.removeFilter}
+          filterNames={props.filterNames}
+          possibleFilters={props.possibleFilters}
+          />
+
+        <FilterTable
+          className={'nodes'}
+          columns={this.columns}
+          data={this.rows}
+          height={'calc(100vh - 480px)'}
+          displayRowCheckbox={false}
+          onCellClick={this.handleCellClick.bind(this)}
+          hoveredRow={this.state.hoveredRow}
+          onRenderCell={this.renderCell}
+          getCellValue={this.getCellValue}
+          stripedRows={false}
+          iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
+          iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
+          width={'calc(100vw - 50px)'}
+          revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
+          wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
+          headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
+          />
+
+        {this.state.hoveredResource &&
+        <Popover
+          className="actions-popover"
+          style={styles.popover}
+          open={this.state.actionsOpen}
+          anchorEl={this.state.actionsAnchor}
+          onRequestClose={this.handleActionsRequestClose}
+          zDepth={0}
+          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+          targetOrigin={{horizontal: 'left', vertical: 'top'}}
+        >
+          {/* can we get a terminal into the kubelet itself? */}
+
+          {KubeKinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
+            data-rh="Open Terminal...">
+            <IconShell/>
+          </FloatingActionButton>
+          }
+
+          {/* TODO: need to check whether this resource can actually be edited by the user */}
+          <FloatingActionButton mini={true} style={styles.miniButton}
+            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
+            data-rh="Edit...">
+            <IconEdit/>
+          </FloatingActionButton >
+        </Popover>
+        }
+       
+      </Paper>
     )
   }
 })))
-
-// class DeleteButton extends React.Component {
-  
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       disabled: props.disabled,
-//     }
-//   }
-
-//   setDisabled = (disabled) => {
-//     this.setState({disabled: disabled})
-//   }
-
-//   render() {
-//     let { props } = this
-//     return <FloatingActionButton {...props} disabled={this.state.disabled}>
-//        <IconDelete/>
-//       </FloatingActionButton>
-//   }
-
-// }
-
-
-function renderFilters(props) {
-
-  return <ChipInput
-    value={props.filterNames}
-    onRequestAdd={(filter) => props.addFilter(filter)}
-    onRequestDelete={(filter, index) => props.removeFilter(filter, index)}
-    name={'filters'}
-    dataSource={props.possibleFilters}
-    floatingLabelText={'select by filters...'}
-    defaultValue={['namespace:default']}
-    menuProps={{
-      desktop: true,
-    }}
-    chipRenderer={({ value, isFocused, isDisabled, handleClick, handleRequestDelete }, key) => {
-      
-      var labelText = value;
-      var parts=value.split(":")
-      if (parts.length === 2) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>{parts[0]}:</span>{parts[1]}</span>
-      } else if (parts.length === 1) {
-        labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>*:</span>{parts[0]}</span>
-      }
-      return (
-        <Chip
-          key={key}
-          style={{
-            margin: '8px 8px 0 0',
-            padding: 0,
-            float: 'left', 
-            pointerEvents: isDisabled ? 'none' : undefined 
-          }}
-          labelStyle={{'lineHeight': '30px'}}
-          backgroundColor={isFocused ? blueA100 : null}
-          onTouchTap={handleClick}
-          onRequestDelete={handleRequestDelete}
-        >
-        {labelText}
-        </Chip>
-      )}
-    }
-    underlineShow={true}
-    fullWidth={true}
-    style={styles.textField}
-    inputStyle={styles.inputStyle}
-    hintStyle={styles.hintStyle}
-  />
-}
