@@ -75,8 +75,8 @@ const styles = {
   header: {
     fontWeight: 600,
     fontSize: '13px',
-    color: 'rgba(33,33,33,0.8)',
-    fill: 'rgba(33,33,33,0.8)',
+    color: white,
+    fill: white,
   },
   iconButton: {
     float: 'left',
@@ -301,7 +301,7 @@ class NodesTab extends React.Component {
           width={'calc(100vw - 50px)'}
           revision={props.resourceRevision}
           wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
-          headerStyle={{backgroundColor: 'rgba(191, 138, 76, 0.5)', color: 'rgba(33,33,33,0.8)'}}
+          headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: white}}
           />
 
         {this.state.hoveredResource &&
