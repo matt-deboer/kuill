@@ -20,7 +20,7 @@ import { selectTerminalFor } from '../state/actions/terminal'
 import { addError } from '../state/actions/errors'
 
 import XTerm from './xterm/XTerm'
-// import sizeMe from 'react-sizeme'
+import sizeMe from 'react-sizeme'
 
 const base64 = {
   toString: (b64) => decodeURIComponent(window.escape(window.atob(b64))),
@@ -88,7 +88,8 @@ const styles = {
 }
 
 // use functional component style for representational components
-export default connect(mapStateToProps, mapDispatchToProps) (
+export default sizeMe({ monitorWidth: true, monitorHeight: true }) (
+connect(mapStateToProps, mapDispatchToProps) (
 class TerminalViewer extends React.Component {
 
   static propTypes = {
@@ -268,7 +269,7 @@ class TerminalViewer extends React.Component {
     let { props } = this
 
     return (
-      <div style={{overflow: 'hidden'}}>
+      <div style={{overflow: 'hidden', paddingBottom: 10, backgroundColor: grey900}}>
         <Toolbar style={{height: '36px', padding: 6, backgroundColor: grey900, margin: 0}}>
           <ToolbarGroup>
             <span style={styles.label}>container:</span>
@@ -327,6 +328,7 @@ class TerminalViewer extends React.Component {
             hoveredStyle={{backgroundColor: grey300, fill: grey800}}
             iconStyle={{width: '30%', height: '30%'}}
             style={{
+              backgroundColor: 'rgb(158, 158, 158)',
               margin: '0 auto', 
               height: `${window.innerHeight - props.contentTop - 90 + 25}px`,
               width: '100%'}}
@@ -337,7 +339,7 @@ class TerminalViewer extends React.Component {
         </div>
         <XTerm  
           style={{
-            height: `${window.innerHeight - props.contentTop - 120}px`,
+            height: `${window.innerHeight - props.contentTop - 100}px`,
             backgroundColor: (this.state.terminalOpen ? grey900 : grey500),
             padding: '10px 10px 15px 10px',
             fontSize: '12px',
@@ -391,4 +393,4 @@ class TerminalViewer extends React.Component {
     return menuItems
   }
 
-})
+}))

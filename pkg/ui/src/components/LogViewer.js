@@ -131,14 +131,14 @@ class LogViewer extends React.Component {
 
     let { props } = this
     return (
-      <div>
+      <div style={{paddingBottom: 10, backgroundColor: grey900}}>
         <Toolbar style={{height: '36px', padding: 6, backgroundColor: grey900, margin: 0}}>
           {this.renderContainerMenu()}
         </Toolbar>
         <XTerm 
           className={'logs'} 
           style={{
-            height: `${window.innerHeight - props.contentTop - 120}px`,
+            height: `${window.innerHeight - props.contentTop - 100}px`,
             backgroundColor: grey900,
             padding: 10,
             fontSize: '12px',
