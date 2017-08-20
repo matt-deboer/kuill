@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { requestResources, setFilterNames } from '../state/actions/cluster'
-import ClusterPage from '../components/ClusterPage'
+import ClusterPage from '../components/cluster/ClusterPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 
