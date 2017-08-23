@@ -315,13 +315,13 @@ export default class DiscreteBarChart extends React.PureComponent {
       .call(xAxis)
       .attr('font-size', '12px')
 
-    if (data.length > 3) {
-      let rotation = 90
-      svg.selectAll('g.x.axis g.tick text')
-        .attr('transform', `rotate(-${rotation}, 25, 40)`)
-        .style('text-anchor', 'left')
+    // if (data.length > 3) {
+    let rotation = 90
+    svg.selectAll('g.x.axis g.tick text')
+      .attr('transform', `rotate(-${rotation}, 25, 40)`)
+      .style('text-anchor', 'left')
       
-    }
+    // }
   // Draw legend
   // var legend = svg.selectAll('.legend')
   //   .data(colors)
