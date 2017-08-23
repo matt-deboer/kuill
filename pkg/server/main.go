@@ -207,6 +207,12 @@ func main() {
 			EnvVar: envBase + "PASSWORD_FILE",
 		},
 		cli.BoolFlag{
+			Name: "disable-tls",
+			Usage: `Whether to disable TLS for this service; this should be used only for testing and initial integration,
+			as it will break most security features`,
+			EnvVar: envBase + "DISABLE_TLS",
+		},
+		cli.BoolFlag{
 			Name:   "disable-anonymous",
 			Usage:  "Disables the anonymous login",
 			EnvVar: envBase + "DISABLE_ANONYMOUS",
@@ -253,6 +259,7 @@ func main() {
 		}
 
 		port := requiredInt(c, "port")
+		disableTLS := c.Bool("disable-tls")
 		redirectPort := requiredInt(c, "redirect-port")
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
@@ -268,13 +275,17 @@ func main() {
 		addr := fmt.Sprintf(":%d", port)
 
 		log.Infof("%s!@%s listening on %s", version.Name, version.Version, addr)
-		if redirectPort != port {
+		if disableTLS {
+			log.Warnf("TLS is disabled; server is running in an insecure configuration")
+			log.Fatal(http.ListenAndServe(addr, nil))
+		} else if redirectPort != port {
 			redirectAddr := fmt.Sprintf(":%d", redirectPort)
-			log.Infof("Redirecting http => https on %s", version.Name, version.Version, addr)
+			log.Infof("Redirecting http://%s => https://%s", redirectAddr, addr)
 			go http.ListenAndServe(redirectAddr, http.HandlerFunc(redirectTLS))
 
 			log.Fatal(http.ListenAndServeTLS(addr, serverCert, serverKey, nil))
 		} else {
+			log.Infof("Redirecting http://%s => https://%s", addr, addr)
 			log.Fatal(ListenAndServeTLSWithRedirect(addr, serverCert, serverKey))
 		}
 	}
