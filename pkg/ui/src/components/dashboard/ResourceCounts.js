@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import queryString from 'query-string'
 import { connect } from 'react-redux'
 import KubeKinds from '../../kube-kinds'
+import { linkForResourceKind } from '../../routes'
 
 const mapStateToProps = function(store) {
   return {
@@ -107,21 +108,7 @@ class ResourceCounts extends React.PureComponent {
       } else if (name.endsWith('ss')) {
         name += 'es'
       }
-      let linkParams = {filters: [`kind:${kind}`]}
-      if (namespacesFiltered) {
-        for (let ns in selectedNamespaces) {
-          linkParams.filters.push(`namespace:${ns}`)
-        }
-      }
-      let query = queryString.stringify(linkParams)
-      let group = 'workloads'
-      for (let g in KubeKinds) {
-        if (kind in KubeKinds[g]) {
-          group = g
-          break
-        }
-      }
-      let link = `/${group}?${query}`
+      let link = linkForResourceKind(kind)
 
       items.push(
         <div key={kind}>
