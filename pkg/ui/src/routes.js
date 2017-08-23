@@ -9,6 +9,7 @@ import IconAccessControls from 'material-ui/svg-icons/hardware/security'
 import IconCluster from 'material-ui/svg-icons/maps/layers'
 import Apps from 'material-ui/svg-icons/navigation/apps'
 import KubeKinds from './kube-kinds'
+import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from './components/LoadingComponentStub'
 
@@ -50,6 +51,7 @@ const routes = [
   },
   { 
     path: '/cluster',
+    menuPath: '/cluster?view=nodes',
     name: 'Cluster',
     component: AsyncCluster,
     icon: <IconCluster/>,
@@ -115,4 +117,39 @@ export function linkForResource(resource, view='config') {
   }
   let query = view === '' ? '' : `?view=${view}`
   return `/${path}/${ns}/${kind}/${name}${query}`
+}
+
+/**
+ * Returns a link to the specified resource kind
+ * 
+ * @param {*} resource 
+ * @param {*} view 
+ */
+export function linkForResourceKind(kind, selectedNamespaces) {
+  let name = kind
+  if (!(name.endsWith('s'))) {
+    name += 's'
+  } else if (name.endsWith('ss')) {
+    name += 'es'
+  }
+  let group = 'workloads'
+  for (let g in KubeKinds) {
+    if (kind in KubeKinds[g]) {
+      group = g
+      break
+    }
+  }
+  let linkParams = {}
+  if (group === 'cluster') {
+    linkParams.view = name.toLowerCase()
+  } else {
+    linkParams.filters =[`kind:${kind}`]
+    if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
+      for (let ns in selectedNamespaces) {
+        linkParams.filters.push(`namespace:${ns}`)
+      }
+    }
+  }
+  let query = queryString.stringify(linkParams)
+  return `/${group}?${query}`
 }
