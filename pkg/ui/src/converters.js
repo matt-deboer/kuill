@@ -49,6 +49,7 @@ export function fixUnits(number, units) {
         return [number * 1024, 'bytes']
       case 'cores':
         return [number * 1000, 'millicores']
+      default:
     }
   }
   return [number, units]

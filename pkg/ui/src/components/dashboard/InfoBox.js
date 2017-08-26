@@ -8,9 +8,7 @@ import './InfoBox.css'
 export default class InfoBox extends React.PureComponent {
 
   render() {
-    let {color, title, total, units, Icon} = this.props
-
-    let limitPercent = 35    
+    let {color, title, total, units, Icon} = this.props    
     let data = {}
     
     if ('usage' in this.props && total > 0) {
@@ -41,7 +39,7 @@ export default class InfoBox extends React.PureComponent {
       }
     }
 
-    let [newTotal, newUnits] = fixUnits(data.total, units)
+    let [ , newUnits] = fixUnits(data.total, units)
     if (newUnits !== units) {
       // data.total = newTotal
       for (let v in data) {
