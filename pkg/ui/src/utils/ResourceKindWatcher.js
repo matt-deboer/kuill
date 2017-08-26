@@ -16,6 +16,7 @@ export default class ResourceKindWatcher {
 
     this.props = props
     this.tries = 0
+    this.initialize = this.initialize.bind(this)
     if (!!props.kind && !!props.dispatch && !!props.resourceGroup) {
       this.initialize()
     }
