@@ -4,10 +4,12 @@ import { connect } from 'react-redux'
 import { selectNamespaces } from '../../state/actions/usersettings'
 import UtilizationPieChart from './UtilizationPieChart'
 import DiscreteBarChart from './DiscreteBarChart'
+import HelpText from '../../i18n/help-text'
 import './NamespaceBarChart.css'
 
 const mapStateToProps = function(store) {
   return {
+    locale: store.session.locale,
     selectedNamespaces: store.usersettings.selectedNamespaces,
     clusterMetrics: store.metrics.cluster,
     namespaceMetrics: store.metrics.namespace,
@@ -112,6 +114,7 @@ class NamespaceBarChart extends React.PureComponent {
         <div className="title">Allocated Resource Usage</div>
         
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 namespace-barchart by-${this.state.selectBy}`}>
+          <HelpText style={{position: 'absolute', bottom: 0, left: 0}} locale={'en'} textId={this.constructor.name}/>
           <DiscreteBarChart 
             items={items[this.state.selectBy] || []}
             onSelection={this.handleSelectNamespaces}

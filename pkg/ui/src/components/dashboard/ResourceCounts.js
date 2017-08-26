@@ -10,6 +10,7 @@ import queryString from 'query-string'
 import { connect } from 'react-redux'
 import KubeKinds from '../../kube-kinds'
 import { linkForResourceKind } from '../../routes'
+import HelpText from '../../i18n/help-text'
 
 const mapStateToProps = function(store) {
   return {
@@ -35,7 +36,8 @@ class ResourceCounts extends React.PureComponent {
 
   render() {
 
-    let { clusterResources, workloadResources, selectedNamespaces } = this.props
+    let { props } = this
+    let { clusterResources, workloadResources, selectedNamespaces } = props
 
     const styles = {
       wrapper: {
@@ -129,6 +131,7 @@ class ResourceCounts extends React.PureComponent {
 
     return (
       <Paper style={styles.wrapper}>
+        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={this.constructor.name}/>
         <Subheader style={styles.subheader}>Resource Counts</Subheader>
         <List className={'list-contents'}>
           {items}
