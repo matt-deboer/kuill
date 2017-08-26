@@ -11,11 +11,11 @@ import (
 
 	"encoding/base64"
 
-	"github.com/matt-deboer/kapow/pkg/auth"
-	"github.com/matt-deboer/kapow/pkg/metrics"
-	"github.com/matt-deboer/kapow/pkg/proxy"
-	"github.com/matt-deboer/kapow/pkg/templates"
-	"github.com/matt-deboer/kapow/pkg/version"
+	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/metrics"
+	"github.com/matt-deboer/kuill/pkg/proxy"
+	"github.com/matt-deboer/kuill/pkg/templates"
+	"github.com/matt-deboer/kuill/pkg/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"golang.org/x/oauth2"
@@ -34,7 +34,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = Name
 	app.Usage = `
-		Launch a server which simultaneously provides the Kapow UI,
+		Launch a server which simultaneously provides the kuill UI,
 		and acts as an OIDC server endpoint and Authenticating Proxy for
 		the Kubernetes API.
 		`

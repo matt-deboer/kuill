@@ -1,14 +1,11 @@
-kapow
-==============
 
-[![Build Status](https://travis-ci.org/matt-deboer/kapow.svg?branch=master)](https://travis-ci.org/matt-deboer/kapow)
-[![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kapow.svg)](https://hub.docker.com/r/mattdeboer/kapow/)
+![](./kuill.png)
+===
 
-**_kubernetes authenticating proxy operations window !_**
-Ok, it's not just for _ops_, but I was already committed to the acronym :)
+[![Build Status](https://travis-ci.org/matt-deboer/kuill.svg?branch=master)](https://travis-ci.org/matt-deboer/kuill)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kuill.svg)](https://hub.docker.com/r/mattdeboer/kuill/)
 
-
-## **~~ This project is in an early alpha state; use it to your own risk/surprise! ~~**
+A new UI for kubernetes.
 
 Motivation
 ---
@@ -22,20 +19,21 @@ Other than gaining more experience in Golang and React, and learning a lot about
 
 See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the vulnerabilities introduced by running the existing dashboard in a multi-tenant environment.
 
-### What makes Kapow different?
+### What makes kuill different?
 
-Other than the purely cosmetic differences, **Kapow** acts as an authenticating proxy, sending every request using the identity of the authenticated user; this means that a user of Kapow has the same privileges they would have using `kubectl` in their shell.
+Other than the purely cosmetic differences, **kuill** acts as an authenticating proxy, sending every request using the identity of the authenticated user; this means that a user of kuill has the same privileges** they would have using `kubectl` in their shell.
 
----
+** _There is a service account which grants kuill access to proxy requests to nodes in order to access their status summary details_
+
 
 Setup
 ---
 
-As **kapow** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
+As **kuill** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
 
-Part of this equation involves configuring **kapow** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
+Part of this equation involves configuring **kuill** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
 
-Additionally, `kapow` must be configured to integrate with one or more identity providers, of which SAML2 and
+Additionally, `kuill` must be configured to integrate with one or more identity providers, of which SAML2 and
 OpenID+Connect are currently supported.
 
 ---
@@ -54,12 +52,12 @@ Prerequisites:
 TL;DR ? -> clone the repo, and run: &nbsp; <code>hack/test-drive-minikube.sh</code>
 </div>
 <div style="padding: 10px; background-color: #7a612e;">
-TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kapow/master/hack/test-drive-minikube.sh)"</code>
+TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/test-drive-minikube.sh)"</code>
 </div>
 
 1. Start a new `minikube` cluster.
 
-    You'll need to add some additional flags on creation (due to the fact that `kapow` acts
+    You'll need to add some additional flags on creation (due to the fact that `kuill` acts
     as an authenticating proxy--configured by flags on the apiserver):
 
     ```sh
@@ -82,7 +80,7 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
     kubectl create clusterrolebinding kube-system-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
     ```
 
-1. Generate certificates for `kapow` using the minikube cluster ca (and a little help from the `cfssl` docker image)
+1. Generate certificates for `kuill` using the minikube cluster ca (and a little help from the `cfssl` docker image)
 
     ```sh
     mkdir -p ~/.minikube/certs/auth-proxy
@@ -103,17 +101,17 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
         cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && rm -f ca.key && mv ca.crt ca.pem'
     ```
 
-1. Create a secret containing the certs (for use by `kapow`)
+1. Create a secret containing the certs (for use by `kuill`)
 
     ```sh
     kubectl --context minikube create secret generic auth-proxy-certs \
       --from-file  ~/.minikube/certs/auth-proxy -n kube-system
     ```
 
-1. Deploy `kapow`
+1. Deploy `kuill`
 
     ```sh
-    curl -sL https://raw.githubusercontent.com/matt-deboer/kapow/master/hack/deploy/kapow-minikube.yml | \
+    curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml | \
        kubectl --context minikube apply -f -
     ```
 
@@ -150,18 +148,22 @@ Roadmap:
   - [ ] Create e2e tests for the most basic features
   - [ ] Working minikube example deployment/guide
   - [ ] Test on GKE deployments--can we even have an authenticating proxy configured?
-  - [ ] Come up with a better name !
+  - [ ] Come up with a better name ! (kuill)
   - [ ] Support for Third Party Resources / Custom Resource Definitions
+
 - [ ] Overview/Homepage:
   - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
   - [ ] Provide better hints/tool-tips to explain what functions are available, and what they mean
+
 - [ ] Workloads:
   - [ ] Provide validation of resource creation/modification
   - [ ] Test authorization for edit/create/delete actions using kube apis before
         displaying/enabling the associated controls
   - [ ] Provide utilization metrics with pods/deployments/etc., and corresponding summaries by selection
+
 - [ ] Cluster:
   - [ ] Use tabs for PersistentVolumes, StorageClasses, TPRs(CustomResources)
+
 - [ ] Access Controls:
   - [ ] Update styles to be consistent with Workloads/Cluster
   - [ ] Add 'Can user X do action Y on resource Z?' button/check to aid with permissions

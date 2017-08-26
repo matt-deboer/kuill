@@ -16,7 +16,7 @@ import (
 	"github.com/ericchiang/k8s"
 	apiv1 "github.com/ericchiang/k8s/api/v1"
 	"github.com/ghodss/yaml"
-	"github.com/matt-deboer/kapow/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/auth"
 	log "github.com/sirupsen/logrus"
 )
 

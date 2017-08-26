@@ -1,5 +1,5 @@
 // Package version contains build-time version info
-package version // import "github.com/matt-deboer/kapow/pkg/version"
+package version // import "github.com/matt-deboer/kuill/pkg/version"
 
 var (
 	// Name is set at compile time based on the git repository

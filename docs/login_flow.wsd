@@ -3,8 +3,8 @@
 scale 1
 hide footbox
 
-participant "Kapow UI" as b
-participant "Kapow Server" as k
+participant "kuill UI" as b
+participant "kuill Server" as k
 participant "OIDC Provider" as o
 activate b
 b -> k: /login
