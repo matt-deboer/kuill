@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import sizeMe from 'react-sizeme'
 import { routerActions } from 'react-router-redux'
 import { editResource, removeResource, scaleResource } from '../state/actions/workloads'
+import { linkForResourceKind } from '../routes'
 
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
@@ -80,6 +81,13 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         pathname: `/${ownProps.resourceGroup}`,
         search: search,
       }))
+    },
+    viewKind: function(kind, namespace) {
+      let ns = {}
+      if (!!namespace) {
+        ns[namespace] = true
+      }
+      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
     },
     viewFilters: function(filters) {
       let search = `?${queryString.stringify({filters: filters})}`
@@ -183,6 +191,10 @@ class ResourceInfoPage extends React.Component {
 
   handleFilterLabelTouchTap = (filters) => {
     this.props.viewFilters(filters)
+  }
+
+  handleKindTouchTap = (kind, namespace) => {
+    this.props.viewKind(kind, namespace)
   }
 
   handleRequestCloseDelete = () => {
@@ -328,12 +340,14 @@ class ResourceInfoPage extends React.Component {
                 }
                 </div>
                 <div>
+                  {'namespace' in resource.metadata &&
+                    <FilterChip 
+                      onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`])} 
+                      prefixStyle={{color: grey700}} 
+                      prefix={'namespace'} suffix={resource.metadata.namespace} />
+                  }
                   <FilterChip 
-                    onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`])} 
-                    prefixStyle={{color: grey700}} 
-                    prefix={'namespace'} suffix={resource.metadata.namespace} />
-                  <FilterChip 
-                    onTouchTap={this.handleFilterLabelTouchTap.bind(this,[`namespace:${resource.metadata.namespace}`,`kind:${resource.kind}`])} 
+                    onTouchTap={this.handleKindTouchTap.bind(this,resource.kind, resource.metadata.namespace)} 
                     prefixStyle={{color: grey700}} 
                     prefix={'kind'} suffix={resource.kind} />
                 </div>
