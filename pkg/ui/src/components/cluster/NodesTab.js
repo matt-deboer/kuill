@@ -188,7 +188,7 @@ class NodesTab extends React.Component {
       },
       {
         id: 'containers',
-        label: 'containers',
+        label: 'con-tainers',
         sortable: true,
         isNumeric: true,
         headerStyle: {...styles.header,
@@ -197,7 +197,7 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 60,
+          width: 58,
           textAlign: 'center',
         }
       },
@@ -212,7 +212,7 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 52,
+          width: 50,
           textAlign: 'right',
         },
       },
