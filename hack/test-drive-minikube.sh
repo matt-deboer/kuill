@@ -35,7 +35,7 @@ kubectl --context minikube create secret generic auth-proxy-certs \
   --from-file  ~/.minikube/certs/auth-proxy -n kube-system
 
 if [ "$1" != "nodeploy" ]; then
-  curl -sL https://raw.githubusercontent.com/matt-deboer/kapow/master/hack/deploy/kapow-minikube.yml | \
+  curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml | \
         kubectl --context minikube apply -f -
 
   while ! curl -skL --fail "https://$(minikube ip):30443/"; do sleep 2; done

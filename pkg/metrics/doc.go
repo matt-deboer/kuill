@@ -1,2 +1,2 @@
-// Package metrics provides metrics support for the kapow app
-package metrics // import "github.com/matt-deboer/kapow/pkg/metrics"
+// Package metrics provides metrics support for the kuill app
+package metrics // import "github.com/matt-deboer/kuill/pkg/metrics"

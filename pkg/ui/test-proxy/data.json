@@ -184,79 +184,79 @@
       },
       {
         "metadata": {
-          "name": "kapow",
+          "name": "kuill",
           "namespace": "kube-system",
-          "selfLink": "/apis/apps/v1beta1/namespaces/kube-system/deployments/kapow",
+          "selfLink": "/apis/apps/v1beta1/namespaces/kube-system/deployments/kuill",
           "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
           "resourceVersion": "548023",
           "generation": 23,
           "creationTimestamp": "2017-05-16T03:29:08Z",
           "labels": {
-            "name": "kapow"
+            "name": "kuill"
           },
           "annotations": {
             "deployment.kubernetes.io/revision": "22",
-            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"labels\":{\"name\":\"kapow\"},\"name\":\"kapow\",\"namespace\":\"kube-system\"},\"spec\":{\"replicas\":3,\"selector\":{\"matchLabels\":{\"name\":\"kapow\"}},\"template\":{\"metadata\":{\"labels\":{\"name\":\"kapow\",\"service\":\"kapow\"}},\"spec\":{\"affinity\":{\"podAntiAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":[{\"labelSelector\":{\"matchExpressions\":[{\"key\":\"name\",\"operator\":\"In\",\"values\":[\"kapow\"]}]},\"topologyKey\":\"kubernetes.io/hostname\"}]}},\"containers\":[{\"env\":[{\"name\":\"KAPOW_PUBLIC_URL\",\"value\":\"https://master.vsphere.lab.k8s.example.im:30000\"},{\"name\":\"KAPOW_PORT\",\"value\":\"8443\"},{\"name\":\"KAPOW_OIDC_CLIENT_ID\",\"value\":\"101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf\"},{\"name\":\"KAPOW_OIDC_CLIENT_SECRET\",\"value\":\"169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c\"},{\"name\":\"KAPOW_OIDC_ADDITIONAL_SCOPES\",\"value\":\"read_user\"},{\"name\":\"KAPOW_OIDC_PROVIDER\",\"value\":\"https://gitlab.example.com\"},{\"name\":\"KAPOW_OIDC_PROVIDER_NAME\",\"value\":\"gitlab\"},{\"name\":\"KAPOW_VERBOSE\",\"value\":\"true\"}],\"image\":\"artifactory.example.com/mdeboer/kapow:036\",\"name\":\"kapow\",\"ports\":[{\"containerPort\":8443,\"name\":\"kapow\"}]}],\"nodeSelector\":{\"kubernetes.io/role\":\"master\"},\"tolerations\":[{\"effect\":\"NoSchedule\",\"key\":\"node.alpha.kubernetes.io/ismaster\",\"operator\":\"Exists\"}]}}}}\n"
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"labels\":{\"name\":\"kuill\"},\"name\":\"kuill\",\"namespace\":\"kube-system\"},\"spec\":{\"replicas\":3,\"selector\":{\"matchLabels\":{\"name\":\"kuill\"}},\"template\":{\"metadata\":{\"labels\":{\"name\":\"kuill\",\"service\":\"kuill\"}},\"spec\":{\"affinity\":{\"podAntiAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":[{\"labelSelector\":{\"matchExpressions\":[{\"key\":\"name\",\"operator\":\"In\",\"values\":[\"kuill\"]}]},\"topologyKey\":\"kubernetes.io/hostname\"}]}},\"containers\":[{\"env\":[{\"name\":\"kuill_PUBLIC_URL\",\"value\":\"https://master.vsphere.lab.k8s.example.im:30000\"},{\"name\":\"kuill_PORT\",\"value\":\"8443\"},{\"name\":\"kuill_OIDC_CLIENT_ID\",\"value\":\"101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf\"},{\"name\":\"kuill_OIDC_CLIENT_SECRET\",\"value\":\"169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c\"},{\"name\":\"kuill_OIDC_ADDITIONAL_SCOPES\",\"value\":\"read_user\"},{\"name\":\"kuill_OIDC_PROVIDER\",\"value\":\"https://gitlab.example.com\"},{\"name\":\"kuill_OIDC_PROVIDER_NAME\",\"value\":\"gitlab\"},{\"name\":\"kuill_VERBOSE\",\"value\":\"true\"}],\"image\":\"artifactory.example.com/mdeboer/kuill:036\",\"name\":\"kuill\",\"ports\":[{\"containerPort\":8443,\"name\":\"kuill\"}]}],\"nodeSelector\":{\"kubernetes.io/role\":\"master\"},\"tolerations\":[{\"effect\":\"NoSchedule\",\"key\":\"node.alpha.kubernetes.io/ismaster\",\"operator\":\"Exists\"}]}}}}\n"
           }
         },
         "spec": {
           "replicas": 3,
           "selector": {
             "matchLabels": {
-              "name": "kapow"
+              "name": "kuill"
             }
           },
           "template": {
             "metadata": {
               "creationTimestamp": null,
               "labels": {
-                "name": "kapow",
-                "service": "kapow"
+                "name": "kuill",
+                "service": "kuill"
               }
             },
             "spec": {
               "containers": [
                 {
-                  "name": "kapow",
-                  "image": "artifactory.example.com/mdeboer/kapow:036",
+                  "name": "kuill",
+                  "image": "artifactory.example.com/mdeboer/kuill:036",
                   "ports": [
                     {
-                      "name": "kapow",
+                      "name": "kuill",
                       "containerPort": 8443,
                       "protocol": "TCP"
                     }
                   ],
                   "env": [
                     {
-                      "name": "KAPOW_PUBLIC_URL",
+                      "name": "kuill_PUBLIC_URL",
                       "value": "https://master.vsphere.lab.k8s.example.im:30000"
                     },
                     {
-                      "name": "KAPOW_PORT",
+                      "name": "kuill_PORT",
                       "value": "8443"
                     },
                     {
-                      "name": "KAPOW_OIDC_PROVIDER",
+                      "name": "kuill_OIDC_PROVIDER",
                       "value": "https://gitlab.example.com"
                     },
                     {
-                      "name": "KAPOW_VERBOSE",
+                      "name": "kuill_VERBOSE",
                       "value": "true"
                     },
                     {
-                      "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                      "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                       "value": "read_user"
                     },
                     {
-                      "name": "KAPOW_OIDC_CLIENT_ID",
+                      "name": "kuill_OIDC_CLIENT_ID",
                       "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                     },
                     {
-                      "name": "KAPOW_OIDC_CLIENT_SECRET",
+                      "name": "kuill_OIDC_CLIENT_SECRET",
                       "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                     },
                     {
-                      "name": "KAPOW_OIDC_PROVIDER_NAME",
+                      "name": "kuill_OIDC_PROVIDER_NAME",
                       "value": "gitlab"
                     }
                   ],
@@ -283,7 +283,7 @@
                             "key": "name",
                             "operator": "In",
                             "values": [
-                              "kapow"
+                              "kuill"
                             ]
                           }
                         ]
@@ -1160,17 +1160,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1088438067",
+            "name": "kuill-1088438067",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1088438067",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1088438067",
             "uid": "60c5fd0e-39ef-11e7-a44f-005056a72efa",
             "resourceVersion": "226831",
             "generation": 6,
             "creationTimestamp": "2017-05-16T04:23:14Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1088438067",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1181,7 +1181,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1192,7 +1192,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1088438067"
               }
             },
@@ -1200,50 +1200,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1088438067",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:022",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:022",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -1270,7 +1270,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1298,17 +1298,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1287601972",
+            "name": "kuill-1287601972",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1287601972",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1287601972",
             "uid": "2d0a5ba9-39f1-11e7-a44f-005056a72efa",
             "resourceVersion": "228332",
             "generation": 6,
             "creationTimestamp": "2017-05-16T04:36:06Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1287601972",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1319,7 +1319,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1330,7 +1330,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1287601972"
               }
             },
@@ -1338,50 +1338,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1287601972",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:023",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:023",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -1408,7 +1408,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1436,17 +1436,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1486765877",
+            "name": "kuill-1486765877",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1486765877",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1486765877",
             "uid": "c58e8e5f-39f2-11e7-a44f-005056a72efa",
             "resourceVersion": "244567",
             "generation": 6,
             "creationTimestamp": "2017-05-16T04:47:31Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1486765877",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1457,7 +1457,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1468,7 +1468,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1486765877"
               }
             },
@@ -1476,50 +1476,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1486765877",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:024",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:024",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -1546,7 +1546,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1574,17 +1574,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1685929782",
+            "name": "kuill-1685929782",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1685929782",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1685929782",
             "uid": "b9e9ccf4-39fd-11e7-a44f-005056a72efa",
             "resourceVersion": "244478",
             "generation": 3,
             "creationTimestamp": "2017-05-16T06:05:56Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1685929782",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1595,7 +1595,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1606,7 +1606,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1685929782"
               }
             },
@@ -1614,50 +1614,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1685929782",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:025",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:025",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -1684,7 +1684,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1712,17 +1712,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1885093687",
+            "name": "kuill-1885093687",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1885093687",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1885093687",
             "uid": "63d093b2-3a04-11e7-a44f-005056a72efa",
             "resourceVersion": "245412",
             "generation": 6,
             "creationTimestamp": "2017-05-16T06:53:38Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1885093687",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1733,7 +1733,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1744,7 +1744,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1885093687"
               }
             },
@@ -1752,50 +1752,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1885093687",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:026",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:026",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -1822,7 +1822,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1850,17 +1850,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-1970224510",
+            "name": "kuill-1970224510",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-1970224510",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-1970224510",
             "uid": "a95381f3-3b51-11e7-a44f-005056a72efa",
             "resourceVersion": "533423",
             "generation": 3,
             "creationTimestamp": "2017-05-17T22:39:17Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "1970224510",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -1871,7 +1871,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -1882,7 +1882,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "1970224510"
               }
             },
@@ -1890,50 +1890,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "1970224510",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:029",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:029",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       }
                     ],
@@ -1960,7 +1960,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -1988,17 +1988,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-2084192056",
+            "name": "kuill-2084192056",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-2084192056",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-2084192056",
             "uid": "d259d98e-39e7-11e7-a44f-005056a72efa",
             "resourceVersion": "221166",
             "generation": 4,
             "creationTimestamp": "2017-05-16T03:29:08Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "2084192056",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2009,7 +2009,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2020,7 +2020,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "2084192056"
               }
             },
@@ -2028,50 +2028,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "2084192056",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:018",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:018",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -2098,7 +2098,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2126,17 +2126,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-2084257592",
+            "name": "kuill-2084257592",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-2084257592",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-2084257592",
             "uid": "35247a16-3a05-11e7-a44f-005056a72efa",
             "resourceVersion": "245959",
             "generation": 6,
             "creationTimestamp": "2017-05-16T06:59:29Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "2084257592",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2147,7 +2147,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2158,7 +2158,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "2084257592"
               }
             },
@@ -2166,50 +2166,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "2084257592",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:027",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:027",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -2236,7 +2236,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2264,17 +2264,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-2283355961",
+            "name": "kuill-2283355961",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-2283355961",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-2283355961",
             "uid": "39b4cb30-39eb-11e7-a44f-005056a72efa",
             "resourceVersion": "223438",
             "generation": 6,
             "creationTimestamp": "2017-05-16T03:53:30Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "2283355961",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2285,7 +2285,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2296,7 +2296,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "2283355961"
               }
             },
@@ -2304,50 +2304,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "2283355961",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:019",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:019",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -2374,7 +2374,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2402,17 +2402,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-2283421497",
+            "name": "kuill-2283421497",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-2283421497",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-2283421497",
             "uid": "aeb8a584-3a05-11e7-a44f-005056a72efa",
             "resourceVersion": "249298",
             "generation": 6,
             "creationTimestamp": "2017-05-16T07:02:53Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "2283421497",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2423,7 +2423,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2434,7 +2434,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "2283421497"
               }
             },
@@ -2442,50 +2442,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "2283421497",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:028",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:028",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -2512,7 +2512,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2540,17 +2540,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-2482585402",
+            "name": "kuill-2482585402",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-2482585402",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-2482585402",
             "uid": "5eaa7f2e-3a09-11e7-a44f-005056a72efa",
             "resourceVersion": "533525",
             "generation": 6,
             "creationTimestamp": "2017-05-16T07:29:17Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "2482585402",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2561,7 +2561,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2572,7 +2572,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "2482585402"
               }
             },
@@ -2580,50 +2580,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "2482585402",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:029",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:029",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -2650,7 +2650,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2678,17 +2678,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-291724782",
+            "name": "kuill-291724782",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-291724782",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-291724782",
             "uid": "378cb574-3b61-11e7-a44f-005056a72efa",
             "resourceVersion": "1812828",
             "generation": 3,
             "creationTimestamp": "2017-05-18T00:30:38Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "291724782",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2699,7 +2699,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2710,7 +2710,7 @@
             "replicas": 3,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "291724782"
               }
             },
@@ -2718,54 +2718,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "291724782",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:036",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:036",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -2792,7 +2792,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2823,17 +2823,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-3560725993",
+            "name": "kuill-3560725993",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-3560725993",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-3560725993",
             "uid": "67906677-3b53-11e7-a44f-005056a72efa",
             "resourceVersion": "538012",
             "generation": 6,
             "creationTimestamp": "2017-05-17T22:51:46Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "3560725993",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2844,7 +2844,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2855,7 +2855,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "3560725993"
               }
             },
@@ -2863,54 +2863,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "3560725993",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:031",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:031",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -2937,7 +2937,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -2965,17 +2965,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-3765722602",
+            "name": "kuill-3765722602",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-3765722602",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-3765722602",
             "uid": "750569e3-3b56-11e7-a44f-005056a72efa",
             "resourceVersion": "539973",
             "generation": 6,
             "creationTimestamp": "2017-05-17T23:13:37Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "3765722602",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -2986,7 +2986,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -2997,7 +2997,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "3765722602"
               }
             },
@@ -3005,54 +3005,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "3765722602",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:032",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:032",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -3079,7 +3079,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3107,17 +3107,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-380124534",
+            "name": "kuill-380124534",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-380124534",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-380124534",
             "uid": "d46967f6-3b51-11e7-a44f-005056a72efa",
             "resourceVersion": "533813",
             "generation": 6,
             "creationTimestamp": "2017-05-17T22:40:30Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "380124534",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3128,7 +3128,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3139,7 +3139,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "380124534"
               }
             },
@@ -3147,50 +3147,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "380124534",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:030",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:030",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       }
                     ],
@@ -3217,7 +3217,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3245,17 +3245,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-3970719211",
+            "name": "kuill-3970719211",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-3970719211",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-3970719211",
             "uid": "9d397076-3b58-11e7-a44f-005056a72efa",
             "resourceVersion": "543695",
             "generation": 6,
             "creationTimestamp": "2017-05-17T23:29:03Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "3970719211",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3266,7 +3266,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3277,7 +3277,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "3970719211"
               }
             },
@@ -3285,54 +3285,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "3970719211",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:033",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:033",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -3359,7 +3359,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3387,17 +3387,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-3983631561",
+            "name": "kuill-3983631561",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-3983631561",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-3983631561",
             "uid": "04a08288-3b52-11e7-a44f-005056a72efa",
             "resourceVersion": "534793",
             "generation": 6,
             "creationTimestamp": "2017-05-17T22:41:50Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "3983631561",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3408,7 +3408,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3419,7 +3419,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "3983631561"
               }
             },
@@ -3427,54 +3427,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "3983631561",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:030",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:030",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab.example.com"
                       }
                     ],
@@ -3501,7 +3501,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3529,17 +3529,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-4175715820",
+            "name": "kuill-4175715820",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-4175715820",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-4175715820",
             "uid": "a5d6579c-3b5c-11e7-a44f-005056a72efa",
             "resourceVersion": "544786",
             "generation": 6,
             "creationTimestamp": "2017-05-17T23:57:56Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "4175715820",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3550,7 +3550,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3561,7 +3561,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "4175715820"
               }
             },
@@ -3569,54 +3569,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "4175715820",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:034",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:034",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -3643,7 +3643,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3671,17 +3671,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-4189807818",
+            "name": "kuill-4189807818",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-4189807818",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-4189807818",
             "uid": "0afe9649-3b53-11e7-a44f-005056a72efa",
             "resourceVersion": "535216",
             "generation": 6,
             "creationTimestamp": "2017-05-17T22:49:11Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "4189807818",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3692,7 +3692,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3703,7 +3703,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "4189807818"
               }
             },
@@ -3711,54 +3711,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "4189807818",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:031",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:031",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab.example.com"
                       }
                     ],
@@ -3785,7 +3785,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3813,17 +3813,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-690110257",
+            "name": "kuill-690110257",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-690110257",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-690110257",
             "uid": "b8723601-39ed-11e7-a44f-005056a72efa",
             "resourceVersion": "224573",
             "generation": 6,
             "creationTimestamp": "2017-05-16T04:11:22Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "690110257",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3834,7 +3834,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3845,7 +3845,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "690110257"
               }
             },
@@ -3853,50 +3853,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "690110257",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:020",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:020",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -3923,7 +3923,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -3951,17 +3951,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-86728173",
+            "name": "kuill-86728173",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-86728173",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-86728173",
             "uid": "bae4d97b-3b5d-11e7-a44f-005056a72efa",
             "resourceVersion": "547946",
             "generation": 6,
             "creationTimestamp": "2017-05-18T00:05:41Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "86728173",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -3972,7 +3972,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -3983,7 +3983,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "86728173"
               }
             },
@@ -3991,54 +3991,54 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "86728173",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:035",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:035",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       },
                       {
-                        "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                        "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_ID",
+                        "name": "kuill_OIDC_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OIDC_CLIENT_SECRET",
+                        "name": "kuill_OIDC_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER_NAME",
+                        "name": "kuill_OIDC_PROVIDER_NAME",
                         "value": "gitlab"
                       }
                     ],
@@ -4065,7 +4065,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -4093,17 +4093,17 @@
         },
         {
           "metadata": {
-            "name": "kapow-889274162",
+            "name": "kuill-889274162",
             "namespace": "kube-system",
-            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kapow-889274162",
+            "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/kuill-889274162",
             "uid": "e375d687-39ee-11e7-a44f-005056a72efa",
             "resourceVersion": "225135",
             "generation": 6,
             "creationTimestamp": "2017-05-16T04:19:43Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "889274162",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
               "deployment.kubernetes.io/desired-replicas": "3",
@@ -4114,7 +4114,7 @@
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "Deployment",
-                "name": "kapow",
+                "name": "kuill",
                 "uid": "d258fd4c-39e7-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -4125,7 +4125,7 @@
             "replicas": 0,
             "selector": {
               "matchLabels": {
-                "name": "kapow",
+                "name": "kuill",
                 "pod-template-hash": "889274162"
               }
             },
@@ -4133,50 +4133,50 @@
               "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                  "name": "kapow",
+                  "name": "kuill",
                   "pod-template-hash": "889274162",
-                  "service": "kapow"
+                  "service": "kuill"
                 }
               },
               "spec": {
                 "containers": [
                   {
-                    "name": "kapow",
-                    "image": "artifactory.example.com/mdeboer/kapow:021",
+                    "name": "kuill",
+                    "image": "artifactory.example.com/mdeboer/kuill:021",
                     "ports": [
                       {
-                        "name": "kapow",
+                        "name": "kuill",
                         "containerPort": 8443,
                         "protocol": "TCP"
                       }
                     ],
                     "env": [
                       {
-                        "name": "KAPOW_PUBLIC_URL",
+                        "name": "kuill_PUBLIC_URL",
                         "value": "https://master.vsphere.lab.k8s.example.im:30000"
                       },
                       {
-                        "name": "KAPOW_PORT",
+                        "name": "kuill_PORT",
                         "value": "8443"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_ID",
+                        "name": "kuill_OAUTH2_CLIENT_ID",
                         "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_CLIENT_SECRET",
+                        "name": "kuill_OAUTH2_CLIENT_SECRET",
                         "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                       },
                       {
-                        "name": "KAPOW_OAUTH2_ADDITIONAL_SCOPES",
+                        "name": "kuill_OAUTH2_ADDITIONAL_SCOPES",
                         "value": "read_user"
                       },
                       {
-                        "name": "KAPOW_OIDC_PROVIDER",
+                        "name": "kuill_OIDC_PROVIDER",
                         "value": "https://gitlab.example.com"
                       },
                       {
-                        "name": "KAPOW_VERBOSE",
+                        "name": "kuill_VERBOSE",
                         "value": "true"
                       }
                     ],
@@ -4203,7 +4203,7 @@
                               "key": "name",
                               "operator": "In",
                               "values": [
-                                "kapow"
+                                "kuill"
                               ]
                             }
                           ]
@@ -4685,11 +4685,11 @@
       },
       "items": []
     },
-  "/proxy/api/v1/endpoints": {"kind":"EndpointsList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/endpoints","resourceVersion":"2981764"},"items":[{"metadata":{"name":"example-app","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/example-app","uid":"c5de1a5c-38f4-11e7-a44f-005056a72efa","resourceVersion":"784564","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"example-app","export-to-prometheus":"main"}},"subsets":[{"addresses":[{"ip":"9.0.2.4","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-9dw6n","uid":"c5d1bd78-38f4-11e7-a44f-005056a72efa","resourceVersion":"784562"}},{"ip":"9.0.56.4","nodeName":"k8s-lab-general-worker-02","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-2rs7d","uid":"c5d19f65-38f4-11e7-a44f-005056a72efa","resourceVersion":"1222"}},{"ip":"9.0.90.3","nodeName":"k8s-lab-general-worker-00","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-7znz8","uid":"c5d1a0b1-38f4-11e7-a44f-005056a72efa","resourceVersion":"1184"}}],"ports":[{"name":"web","port":8080,"protocol":"TCP"}]}]},{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/kubernetes","uid":"c0423dd1-38f4-11e7-a44f-005056a72efa","resourceVersion":"2981764","creationTimestamp":"2017-05-14T22:29:10Z"},"subsets":[{"addresses":[{"ip":"10.215.130.134"}],"ports":[{"name":"https","port":443,"protocol":"TCP"}]}]},{"metadata":{"name":"weave-scope-app","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/weave-scope-app","uid":"c60de709-38f4-11e7-a44f-005056a72efa","resourceVersion":"1970693","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"}},"subsets":[{"addresses":[{"ip":"9.0.2.5","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"default","name":"weave-scope-app-681980193-m67qr","uid":"fe28fbd1-400b-11e7-a44f-005056a72efa","resourceVersion":"1580881"}},{"ip":"9.0.56.3","nodeName":"k8s-lab-general-worker-02","targetRef":{"kind":"Pod","namespace":"default","name":"weave-scope-app-681980193-0s7r9","uid":"39ceac42-41cf-11e7-b4fd-005056a72efa","resourceVersion":"1970691"}}],"ports":[{"name":"app","port":4040,"protocol":"TCP"}]}]},{"metadata":{"name":"kapow","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kapow","uid":"d404453c-39e7-11e7-a44f-005056a72efa","resourceVersion":"1812849","creationTimestamp":"2017-05-16T03:29:11Z"},"subsets":[{"addresses":[{"ip":"9.0.57.3","nodeName":"k8s-lab-master-02","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kapow-291724782-4ddsj","uid":"379c9918-3b61-11e7-a44f-005056a72efa","resourceVersion":"1812805"}},{"ip":"9.0.6.2","nodeName":"k8s-lab-master-01","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kapow-291724782-h36cf","uid":"378e222c-3b61-11e7-a44f-005056a72efa","resourceVersion":"547889"}},{"ip":"9.0.82.2","nodeName":"k8s-lab-master-00","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kapow-291724782-np53j","uid":"3a59d6c3-3b61-11e7-a44f-005056a72efa","resourceVersion":"1812848"}}],"ports":[{"name":"kapow","port":8443,"protocol":"TCP"}]}]},{"metadata":{"name":"kibana-logging","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kibana-logging","uid":"c5858f03-38f4-11e7-a44f-005056a72efa","resourceVersion":"1970143","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kibana-logging","kubernetes.io/cluster-service":"true","kubernetes.io/name":"Kibana"}},"subsets":[{"addresses":[{"ip":"9.0.85.4","nodeName":"k8s-lab-ingress-worker-00","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kibana-logging-v1-wdp0d","uid":"94e4e260-41ce-11e7-b4fd-005056a72efa","resourceVersion":"1970141"}}],"ports":[{"port":5601,"protocol":"TCP"}]}]},{"metadata":{"name":"kube-controller-manager","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-controller-manager","uid":"b79d2921-4119-11e7-b4fd-005056a72efa","resourceVersion":"2981763","creationTimestamp":"2017-05-25T07:13:56Z","annotations":{"control-plane.alpha.kubernetes.io/leader":"{\"holderIdentity\":\"k8s-lab-master-01\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2017-05-25T07:13:56Z\",\"renewTime\":\"2017-06-01T00:27:44Z\",\"leaderTransitions\":0}"}},"subsets":null},{"metadata":{"name":"kube-dns","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-dns","uid":"c5239183-38f4-11e7-a44f-005056a72efa","resourceVersion":"2981729","creationTimestamp":"2017-05-14T22:29:18Z","labels":{"k8s-app":"kube-dns","kubernetes.io/cluster-service":"true","kubernetes.io/name":"KubeDNS"}},"subsets":[{"addresses":[{"ip":"9.0.57.2","nodeName":"k8s-lab-master-02","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kube-dns-1078607364-bjv1g","uid":"c53d7f40-38f4-11e7-a44f-005056a72efa","resourceVersion":"1812953"}}],"ports":[{"name":"dns","port":53,"protocol":"UDP"},{"name":"dns-tcp","port":53,"protocol":"TCP"}]}]},{"metadata":{"name":"kube-scheduler","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-scheduler","uid":"b7d710ad-4119-11e7-b291-005056a773df","resourceVersion":"2981762","creationTimestamp":"2017-05-25T07:13:57Z","annotations":{"control-plane.alpha.kubernetes.io/leader":"{\"holderIdentity\":\"k8s-lab-master-02\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2017-05-25T07:13:57Z\",\"renewTime\":\"2017-06-01T00:27:44Z\",\"leaderTransitions\":0}"}},"subsets":null},{"metadata":{"name":"kubernetes-dashboard","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kubernetes-dashboard","uid":"c5b6f500-38f4-11e7-a44f-005056a72efa","resourceVersion":"784560","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kubernetes-dashboard","kubernetes.io/cluster-service":"true"}},"subsets":[{"addresses":[{"ip":"9.0.2.3","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kubernetes-dashboard-v1.6.0-05kht","uid":"c5a66cf9-38f4-11e7-a44f-005056a72efa","resourceVersion":"784558"}}],"ports":[{"port":9090,"protocol":"TCP"}]}]}]},
+  "/proxy/api/v1/endpoints": {"kind":"EndpointsList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/endpoints","resourceVersion":"2981764"},"items":[{"metadata":{"name":"example-app","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/example-app","uid":"c5de1a5c-38f4-11e7-a44f-005056a72efa","resourceVersion":"784564","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"example-app","export-to-prometheus":"main"}},"subsets":[{"addresses":[{"ip":"9.0.2.4","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-9dw6n","uid":"c5d1bd78-38f4-11e7-a44f-005056a72efa","resourceVersion":"784562"}},{"ip":"9.0.56.4","nodeName":"k8s-lab-general-worker-02","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-2rs7d","uid":"c5d19f65-38f4-11e7-a44f-005056a72efa","resourceVersion":"1222"}},{"ip":"9.0.90.3","nodeName":"k8s-lab-general-worker-00","targetRef":{"kind":"Pod","namespace":"default","name":"example-app-2250380630-7znz8","uid":"c5d1a0b1-38f4-11e7-a44f-005056a72efa","resourceVersion":"1184"}}],"ports":[{"name":"web","port":8080,"protocol":"TCP"}]}]},{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/kubernetes","uid":"c0423dd1-38f4-11e7-a44f-005056a72efa","resourceVersion":"2981764","creationTimestamp":"2017-05-14T22:29:10Z"},"subsets":[{"addresses":[{"ip":"10.215.130.134"}],"ports":[{"name":"https","port":443,"protocol":"TCP"}]}]},{"metadata":{"name":"weave-scope-app","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/weave-scope-app","uid":"c60de709-38f4-11e7-a44f-005056a72efa","resourceVersion":"1970693","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"}},"subsets":[{"addresses":[{"ip":"9.0.2.5","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"default","name":"weave-scope-app-681980193-m67qr","uid":"fe28fbd1-400b-11e7-a44f-005056a72efa","resourceVersion":"1580881"}},{"ip":"9.0.56.3","nodeName":"k8s-lab-general-worker-02","targetRef":{"kind":"Pod","namespace":"default","name":"weave-scope-app-681980193-0s7r9","uid":"39ceac42-41cf-11e7-b4fd-005056a72efa","resourceVersion":"1970691"}}],"ports":[{"name":"app","port":4040,"protocol":"TCP"}]}]},{"metadata":{"name":"kuill","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kuill","uid":"d404453c-39e7-11e7-a44f-005056a72efa","resourceVersion":"1812849","creationTimestamp":"2017-05-16T03:29:11Z"},"subsets":[{"addresses":[{"ip":"9.0.57.3","nodeName":"k8s-lab-master-02","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kuill-291724782-4ddsj","uid":"379c9918-3b61-11e7-a44f-005056a72efa","resourceVersion":"1812805"}},{"ip":"9.0.6.2","nodeName":"k8s-lab-master-01","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kuill-291724782-h36cf","uid":"378e222c-3b61-11e7-a44f-005056a72efa","resourceVersion":"547889"}},{"ip":"9.0.82.2","nodeName":"k8s-lab-master-00","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kuill-291724782-np53j","uid":"3a59d6c3-3b61-11e7-a44f-005056a72efa","resourceVersion":"1812848"}}],"ports":[{"name":"kuill","port":8443,"protocol":"TCP"}]}]},{"metadata":{"name":"kibana-logging","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kibana-logging","uid":"c5858f03-38f4-11e7-a44f-005056a72efa","resourceVersion":"1970143","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kibana-logging","kubernetes.io/cluster-service":"true","kubernetes.io/name":"Kibana"}},"subsets":[{"addresses":[{"ip":"9.0.85.4","nodeName":"k8s-lab-ingress-worker-00","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kibana-logging-v1-wdp0d","uid":"94e4e260-41ce-11e7-b4fd-005056a72efa","resourceVersion":"1970141"}}],"ports":[{"port":5601,"protocol":"TCP"}]}]},{"metadata":{"name":"kube-controller-manager","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-controller-manager","uid":"b79d2921-4119-11e7-b4fd-005056a72efa","resourceVersion":"2981763","creationTimestamp":"2017-05-25T07:13:56Z","annotations":{"control-plane.alpha.kubernetes.io/leader":"{\"holderIdentity\":\"k8s-lab-master-01\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2017-05-25T07:13:56Z\",\"renewTime\":\"2017-06-01T00:27:44Z\",\"leaderTransitions\":0}"}},"subsets":null},{"metadata":{"name":"kube-dns","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-dns","uid":"c5239183-38f4-11e7-a44f-005056a72efa","resourceVersion":"2981729","creationTimestamp":"2017-05-14T22:29:18Z","labels":{"k8s-app":"kube-dns","kubernetes.io/cluster-service":"true","kubernetes.io/name":"KubeDNS"}},"subsets":[{"addresses":[{"ip":"9.0.57.2","nodeName":"k8s-lab-master-02","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kube-dns-1078607364-bjv1g","uid":"c53d7f40-38f4-11e7-a44f-005056a72efa","resourceVersion":"1812953"}}],"ports":[{"name":"dns","port":53,"protocol":"UDP"},{"name":"dns-tcp","port":53,"protocol":"TCP"}]}]},{"metadata":{"name":"kube-scheduler","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kube-scheduler","uid":"b7d710ad-4119-11e7-b291-005056a773df","resourceVersion":"2981762","creationTimestamp":"2017-05-25T07:13:57Z","annotations":{"control-plane.alpha.kubernetes.io/leader":"{\"holderIdentity\":\"k8s-lab-master-02\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2017-05-25T07:13:57Z\",\"renewTime\":\"2017-06-01T00:27:44Z\",\"leaderTransitions\":0}"}},"subsets":null},{"metadata":{"name":"kubernetes-dashboard","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/endpoints/kubernetes-dashboard","uid":"c5b6f500-38f4-11e7-a44f-005056a72efa","resourceVersion":"784560","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kubernetes-dashboard","kubernetes.io/cluster-service":"true"}},"subsets":[{"addresses":[{"ip":"9.0.2.3","nodeName":"k8s-lab-general-worker-01","targetRef":{"kind":"Pod","namespace":"kube-system","name":"kubernetes-dashboard-v1.6.0-05kht","uid":"c5a66cf9-38f4-11e7-a44f-005056a72efa","resourceVersion":"784558"}}],"ports":[{"port":9090,"protocol":"TCP"}]}]}]},
   "/proxy/apis/extensions/v1beta1/ingresses": {"kind":"IngressList","apiVersion":"extensions/v1beta1","metadata":{"selfLink":"/apis/extensions/v1beta1/ingresses","resourceVersion":"2981764"},"items":[]},
   "/proxy/api/v1/configmaps": {"kind":"ConfigMapList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/configmaps","resourceVersion":"2981764"},"items":[{"metadata":{"name":"extension-apiserver-authentication","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/configmaps/extension-apiserver-authentication","uid":"c03ddbaf-38f4-11e7-a44f-005056a72efa","resourceVersion":"1812750","creationTimestamp":"2017-05-14T22:29:10Z"},"data":{"client-ca-file":"-----BEGIN CERTIFICATE-----\nMIIC7TCCAdWgAwIBAgIUfl3p5WIbwFCAJQZR1pXUvPv5ajMwDQYJKoZIhvcNAQEL\nBQAwDTELMAkGA1UEAxMCY2EwHhcNMTcwNTE0MjIyMTAwWhcNMjIwNTEzMjIyMTAw\nWjANMQswCQYDVQQDEwJjYTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB\nAMasNr9HSrKpmbl/fkpkgXLMyI2M11kNW8XSZ1U2foXMOXgDRFKFLsDdFrSEaX2R\nXUGDQEU1jwZOk3QJUx9r9kIa+5oYeFhmAadkFzFpL9+jPo9Qzelmwt0ytgV74tHb\nvU1brz9+fDXYaH433D1NdkPiB2W9O3yYMQH42QxOOUHDuZxjz6VNlaU0PmiBQLUp\nkvzbjFPp3zuKx832HLNwSmfn8LtTaVylF9wZIQb6mb2zYkNbXH4C1gXjip37QRDz\n3O1Bkyt2G8M/orMH7VuzstCwPgcDdzZZsluk1GpbI7qFwNnHASl5WsVxMdvEzs7U\n1ko8SXkJNwOAtBu+L/lDT+MCAwEAAaNFMEMwDgYDVR0PAQH/BAQDAgEGMBIGA1Ud\nEwEB/wQIMAYBAf8CAQIwHQYDVR0OBBYEFDR86Xxte6YvA7pW2pE0Be9RDXpAMA0G\nCSqGSIb3DQEBCwUAA4IBAQAE6cEi0xiChF13Hu9YhF7Oo43aD1NZCA3tOpW+NM0v\n/p7KcARIUXvRRFNJwS1tloJ97/pd3m8PEptwKZq63V7QU81g07aD/bQWrssN/8ub\nUJHwn2O5r2Ucp0oQVDMjemNkFq7Y/GoXbUrnpcaxcUYNwzHvABK7lGs6gws4LnFR\njL/hsIBlFZoBm3ULik42GVH4QtRzvliCIOjrSPMuEOxFb4nDIs1e+WzZ1rIk1Qi9\npX2DrNw88FmOGh32UjiHJLnhcd5geDxn9XeJhKwnJ8vXN5Xx92HVLVScyKQAXauV\nyOox9oTbwYcEWSRZeUz0fKm/jPMNtfRl5LWd8cg+yhC9\n-----END CERTIFICATE-----\n","requestheader-allowed-names":"[\"auth-proxy\"]","requestheader-client-ca-file":"-----BEGIN CERTIFICATE-----\nMIIC7TCCAdWgAwIBAgIUfl3p5WIbwFCAJQZR1pXUvPv5ajMwDQYJKoZIhvcNAQEL\nBQAwDTELMAkGA1UEAxMCY2EwHhcNMTcwNTE0MjIyMTAwWhcNMjIwNTEzMjIyMTAw\nWjANMQswCQYDVQQDEwJjYTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB\nAMasNr9HSrKpmbl/fkpkgXLMyI2M11kNW8XSZ1U2foXMOXgDRFKFLsDdFrSEaX2R\nXUGDQEU1jwZOk3QJUx9r9kIa+5oYeFhmAadkFzFpL9+jPo9Qzelmwt0ytgV74tHb\nvU1brz9+fDXYaH433D1NdkPiB2W9O3yYMQH42QxOOUHDuZxjz6VNlaU0PmiBQLUp\nkvzbjFPp3zuKx832HLNwSmfn8LtTaVylF9wZIQb6mb2zYkNbXH4C1gXjip37QRDz\n3O1Bkyt2G8M/orMH7VuzstCwPgcDdzZZsluk1GpbI7qFwNnHASl5WsVxMdvEzs7U\n1ko8SXkJNwOAtBu+L/lDT+MCAwEAAaNFMEMwDgYDVR0PAQH/BAQDAgEGMBIGA1Ud\nEwEB/wQIMAYBAf8CAQIwHQYDVR0OBBYEFDR86Xxte6YvA7pW2pE0Be9RDXpAMA0G\nCSqGSIb3DQEBCwUAA4IBAQAE6cEi0xiChF13Hu9YhF7Oo43aD1NZCA3tOpW+NM0v\n/p7KcARIUXvRRFNJwS1tloJ97/pd3m8PEptwKZq63V7QU81g07aD/bQWrssN/8ub\nUJHwn2O5r2Ucp0oQVDMjemNkFq7Y/GoXbUrnpcaxcUYNwzHvABK7lGs6gws4LnFR\njL/hsIBlFZoBm3ULik42GVH4QtRzvliCIOjrSPMuEOxFb4nDIs1e+WzZ1rIk1Qi9\npX2DrNw88FmOGh32UjiHJLnhcd5geDxn9XeJhKwnJ8vXN5Xx92HVLVScyKQAXauV\nyOox9oTbwYcEWSRZeUz0fKm/jPMNtfRl5LWd8cg+yhC9\n-----END CERTIFICATE-----\n","requestheader-extra-headers-prefix":"[\"X-Remote-Extra-\"]","requestheader-group-headers":"[\"X-Remote-Group\"]","requestheader-username-headers":"[\"X-Remote-User\"]"}}]},
   "/proxy/api/v1/secrets": {"kind":"SecretList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/secrets","resourceVersion":"2981764"},"items":[{"metadata":{"name":"default-token-9qg2f","namespace":"default","selfLink":"/api/v1/namespaces/default/secrets/default-token-9qg2f","uid":"c526555f-38f4-11e7-a44f-005056a72efa","resourceVersion":"143","creationTimestamp":"2017-05-14T22:29:18Z","annotations":{"kubernetes.io/service-account.name":"default","kubernetes.io/service-account.uid":"c5207c98-38f4-11e7-a44f-005056a72efa"}},"data":{"ca.crt":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQWRXZ0F3SUJBZ0lVZmwzcDVXSWJ3RkNBSlFaUjFwWFV2UHY1YWpNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0RURUxNQWtHQTFVRUF4TUNZMkV3SGhjTk1UY3dOVEUwTWpJeU1UQXdXaGNOTWpJd05URXpNakl5TVRBdwpXakFOTVFzd0NRWURWUVFERXdKallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCCkFNYXNOcjlIU3JLcG1ibC9ma3BrZ1hMTXlJMk0xMWtOVzhYU1oxVTJmb1hNT1hnRFJGS0ZMc0RkRnJTRWFYMlIKWFVHRFFFVTFqd1pPazNRSlV4OXI5a0lhKzVvWWVGaG1BYWRrRnpGcEw5K2pQbzlRemVsbXd0MHl0Z1Y3NHRIYgp2VTFicno5K2ZEWFlhSDQzM0QxTmRrUGlCMlc5TzN5WU1RSDQyUXhPT1VIRHVaeGp6NlZObGFVMFBtaUJRTFVwCmt2emJqRlBwM3p1S3g4MzJITE53U21mbjhMdFRhVnlsRjl3WklRYjZtYjJ6WWtOYlhINEMxZ1hqaXAzN1FSRHoKM08xQmt5dDJHOE0vb3JNSDdWdXpzdEN3UGdjRGR6WlpzbHVrMUdwYkk3cUZ3Tm5IQVNsNVdzVnhNZHZFenM3VQoxa284U1hrSk53T0F0QnUrTC9sRFQrTUNBd0VBQWFORk1FTXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkCkV3RUIvd1FJTUFZQkFmOENBUUl3SFFZRFZSME9CQllFRkRSODZYeHRlNll2QTdwVzJwRTBCZTlSRFhwQU1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFFNmNFaTB4aUNoRjEzSHU5WWhGN09vNDNhRDFOWkNBM3RPcFcrTk0wdgovcDdLY0FSSVVYdlJSRk5Kd1MxdGxvSjk3L3BkM204UEVwdHdLWnE2M1Y3UVU4MWcwN2FEL2JRV3Jzc04vOHViClVKSHduMk81cjJVY3Awb1FWRE1qZW1Oa0ZxN1kvR29YYlVybnBjYXhjVVlOd3pIdkFCSzdsR3M2Z3dzNExuRlIKakwvaHNJQmxGWm9CbTNVTGlrNDJHVkg0UXRSenZsaUNJT2pyU1BNdUVPeEZiNG5ESXMxZStXeloxcklrMVFpOQpwWDJEck53ODhGbU9HaDMyVWppSEpMbmhjZDVnZUR4bjlYZUpoS3duSjh2WE41WHg5MkhWTFZTY3lLUUFYYXVWCnlPb3g5b1Rid1ljRVdTUlplVXowZkttL2pQTU50ZlJsNUxXZDhjZyt5aEM5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K","namespace":"ZGVmYXVsdA==","token":"ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsWm1GMWJIUXRkRzlyWlc0dE9YRm5NbVlpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1dVlXMWxJam9pWkdWbVlYVnNkQ0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVnlkbWxqWlMxaFkyTnZkVzUwTG5WcFpDSTZJbU0xTWpBM1l6azRMVE00WmpRdE1URmxOeTFoTkRSbUxUQXdOVEExTm1FM01tVm1ZU0lzSW5OMVlpSTZJbk41YzNSbGJUcHpaWEoyYVdObFlXTmpiM1Z1ZERwa1pXWmhkV3gwT21SbFptRjFiSFFpZlEucFVaNklJdjVRTGt0c3I5OTZYTGlkelVxUndMZ3pLU1BxNzdxWjdZSTI1Rlh6T0Z4QUo5SlhZTDByOGhTdGR5dnVDMjJQVTdpUW5zRUNEbzJLdkZIZzVYWGZ1SERCUkhQcTJhZXAxU003OFBwOXNQNERDNVh0RTdDellxQjh3M3hCV3pHY21feC14VG1yUFVvSmhlajZGZU5PSUxtRmo1WjlKOW5BWmFDZzNDRURzRkFHNEJkU0RUYVZkbW1ZdHJpSHllUjNrQUhhOGcyNEZnZkdhQ1I3NGQ0Qnplb3UwNDB3UFB6LVd0TzhmTmtaUzhDUnd1WnAybGpUbkkyX3lkSmR3N0tYX29VRFozU19GOEoxbTAwT1hYYS1hX1ZUdzRMbGYwUm5lM081a1MxaEhPcmtMd3ZqTmFNM09nV3FiZVdNbldqY215Z2MyLTB1alNhRXh6WlVR"},"type":"kubernetes.io/service-account-token"},{"metadata":{"name":"weave-scope-token-0dpj3","namespace":"default","selfLink":"/api/v1/namespaces/default/secrets/weave-scope-token-0dpj3","uid":"c600a99f-38f4-11e7-a44f-005056a72efa","resourceVersion":"242","creationTimestamp":"2017-05-14T22:29:20Z","annotations":{"kubernetes.io/service-account.name":"weave-scope","kubernetes.io/service-account.uid":"c5fd5d97-38f4-11e7-ba08-005056a773df"}},"data":{"ca.crt":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQWRXZ0F3SUJBZ0lVZmwzcDVXSWJ3RkNBSlFaUjFwWFV2UHY1YWpNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0RURUxNQWtHQTFVRUF4TUNZMkV3SGhjTk1UY3dOVEUwTWpJeU1UQXdXaGNOTWpJd05URXpNakl5TVRBdwpXakFOTVFzd0NRWURWUVFERXdKallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCCkFNYXNOcjlIU3JLcG1ibC9ma3BrZ1hMTXlJMk0xMWtOVzhYU1oxVTJmb1hNT1hnRFJGS0ZMc0RkRnJTRWFYMlIKWFVHRFFFVTFqd1pPazNRSlV4OXI5a0lhKzVvWWVGaG1BYWRrRnpGcEw5K2pQbzlRemVsbXd0MHl0Z1Y3NHRIYgp2VTFicno5K2ZEWFlhSDQzM0QxTmRrUGlCMlc5TzN5WU1RSDQyUXhPT1VIRHVaeGp6NlZObGFVMFBtaUJRTFVwCmt2emJqRlBwM3p1S3g4MzJITE53U21mbjhMdFRhVnlsRjl3WklRYjZtYjJ6WWtOYlhINEMxZ1hqaXAzN1FSRHoKM08xQmt5dDJHOE0vb3JNSDdWdXpzdEN3UGdjRGR6WlpzbHVrMUdwYkk3cUZ3Tm5IQVNsNVdzVnhNZHZFenM3VQoxa284U1hrSk53T0F0QnUrTC9sRFQrTUNBd0VBQWFORk1FTXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkCkV3RUIvd1FJTUFZQkFmOENBUUl3SFFZRFZSME9CQllFRkRSODZYeHRlNll2QTdwVzJwRTBCZTlSRFhwQU1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFFNmNFaTB4aUNoRjEzSHU5WWhGN09vNDNhRDFOWkNBM3RPcFcrTk0wdgovcDdLY0FSSVVYdlJSRk5Kd1MxdGxvSjk3L3BkM204UEVwdHdLWnE2M1Y3UVU4MWcwN2FEL2JRV3Jzc04vOHViClVKSHduMk81cjJVY3Awb1FWRE1qZW1Oa0ZxN1kvR29YYlVybnBjYXhjVVlOd3pIdkFCSzdsR3M2Z3dzNExuRlIKakwvaHNJQmxGWm9CbTNVTGlrNDJHVkg0UXRSenZsaUNJT2pyU1BNdUVPeEZiNG5ESXMxZStXeloxcklrMVFpOQpwWDJEck53ODhGbU9HaDMyVWppSEpMbmhjZDVnZUR4bjlYZUpoS3duSjh2WE41WHg5MkhWTFZTY3lLUUFYYXVWCnlPb3g5b1Rid1ljRVdTUlplVXowZkttL2pQTU50ZlJsNUxXZDhjZyt5aEM5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K","namespace":"ZGVmYXVsdA==","token":"ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbmRsWVhabExYTmpiM0JsTFhSdmEyVnVMVEJrY0dveklpd2lhM1ZpWlhKdVpYUmxjeTVwYnk5elpYSjJhV05sWVdOamIzVnVkQzl6WlhKMmFXTmxMV0ZqWTI5MWJuUXVibUZ0WlNJNkluZGxZWFpsTFhOamIzQmxJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpYSjJhV05sTFdGalkyOTFiblF1ZFdsa0lqb2lZelZtWkRWa09UY3RNemhtTkMweE1XVTNMV0poTURndE1EQTFNRFUyWVRjM00yUm1JaXdpYzNWaUlqb2ljM2x6ZEdWdE9uTmxjblpwWTJWaFkyTnZkVzUwT21SbFptRjFiSFE2ZDJWaGRtVXRjMk52Y0dVaWZRLmxoQVhXS3NFSld5ZUFiS1B4alpZVWxDclZrTzR0alBtdWNtNmZzVkRkTHMwT2plSzluemFhb2dJb3dIVTcwYUZzek5uejAxZDRIWm83cFM1ZXg1bUtkWDJMNHBiOHZfMVU3MTdvRFZEd2xQZlR6akFQNFhRR25ac3drWnVXTjY1OTFxZm1kUllZdDRmZXgtMEttemVkbTJHelJXc1MtZlBNM3RiY3dPTTZkQjZzZ2pPYjdld3F3c251djg0eHp0TUZtM3hwS3JlajlCb0J1NmtrLUpHQWw5WUM2VzN6dVdEanpuWUs3UVZmU3VrcjBxV2l3Y3VlN1ZBUWhfUGNhVVUxQlQ5YWRkMEc4N1U0aUxqZkk3S0JValJ3TTJwUG1KSFRRcnBiMVZPN3UtbTF3Q05hX2JkTEstM2VlcGRoZHJNY2xnaU01VWprZUMxYm51ZzJiS3g4dw=="},"type":"kubernetes.io/service-account-token"},{"metadata":{"name":"default-token-rs201","namespace":"kube-public","selfLink":"/api/v1/namespaces/kube-public/secrets/default-token-rs201","uid":"c5297079-38f4-11e7-a44f-005056a72efa","resourceVersion":"146","creationTimestamp":"2017-05-14T22:29:18Z","annotations":{"kubernetes.io/service-account.name":"default","kubernetes.io/service-account.uid":"c524fefc-38f4-11e7-a44f-005056a72efa"}},"data":{"ca.crt":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQWRXZ0F3SUJBZ0lVZmwzcDVXSWJ3RkNBSlFaUjFwWFV2UHY1YWpNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0RURUxNQWtHQTFVRUF4TUNZMkV3SGhjTk1UY3dOVEUwTWpJeU1UQXdXaGNOTWpJd05URXpNakl5TVRBdwpXakFOTVFzd0NRWURWUVFERXdKallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCCkFNYXNOcjlIU3JLcG1ibC9ma3BrZ1hMTXlJMk0xMWtOVzhYU1oxVTJmb1hNT1hnRFJGS0ZMc0RkRnJTRWFYMlIKWFVHRFFFVTFqd1pPazNRSlV4OXI5a0lhKzVvWWVGaG1BYWRrRnpGcEw5K2pQbzlRemVsbXd0MHl0Z1Y3NHRIYgp2VTFicno5K2ZEWFlhSDQzM0QxTmRrUGlCMlc5TzN5WU1RSDQyUXhPT1VIRHVaeGp6NlZObGFVMFBtaUJRTFVwCmt2emJqRlBwM3p1S3g4MzJITE53U21mbjhMdFRhVnlsRjl3WklRYjZtYjJ6WWtOYlhINEMxZ1hqaXAzN1FSRHoKM08xQmt5dDJHOE0vb3JNSDdWdXpzdEN3UGdjRGR6WlpzbHVrMUdwYkk3cUZ3Tm5IQVNsNVdzVnhNZHZFenM3VQoxa284U1hrSk53T0F0QnUrTC9sRFQrTUNBd0VBQWFORk1FTXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkCkV3RUIvd1FJTUFZQkFmOENBUUl3SFFZRFZSME9CQllFRkRSODZYeHRlNll2QTdwVzJwRTBCZTlSRFhwQU1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFFNmNFaTB4aUNoRjEzSHU5WWhGN09vNDNhRDFOWkNBM3RPcFcrTk0wdgovcDdLY0FSSVVYdlJSRk5Kd1MxdGxvSjk3L3BkM204UEVwdHdLWnE2M1Y3UVU4MWcwN2FEL2JRV3Jzc04vOHViClVKSHduMk81cjJVY3Awb1FWRE1qZW1Oa0ZxN1kvR29YYlVybnBjYXhjVVlOd3pIdkFCSzdsR3M2Z3dzNExuRlIKakwvaHNJQmxGWm9CbTNVTGlrNDJHVkg0UXRSenZsaUNJT2pyU1BNdUVPeEZiNG5ESXMxZStXeloxcklrMVFpOQpwWDJEck53ODhGbU9HaDMyVWppSEpMbmhjZDVnZUR4bjlYZUpoS3duSjh2WE41WHg5MkhWTFZTY3lLUUFYYXVWCnlPb3g5b1Rid1ljRVdTUlplVXowZkttL2pQTU50ZlJsNUxXZDhjZyt5aEM5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K","namespace":"a3ViZS1wdWJsaWM=","token":"ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUpyZFdKbExYQjFZbXhwWXlJc0ltdDFZbVZ5Ym1WMFpYTXVhVzh2YzJWeWRtbGpaV0ZqWTI5MWJuUXZjMlZqY21WMExtNWhiV1VpT2lKa1pXWmhkV3gwTFhSdmEyVnVMWEp6TWpBeElpd2lhM1ZpWlhKdVpYUmxjeTVwYnk5elpYSjJhV05sWVdOamIzVnVkQzl6WlhKMmFXTmxMV0ZqWTI5MWJuUXVibUZ0WlNJNkltUmxabUYxYkhRaUxDSnJkV0psY201bGRHVnpMbWx2TDNObGNuWnBZMlZoWTJOdmRXNTBMM05sY25acFkyVXRZV05qYjNWdWRDNTFhV1FpT2lKak5USTBabVZtWXkwek9HWTBMVEV4WlRjdFlUUTBaaTB3TURVd05UWmhOekpsWm1FaUxDSnpkV0lpT2lKemVYTjBaVzA2YzJWeWRtbGpaV0ZqWTI5MWJuUTZhM1ZpWlMxd2RXSnNhV002WkdWbVlYVnNkQ0o5LnB2NkQwOGVtdjNYN280em9ybzlqcElLekduRmFrSHBmZUhTSTEzZHJ6bFcxeElJbHhDejlPd2JKXzBNZEQwcENMT1UxcmNzWDgzZjdJU1dBdnBJVWY2WFVoejlESEUxN1FuUDNXbEJGRGtOSHpnTy1MTlRGbU5IQkJHd0tKeXdKNHBJLWdQWkJtYjMzZmQ3MDdrLUlvc3pZWXFlaVRSaDdranJndXhGTi10b0JHVC1tb01QcXpVeFctMUNqUHNiVnlNckZpT1JoUm14NjktUWdHdzhNemhGQWdoVE4tVkNCUjgtRDFES0tSVGRWM19iTlFtZlYwN1VsemVJX0dCem5RRUdzTTNoVnd3WE5oeHJRU1FTal9hY2xET29nUlhnalBONUpFT0VNQWRkSE5QVnNUM2lXbHZ2V1g2TFhKaDVrOVBYeXktQzNTM0JKREFYUDU0Z08yUQ=="},"type":"kubernetes.io/service-account-token"},{"metadata":{"name":"default-token-t8cch","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/secrets/default-token-t8cch","uid":"c5214bd2-38f4-11e7-a44f-005056a72efa","resourceVersion":"139","creationTimestamp":"2017-05-14T22:29:18Z","annotations":{"kubernetes.io/service-account.name":"default","kubernetes.io/service-account.uid":"c4ea29ba-38f4-11e7-a44f-005056a72efa"}},"data":{"ca.crt":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQWRXZ0F3SUJBZ0lVZmwzcDVXSWJ3RkNBSlFaUjFwWFV2UHY1YWpNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0RURUxNQWtHQTFVRUF4TUNZMkV3SGhjTk1UY3dOVEUwTWpJeU1UQXdXaGNOTWpJd05URXpNakl5TVRBdwpXakFOTVFzd0NRWURWUVFERXdKallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCCkFNYXNOcjlIU3JLcG1ibC9ma3BrZ1hMTXlJMk0xMWtOVzhYU1oxVTJmb1hNT1hnRFJGS0ZMc0RkRnJTRWFYMlIKWFVHRFFFVTFqd1pPazNRSlV4OXI5a0lhKzVvWWVGaG1BYWRrRnpGcEw5K2pQbzlRemVsbXd0MHl0Z1Y3NHRIYgp2VTFicno5K2ZEWFlhSDQzM0QxTmRrUGlCMlc5TzN5WU1RSDQyUXhPT1VIRHVaeGp6NlZObGFVMFBtaUJRTFVwCmt2emJqRlBwM3p1S3g4MzJITE53U21mbjhMdFRhVnlsRjl3WklRYjZtYjJ6WWtOYlhINEMxZ1hqaXAzN1FSRHoKM08xQmt5dDJHOE0vb3JNSDdWdXpzdEN3UGdjRGR6WlpzbHVrMUdwYkk3cUZ3Tm5IQVNsNVdzVnhNZHZFenM3VQoxa284U1hrSk53T0F0QnUrTC9sRFQrTUNBd0VBQWFORk1FTXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkCkV3RUIvd1FJTUFZQkFmOENBUUl3SFFZRFZSME9CQllFRkRSODZYeHRlNll2QTdwVzJwRTBCZTlSRFhwQU1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFFNmNFaTB4aUNoRjEzSHU5WWhGN09vNDNhRDFOWkNBM3RPcFcrTk0wdgovcDdLY0FSSVVYdlJSRk5Kd1MxdGxvSjk3L3BkM204UEVwdHdLWnE2M1Y3UVU4MWcwN2FEL2JRV3Jzc04vOHViClVKSHduMk81cjJVY3Awb1FWRE1qZW1Oa0ZxN1kvR29YYlVybnBjYXhjVVlOd3pIdkFCSzdsR3M2Z3dzNExuRlIKakwvaHNJQmxGWm9CbTNVTGlrNDJHVkg0UXRSenZsaUNJT2pyU1BNdUVPeEZiNG5ESXMxZStXeloxcklrMVFpOQpwWDJEck53ODhGbU9HaDMyVWppSEpMbmhjZDVnZUR4bjlYZUpoS3duSjh2WE41WHg5MkhWTFZTY3lLUUFYYXVWCnlPb3g5b1Rid1ljRVdTUlplVXowZkttL2pQTU50ZlJsNUxXZDhjZyt5aEM5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K","namespace":"a3ViZS1zeXN0ZW0=","token":"ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUpyZFdKbExYTjVjM1JsYlNJc0ltdDFZbVZ5Ym1WMFpYTXVhVzh2YzJWeWRtbGpaV0ZqWTI5MWJuUXZjMlZqY21WMExtNWhiV1VpT2lKa1pXWmhkV3gwTFhSdmEyVnVMWFE0WTJOb0lpd2lhM1ZpWlhKdVpYUmxjeTVwYnk5elpYSjJhV05sWVdOamIzVnVkQzl6WlhKMmFXTmxMV0ZqWTI5MWJuUXVibUZ0WlNJNkltUmxabUYxYkhRaUxDSnJkV0psY201bGRHVnpMbWx2TDNObGNuWnBZMlZoWTJOdmRXNTBMM05sY25acFkyVXRZV05qYjNWdWRDNTFhV1FpT2lKak5HVmhNamxpWVMwek9HWTBMVEV4WlRjdFlUUTBaaTB3TURVd05UWmhOekpsWm1FaUxDSnpkV0lpT2lKemVYTjBaVzA2YzJWeWRtbGpaV0ZqWTI5MWJuUTZhM1ZpWlMxemVYTjBaVzA2WkdWbVlYVnNkQ0o5Lm1HbjRrZEZJMlFod3RhaWlvempHa0ZVVlBDdDB6MXVmaDk1RFQ0UUg1ZDlWaDZweVJ2Ty1GcU96SlVpT3p4UTM2cXpvdTZCUzNPOXdPVFZvTGZpbm9VSEFQVXdMLUdqNW5vNjV1N2tDcmNQRzhzUFlzSXFMd0NVRDhjYV9FMWN6S2RTZm5ZTVFXWi1TQlN4NTcxaFpLTGZla0RNSWtpSkdJc0hJMEhTaV9kYXc3bG9SRlJreDh3b2pMRHBxWGVJZDAzNlVIMm1ibDhVajlocXRuZjd0MGtUWTI0dU1wMWpjM0xXVnA2c1VxMkt0ZTh5SkhHb0FJNVZuQmFLZjRzektJa1hRR2pvTXVKeFFLbkEwNzZKTDZTbDBjTGVCTVEwQWR2UXp0QkFQVGpJLW1kbVZCT3VzaTY5d0ZqTkhzYzl4LUQ5dW0tMjEtRnRGX0ZrR2tQdkxqUQ=="},"type":"kubernetes.io/service-account-token"},{"metadata":{"name":"kube-dns-token-wlxsj","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/secrets/kube-dns-token-wlxsj","uid":"c497550b-38f4-11e7-a44f-005056a72efa","resourceVersion":"124","creationTimestamp":"2017-05-14T22:29:17Z","annotations":{"kubernetes.io/service-account.name":"kube-dns","kubernetes.io/service-account.uid":"c42e0eee-38f4-11e7-a44f-005056a72efa"}},"data":{"ca.crt":"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQWRXZ0F3SUJBZ0lVZmwzcDVXSWJ3RkNBSlFaUjFwWFV2UHY1YWpNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0RURUxNQWtHQTFVRUF4TUNZMkV3SGhjTk1UY3dOVEUwTWpJeU1UQXdXaGNOTWpJd05URXpNakl5TVRBdwpXakFOTVFzd0NRWURWUVFERXdKallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCCkFNYXNOcjlIU3JLcG1ibC9ma3BrZ1hMTXlJMk0xMWtOVzhYU1oxVTJmb1hNT1hnRFJGS0ZMc0RkRnJTRWFYMlIKWFVHRFFFVTFqd1pPazNRSlV4OXI5a0lhKzVvWWVGaG1BYWRrRnpGcEw5K2pQbzlRemVsbXd0MHl0Z1Y3NHRIYgp2VTFicno5K2ZEWFlhSDQzM0QxTmRrUGlCMlc5TzN5WU1RSDQyUXhPT1VIRHVaeGp6NlZObGFVMFBtaUJRTFVwCmt2emJqRlBwM3p1S3g4MzJITE53U21mbjhMdFRhVnlsRjl3WklRYjZtYjJ6WWtOYlhINEMxZ1hqaXAzN1FSRHoKM08xQmt5dDJHOE0vb3JNSDdWdXpzdEN3UGdjRGR6WlpzbHVrMUdwYkk3cUZ3Tm5IQVNsNVdzVnhNZHZFenM3VQoxa284U1hrSk53T0F0QnUrTC9sRFQrTUNBd0VBQWFORk1FTXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CSUdBMVVkCkV3RUIvd1FJTUFZQkFmOENBUUl3SFFZRFZSME9CQllFRkRSODZYeHRlNll2QTdwVzJwRTBCZTlSRFhwQU1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFFNmNFaTB4aUNoRjEzSHU5WWhGN09vNDNhRDFOWkNBM3RPcFcrTk0wdgovcDdLY0FSSVVYdlJSRk5Kd1MxdGxvSjk3L3BkM204UEVwdHdLWnE2M1Y3UVU4MWcwN2FEL2JRV3Jzc04vOHViClVKSHduMk81cjJVY3Awb1FWRE1qZW1Oa0ZxN1kvR29YYlVybnBjYXhjVVlOd3pIdkFCSzdsR3M2Z3dzNExuRlIKakwvaHNJQmxGWm9CbTNVTGlrNDJHVkg0UXRSenZsaUNJT2pyU1BNdUVPeEZiNG5ESXMxZStXeloxcklrMVFpOQpwWDJEck53ODhGbU9HaDMyVWppSEpMbmhjZDVnZUR4bjlYZUpoS3duSjh2WE41WHg5MkhWTFZTY3lLUUFYYXVWCnlPb3g5b1Rid1ljRVdTUlplVXowZkttL2pQTU50ZlJsNUxXZDhjZyt5aEM5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K","namespace":"a3ViZS1zeXN0ZW0=","token":"ZXlKaGJHY2lPaUpTVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUpyZFdKbExYTjVjM1JsYlNJc0ltdDFZbVZ5Ym1WMFpYTXVhVzh2YzJWeWRtbGpaV0ZqWTI5MWJuUXZjMlZqY21WMExtNWhiV1VpT2lKcmRXSmxMV1J1Y3kxMGIydGxiaTEzYkhoemFpSXNJbXQxWW1WeWJtVjBaWE11YVc4dmMyVnlkbWxqWldGalkyOTFiblF2YzJWeWRtbGpaUzFoWTJOdmRXNTBMbTVoYldVaU9pSnJkV0psTFdSdWN5SXNJbXQxWW1WeWJtVjBaWE11YVc4dmMyVnlkbWxqWldGalkyOTFiblF2YzJWeWRtbGpaUzFoWTJOdmRXNTBMblZwWkNJNkltTTBNbVV3WldWbExUTTRaalF0TVRGbE55MWhORFJtTFRBd05UQTFObUUzTW1WbVlTSXNJbk4xWWlJNkluTjVjM1JsYlRwelpYSjJhV05sWVdOamIzVnVkRHByZFdKbExYTjVjM1JsYlRwcmRXSmxMV1J1Y3lKOS5TSG94U1FPb2dXd2JWR1hhNmJoM2E2UEpBUjYzcGY3WnNqdHhvUW5Zckp4R0VSZlRMbnRNNzBtZFJtMVlfc2ppMWpZTy1QQ21oUU1mTDRvXzIxZzhYcFRJdlVwZEdhS3pGLVJxdXdsRkUyRmNHS2ZBQnVUQ21pajJ3cks3ak9yZkltOGhrV1gwTmVRMkhXU1pucDd0VXpPSlIweHNHR0J3dGhXMXktRFM3Z1V4akxRZlVmLVU3WUpUdl9YanA0RThlRFJzMlk0T01kVEppOVVITEhNaURUTDM1d3huTzc3bEo2bkx0cnVoWGo1SVdaVFFfWWl1UUx6b0MwN3dpZ2ZMNHpJenBWcUlmOWdleFhaanFNNUlWQmJJMGxUVU9LbkVSY2JyNnBTNlE3aXhxc25icFo3dzRjM1Yzd1JyWmJhTG9KR0w4cWlMRUVoWjdfWmM5YnU4cXc="},"type":"kubernetes.io/service-account-token"}]},
-  "/proxy/api/v1/services": {"kind":"ServiceList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/services","resourceVersion":"2981764"},"items":[{"metadata":{"name":"example-app","namespace":"default","selfLink":"/api/v1/namespaces/default/services/example-app","uid":"c5dad367-38f4-11e7-ba08-005056a773df","resourceVersion":"226","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"example-app","export-to-prometheus":"main"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"example-app\",\"export-to-prometheus\":\"main\"},\"name\":\"example-app\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"web\",\"port\":8080}],\"selector\":{\"app\":\"example-app\"}}}\n"}},"spec":{"ports":[{"name":"web","protocol":"TCP","port":8080,"targetPort":8080}],"selector":{"app":"example-app"},"clusterIP":"11.0.0.228","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/services/kubernetes","uid":"c0417bd3-38f4-11e7-a44f-005056a72efa","resourceVersion":"8","creationTimestamp":"2017-05-14T22:29:10Z","labels":{"component":"apiserver","provider":"kubernetes"}},"spec":{"ports":[{"name":"https","protocol":"TCP","port":443,"targetPort":443}],"clusterIP":"11.0.0.1","type":"ClusterIP","sessionAffinity":"ClientIP"},"status":{"loadBalancer":{}}},{"metadata":{"name":"weave-scope-app","namespace":"default","selfLink":"/api/v1/namespaces/default/services/weave-scope-app","uid":"c60ceefc-38f4-11e7-ba08-005056a773df","resourceVersion":"253","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"},"annotations":{"cloud.weave.works/launcher-info":"{\n  \"server-version\": \"master-9eec4bc\",\n  \"original-request\": {\n    \"url\": \"/k8s/v1.5/scope.yaml?/launch/k8s/weavescope.yaml\",\n    \"date\": \"Mon Apr 17 2017 16:08:14 GMT+0000 (UTC)\"\n  },\n  \"email-address\": \"support@weave.works\"\n}","kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"cloud.weave.works/launcher-info\":\"{\\n  \\\"server-version\\\": \\\"master-9eec4bc\\\",\\n  \\\"original-request\\\": {\\n    \\\"url\\\": \\\"/k8s/v1.5/scope.yaml?/launch/k8s/weavescope.yaml\\\",\\n    \\\"date\\\": \\\"Mon Apr 17 2017 16:08:14 GMT+0000 (UTC)\\\"\\n  },\\n  \\\"email-address\\\": \\\"support@weave.works\\\"\\n}\"},\"labels\":{\"app\":\"weave-scope\",\"name\":\"weave-scope-app\",\"weave-cloud-component\":\"scope\",\"weave-scope-component\":\"app\"},\"name\":\"weave-scope-app\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"app\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":4040}],\"selector\":{\"app\":\"weave-scope\",\"name\":\"weave-scope-app\",\"weave-cloud-component\":\"scope\",\"weave-scope-component\":\"app\"}}}\n"}},"spec":{"ports":[{"name":"app","protocol":"TCP","port":80,"targetPort":4040}],"selector":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"},"clusterIP":"11.0.0.32","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kapow","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kapow","uid":"d402a0e5-39e7-11e7-b34e-005056a77c9c","resourceVersion":"218174","creationTimestamp":"2017-05-16T03:29:11Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"kapow\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"name\":\"kapow\",\"nodePort\":30000,\"port\":8443,\"targetPort\":8443}],\"selector\":{\"name\":\"kapow\"},\"type\":\"NodePort\"}}\n"}},"spec":{"ports":[{"name":"kapow","protocol":"TCP","port":8443,"targetPort":8443,"nodePort":30000}],"selector":{"name":"kapow"},"clusterIP":"11.0.0.158","type":"NodePort","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kibana-logging","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kibana-logging","uid":"c584c741-38f4-11e7-ba08-005056a773df","resourceVersion":"183","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kibana-logging","kubernetes.io/cluster-service":"true","kubernetes.io/name":"Kibana"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kibana-logging\",\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"Kibana\"},\"name\":\"kibana-logging\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"port\":5601,\"protocol\":\"TCP\",\"targetPort\":\"ui\"}],\"selector\":{\"k8s-app\":\"kibana-logging\"}}}\n"}},"spec":{"ports":[{"protocol":"TCP","port":5601,"targetPort":"ui"}],"selector":{"k8s-app":"kibana-logging"},"clusterIP":"11.0.0.62","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kube-dns","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kube-dns","uid":"c51ec968-38f4-11e7-a44f-005056a72efa","resourceVersion":"133","creationTimestamp":"2017-05-14T22:29:18Z","labels":{"k8s-app":"kube-dns","kubernetes.io/cluster-service":"true","kubernetes.io/name":"KubeDNS"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kube-dns\",\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"KubeDNS\"},\"name\":\"kube-dns\",\"namespace\":\"kube-system\"},\"spec\":{\"clusterIP\":\"11.0.0.10\",\"ports\":[{\"name\":\"dns\",\"port\":53,\"protocol\":\"UDP\"},{\"name\":\"dns-tcp\",\"port\":53,\"protocol\":\"TCP\"}],\"selector\":{\"k8s-app\":\"kube-dns\"}}}\n"}},"spec":{"ports":[{"name":"dns","protocol":"UDP","port":53,"targetPort":53},{"name":"dns-tcp","protocol":"TCP","port":53,"targetPort":53}],"selector":{"k8s-app":"kube-dns"},"clusterIP":"11.0.0.10","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kubernetes-dashboard","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kubernetes-dashboard","uid":"c5b5f081-38f4-11e7-ba08-005056a773df","resourceVersion":"204","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kubernetes-dashboard","kubernetes.io/cluster-service":"true"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kubernetes-dashboard\",\"kubernetes.io/cluster-service\":\"true\"},\"name\":\"kubernetes-dashboard\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":9090}],\"selector\":{\"k8s-app\":\"kubernetes-dashboard\"}}}\n"}},"spec":{"ports":[{"protocol":"TCP","port":80,"targetPort":9090}],"selector":{"k8s-app":"kubernetes-dashboard"},"clusterIP":"11.0.0.207","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}}]},
+  "/proxy/api/v1/services": {"kind":"ServiceList","apiVersion":"v1","metadata":{"selfLink":"/api/v1/services","resourceVersion":"2981764"},"items":[{"metadata":{"name":"example-app","namespace":"default","selfLink":"/api/v1/namespaces/default/services/example-app","uid":"c5dad367-38f4-11e7-ba08-005056a773df","resourceVersion":"226","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"example-app","export-to-prometheus":"main"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"example-app\",\"export-to-prometheus\":\"main\"},\"name\":\"example-app\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"web\",\"port\":8080}],\"selector\":{\"app\":\"example-app\"}}}\n"}},"spec":{"ports":[{"name":"web","protocol":"TCP","port":8080,"targetPort":8080}],"selector":{"app":"example-app"},"clusterIP":"11.0.0.228","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kubernetes","namespace":"default","selfLink":"/api/v1/namespaces/default/services/kubernetes","uid":"c0417bd3-38f4-11e7-a44f-005056a72efa","resourceVersion":"8","creationTimestamp":"2017-05-14T22:29:10Z","labels":{"component":"apiserver","provider":"kubernetes"}},"spec":{"ports":[{"name":"https","protocol":"TCP","port":443,"targetPort":443}],"clusterIP":"11.0.0.1","type":"ClusterIP","sessionAffinity":"ClientIP"},"status":{"loadBalancer":{}}},{"metadata":{"name":"weave-scope-app","namespace":"default","selfLink":"/api/v1/namespaces/default/services/weave-scope-app","uid":"c60ceefc-38f4-11e7-ba08-005056a773df","resourceVersion":"253","creationTimestamp":"2017-05-14T22:29:20Z","labels":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"},"annotations":{"cloud.weave.works/launcher-info":"{\n  \"server-version\": \"master-9eec4bc\",\n  \"original-request\": {\n    \"url\": \"/k8s/v1.5/scope.yaml?/launch/k8s/weavescope.yaml\",\n    \"date\": \"Mon Apr 17 2017 16:08:14 GMT+0000 (UTC)\"\n  },\n  \"email-address\": \"support@weave.works\"\n}","kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"cloud.weave.works/launcher-info\":\"{\\n  \\\"server-version\\\": \\\"master-9eec4bc\\\",\\n  \\\"original-request\\\": {\\n    \\\"url\\\": \\\"/k8s/v1.5/scope.yaml?/launch/k8s/weavescope.yaml\\\",\\n    \\\"date\\\": \\\"Mon Apr 17 2017 16:08:14 GMT+0000 (UTC)\\\"\\n  },\\n  \\\"email-address\\\": \\\"support@weave.works\\\"\\n}\"},\"labels\":{\"app\":\"weave-scope\",\"name\":\"weave-scope-app\",\"weave-cloud-component\":\"scope\",\"weave-scope-component\":\"app\"},\"name\":\"weave-scope-app\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"app\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":4040}],\"selector\":{\"app\":\"weave-scope\",\"name\":\"weave-scope-app\",\"weave-cloud-component\":\"scope\",\"weave-scope-component\":\"app\"}}}\n"}},"spec":{"ports":[{"name":"app","protocol":"TCP","port":80,"targetPort":4040}],"selector":{"app":"weave-scope","name":"weave-scope-app","weave-cloud-component":"scope","weave-scope-component":"app"},"clusterIP":"11.0.0.32","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kuill","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kuill","uid":"d402a0e5-39e7-11e7-b34e-005056a77c9c","resourceVersion":"218174","creationTimestamp":"2017-05-16T03:29:11Z","annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"kuill\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"name\":\"kuill\",\"nodePort\":30000,\"port\":8443,\"targetPort\":8443}],\"selector\":{\"name\":\"kuill\"},\"type\":\"NodePort\"}}\n"}},"spec":{"ports":[{"name":"kuill","protocol":"TCP","port":8443,"targetPort":8443,"nodePort":30000}],"selector":{"name":"kuill"},"clusterIP":"11.0.0.158","type":"NodePort","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kibana-logging","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kibana-logging","uid":"c584c741-38f4-11e7-ba08-005056a773df","resourceVersion":"183","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kibana-logging","kubernetes.io/cluster-service":"true","kubernetes.io/name":"Kibana"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kibana-logging\",\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"Kibana\"},\"name\":\"kibana-logging\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"port\":5601,\"protocol\":\"TCP\",\"targetPort\":\"ui\"}],\"selector\":{\"k8s-app\":\"kibana-logging\"}}}\n"}},"spec":{"ports":[{"protocol":"TCP","port":5601,"targetPort":"ui"}],"selector":{"k8s-app":"kibana-logging"},"clusterIP":"11.0.0.62","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kube-dns","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kube-dns","uid":"c51ec968-38f4-11e7-a44f-005056a72efa","resourceVersion":"133","creationTimestamp":"2017-05-14T22:29:18Z","labels":{"k8s-app":"kube-dns","kubernetes.io/cluster-service":"true","kubernetes.io/name":"KubeDNS"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kube-dns\",\"kubernetes.io/cluster-service\":\"true\",\"kubernetes.io/name\":\"KubeDNS\"},\"name\":\"kube-dns\",\"namespace\":\"kube-system\"},\"spec\":{\"clusterIP\":\"11.0.0.10\",\"ports\":[{\"name\":\"dns\",\"port\":53,\"protocol\":\"UDP\"},{\"name\":\"dns-tcp\",\"port\":53,\"protocol\":\"TCP\"}],\"selector\":{\"k8s-app\":\"kube-dns\"}}}\n"}},"spec":{"ports":[{"name":"dns","protocol":"UDP","port":53,"targetPort":53},{"name":"dns-tcp","protocol":"TCP","port":53,"targetPort":53}],"selector":{"k8s-app":"kube-dns"},"clusterIP":"11.0.0.10","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}},{"metadata":{"name":"kubernetes-dashboard","namespace":"kube-system","selfLink":"/api/v1/namespaces/kube-system/services/kubernetes-dashboard","uid":"c5b5f081-38f4-11e7-ba08-005056a773df","resourceVersion":"204","creationTimestamp":"2017-05-14T22:29:19Z","labels":{"k8s-app":"kubernetes-dashboard","kubernetes.io/cluster-service":"true"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"k8s-app\":\"kubernetes-dashboard\",\"kubernetes.io/cluster-service\":\"true\"},\"name\":\"kubernetes-dashboard\",\"namespace\":\"kube-system\"},\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":9090}],\"selector\":{\"k8s-app\":\"kubernetes-dashboard\"}}}\n"}},"spec":{"ports":[{"protocol":"TCP","port":80,"targetPort":9090}],"selector":{"k8s-app":"kubernetes-dashboard"},"clusterIP":"11.0.0.207","type":"ClusterIP","sessionAffinity":"None"},"status":{"loadBalancer":{}}}]},
   "/proxy/apis/batch/v2alpha1/cronjobs": {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"the server could not find the requested resource","reason":"NotFound","details":{},"code":404},
   "/proxy/api/v1/pods": {
       "kind": "PodList",
@@ -6669,26 +6669,26 @@
         },
         {
           "metadata": {
-            "name": "kapow-291724782-4ddsj",
-            "generateName": "kapow-291724782-",
+            "name": "kuill-291724782-4ddsj",
+            "generateName": "kuill-291724782-",
             "namespace": "kube-system",
-            "selfLink": "/api/v1/namespaces/kube-system/pods/kapow-291724782-4ddsj",
+            "selfLink": "/api/v1/namespaces/kube-system/pods/kuill-291724782-4ddsj",
             "uid": "379c9918-3b61-11e7-a44f-005056a72efa",
             "resourceVersion": "1812805",
             "creationTimestamp": "2017-05-18T00:30:38Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "291724782",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
-              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kapow-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547852\"}}\n"
+              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kuill-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547852\"}}\n"
             },
             "ownerReferences": [
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "ReplicaSet",
-                "name": "kapow-291724782",
+                "name": "kuill-291724782",
                 "uid": "378cb574-3b61-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -6707,46 +6707,46 @@
             ],
             "containers": [
               {
-                "name": "kapow",
-                "image": "artifactory.example.com/mdeboer/kapow:036",
+                "name": "kuill",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
                 "ports": [
                   {
-                    "name": "kapow",
+                    "name": "kuill",
                     "containerPort": 8443,
                     "protocol": "TCP"
                   }
                 ],
                 "env": [
                   {
-                    "name": "KAPOW_PUBLIC_URL",
+                    "name": "kuill_PUBLIC_URL",
                     "value": "https://master.vsphere.lab.k8s.example.im:30000"
                   },
                   {
-                    "name": "KAPOW_PORT",
+                    "name": "kuill_PORT",
                     "value": "8443"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER",
+                    "name": "kuill_OIDC_PROVIDER",
                     "value": "https://gitlab.example.com"
                   },
                   {
-                    "name": "KAPOW_VERBOSE",
+                    "name": "kuill_VERBOSE",
                     "value": "true"
                   },
                   {
-                    "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                    "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                     "value": "read_user"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_ID",
+                    "name": "kuill_OIDC_CLIENT_ID",
                     "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_SECRET",
+                    "name": "kuill_OIDC_CLIENT_SECRET",
                     "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER_NAME",
+                    "name": "kuill_OIDC_PROVIDER_NAME",
                     "value": "gitlab"
                   }
                 ],
@@ -6783,7 +6783,7 @@
                           "key": "name",
                           "operator": "In",
                           "values": [
-                            "kapow"
+                            "kuill"
                           ]
                         }
                       ]
@@ -6829,7 +6829,7 @@
             "startTime": "2017-05-18T00:30:45Z",
             "containerStatuses": [
               {
-                "name": "kapow",
+                "name": "kuill",
                 "state": {
                   "running": {
                     "startedAt": "2017-05-18T00:30:47Z"
@@ -6838,8 +6838,8 @@
                 "lastState": {},
                 "ready": true,
                 "restartCount": 0,
-                "image": "artifactory.example.com/mdeboer/kapow:036",
-                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kapow@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
+                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kuill@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
                 "containerID": "docker://629e4b86daa86017cab357530e9be849c8d787790de3771d7f264534e4a1812f"
               }
             ],
@@ -6848,26 +6848,26 @@
         },
         {
           "metadata": {
-            "name": "kapow-291724782-h36cf",
-            "generateName": "kapow-291724782-",
+            "name": "kuill-291724782-h36cf",
+            "generateName": "kuill-291724782-",
             "namespace": "kube-system",
-            "selfLink": "/api/v1/namespaces/kube-system/pods/kapow-291724782-h36cf",
+            "selfLink": "/api/v1/namespaces/kube-system/pods/kuill-291724782-h36cf",
             "uid": "378e222c-3b61-11e7-a44f-005056a72efa",
             "resourceVersion": "547889",
             "creationTimestamp": "2017-05-18T00:30:38Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "291724782",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
-              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kapow-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547837\"}}\n"
+              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kuill-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547837\"}}\n"
             },
             "ownerReferences": [
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "ReplicaSet",
-                "name": "kapow-291724782",
+                "name": "kuill-291724782",
                 "uid": "378cb574-3b61-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -6886,46 +6886,46 @@
             ],
             "containers": [
               {
-                "name": "kapow",
-                "image": "artifactory.example.com/mdeboer/kapow:036",
+                "name": "kuill",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
                 "ports": [
                   {
-                    "name": "kapow",
+                    "name": "kuill",
                     "containerPort": 8443,
                     "protocol": "TCP"
                   }
                 ],
                 "env": [
                   {
-                    "name": "KAPOW_PUBLIC_URL",
+                    "name": "kuill_PUBLIC_URL",
                     "value": "https://master.vsphere.lab.k8s.example.im:30000"
                   },
                   {
-                    "name": "KAPOW_PORT",
+                    "name": "kuill_PORT",
                     "value": "8443"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER",
+                    "name": "kuill_OIDC_PROVIDER",
                     "value": "https://gitlab.example.com"
                   },
                   {
-                    "name": "KAPOW_VERBOSE",
+                    "name": "kuill_VERBOSE",
                     "value": "true"
                   },
                   {
-                    "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                    "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                     "value": "read_user"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_ID",
+                    "name": "kuill_OIDC_CLIENT_ID",
                     "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_SECRET",
+                    "name": "kuill_OIDC_CLIENT_SECRET",
                     "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER_NAME",
+                    "name": "kuill_OIDC_PROVIDER_NAME",
                     "value": "gitlab"
                   }
                 ],
@@ -6962,7 +6962,7 @@
                           "key": "name",
                           "operator": "In",
                           "values": [
-                            "kapow"
+                            "kuill"
                           ]
                         }
                       ]
@@ -7008,7 +7008,7 @@
             "startTime": "2017-05-18T00:30:41Z",
             "containerStatuses": [
               {
-                "name": "kapow",
+                "name": "kuill",
                 "state": {
                   "running": {
                     "startedAt": "2017-05-18T00:30:43Z"
@@ -7017,8 +7017,8 @@
                 "lastState": {},
                 "ready": true,
                 "restartCount": 0,
-                "image": "artifactory.example.com/mdeboer/kapow:036",
-                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kapow@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
+                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kuill@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
                 "containerID": "docker://ea73a1031cb2c370a9cdc0bac31162313dc9892b3e542c28773775ed39e74561"
               }
             ],
@@ -7027,26 +7027,26 @@
         },
         {
           "metadata": {
-            "name": "kapow-291724782-np53j",
-            "generateName": "kapow-291724782-",
+            "name": "kuill-291724782-np53j",
+            "generateName": "kuill-291724782-",
             "namespace": "kube-system",
-            "selfLink": "/api/v1/namespaces/kube-system/pods/kapow-291724782-np53j",
+            "selfLink": "/api/v1/namespaces/kube-system/pods/kuill-291724782-np53j",
             "uid": "3a59d6c3-3b61-11e7-a44f-005056a72efa",
             "resourceVersion": "1812848",
             "creationTimestamp": "2017-05-18T00:30:43Z",
             "labels": {
-              "name": "kapow",
+              "name": "kuill",
               "pod-template-hash": "291724782",
-              "service": "kapow"
+              "service": "kuill"
             },
             "annotations": {
-              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kapow-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547898\"}}\n"
+              "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"kube-system\",\"name\":\"kuill-291724782\",\"uid\":\"378cb574-3b61-11e7-a44f-005056a72efa\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"547898\"}}\n"
             },
             "ownerReferences": [
               {
                 "apiVersion": "extensions/v1beta1",
                 "kind": "ReplicaSet",
-                "name": "kapow-291724782",
+                "name": "kuill-291724782",
                 "uid": "378cb574-3b61-11e7-a44f-005056a72efa",
                 "controller": true,
                 "blockOwnerDeletion": true
@@ -7065,46 +7065,46 @@
             ],
             "containers": [
               {
-                "name": "kapow",
-                "image": "artifactory.example.com/mdeboer/kapow:036",
+                "name": "kuill",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
                 "ports": [
                   {
-                    "name": "kapow",
+                    "name": "kuill",
                     "containerPort": 8443,
                     "protocol": "TCP"
                   }
                 ],
                 "env": [
                   {
-                    "name": "KAPOW_PUBLIC_URL",
+                    "name": "kuill_PUBLIC_URL",
                     "value": "https://master.vsphere.lab.k8s.example.im:30000"
                   },
                   {
-                    "name": "KAPOW_PORT",
+                    "name": "kuill_PORT",
                     "value": "8443"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER",
+                    "name": "kuill_OIDC_PROVIDER",
                     "value": "https://gitlab.example.com"
                   },
                   {
-                    "name": "KAPOW_VERBOSE",
+                    "name": "kuill_VERBOSE",
                     "value": "true"
                   },
                   {
-                    "name": "KAPOW_OIDC_ADDITIONAL_SCOPES",
+                    "name": "kuill_OIDC_ADDITIONAL_SCOPES",
                     "value": "read_user"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_ID",
+                    "name": "kuill_OIDC_CLIENT_ID",
                     "value": "101a5a86930a05e24698bd0d62d0bc6f911bb44c31886037fc9c01b0668cf2cf"
                   },
                   {
-                    "name": "KAPOW_OIDC_CLIENT_SECRET",
+                    "name": "kuill_OIDC_CLIENT_SECRET",
                     "value": "169d55ad0ace52d1088b4be84a1b9c0cd4222aadbe156d72cade6fe7d786bb7c"
                   },
                   {
-                    "name": "KAPOW_OIDC_PROVIDER_NAME",
+                    "name": "kuill_OIDC_PROVIDER_NAME",
                     "value": "gitlab"
                   }
                 ],
@@ -7141,7 +7141,7 @@
                           "key": "name",
                           "operator": "In",
                           "values": [
-                            "kapow"
+                            "kuill"
                           ]
                         }
                       ]
@@ -7187,7 +7187,7 @@
             "startTime": "2017-05-18T00:31:14Z",
             "containerStatuses": [
               {
-                "name": "kapow",
+                "name": "kuill",
                 "state": {
                   "running": {
                     "startedAt": "2017-05-18T00:31:16Z"
@@ -7196,8 +7196,8 @@
                 "lastState": {},
                 "ready": true,
                 "restartCount": 0,
-                "image": "artifactory.example.com/mdeboer/kapow:036",
-                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kapow@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
+                "image": "artifactory.example.com/mdeboer/kuill:036",
+                "imageID": "docker-pullable://artifactory.example.com/mdeboer/kuill@sha256:a571ee91dab1a49092b9875e365381539cf3d71ca0dddff8b2ac2b7b6ec66311",
                 "containerID": "docker://1bb137faeedd79600048991f4c1ce769bbb4ceff8e9c096dd6cf301e5696f02e"
               }
             ],
@@ -11009,57 +11009,57 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:6299a7b66eb962f924d2f7bf8897d09e042c2c1e71d91dd90cb5572aba792fbe",
-              "registry.example.org/mdeboer/kapow:094"
+              "registry.example.org/mdeboer/kuill@sha256:6299a7b66eb962f924d2f7bf8897d09e042c2c1e71d91dd90cb5572aba792fbe",
+              "registry.example.org/mdeboer/kuill:094"
             ],
             "sizeBytes": 16533598
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:6439fc69e91cf72ad3a1f7c1dd19513828a492bf0df6a8a32bcd6aeac30c799b",
-              "registry.example.org/mdeboer/kapow:096"
+              "registry.example.org/mdeboer/kuill@sha256:6439fc69e91cf72ad3a1f7c1dd19513828a492bf0df6a8a32bcd6aeac30c799b",
+              "registry.example.org/mdeboer/kuill:096"
             ],
             "sizeBytes": 16532606
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:723366c51aacb51d2cd0a2ddc62a988a62555553d6ec6410c8598f0026790afe",
-              "registry.example.org/mdeboer/kapow:083"
+              "registry.example.org/mdeboer/kuill@sha256:723366c51aacb51d2cd0a2ddc62a988a62555553d6ec6410c8598f0026790afe",
+              "registry.example.org/mdeboer/kuill:083"
             ],
             "sizeBytes": 16531902
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:f36b650086cf90fbb7e9a59d4130de4b27f4f1b63f3fbfae43c27e49e4df3a28",
-              "registry.example.org/mdeboer/kapow:079"
+              "registry.example.org/mdeboer/kuill@sha256:f36b650086cf90fbb7e9a59d4130de4b27f4f1b63f3fbfae43c27e49e4df3a28",
+              "registry.example.org/mdeboer/kuill:079"
             ],
             "sizeBytes": 16531774
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:369fbca5dca4b492e2ae5e08e3e16afc7652c15762b2f07d33695bf3a6ec1411",
-              "registry.example.org/mdeboer/kapow:081"
+              "registry.example.org/mdeboer/kuill@sha256:369fbca5dca4b492e2ae5e08e3e16afc7652c15762b2f07d33695bf3a6ec1411",
+              "registry.example.org/mdeboer/kuill:081"
             ],
             "sizeBytes": 16531742
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:ec7e77a2fa20bd777054fee8c491dd3c6dc9b0570639560dfe858e7700539c9c",
-              "registry.example.org/mdeboer/kapow:069"
+              "registry.example.org/mdeboer/kuill@sha256:ec7e77a2fa20bd777054fee8c491dd3c6dc9b0570639560dfe858e7700539c9c",
+              "registry.example.org/mdeboer/kuill:069"
             ],
             "sizeBytes": 15522174
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:54ebb4b27fa988944ffc1817bfc4d59b9362283553967f13e361717c7d4e5c90",
-              "registry.example.org/mdeboer/kapow:067"
+              "registry.example.org/mdeboer/kuill@sha256:54ebb4b27fa988944ffc1817bfc4d59b9362283553967f13e361717c7d4e5c90",
+              "registry.example.org/mdeboer/kuill:067"
             ],
             "sizeBytes": 15516542
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:46ffd2659dcc51a643af6642e72ceefa1760806e4c7622f61f9554a38d3746da",
-              "registry.example.org/mdeboer/kapow:066"
+              "registry.example.org/mdeboer/kuill@sha256:46ffd2659dcc51a643af6642e72ceefa1760806e4c7622f61f9554a38d3746da",
+              "registry.example.org/mdeboer/kuill:066"
             ],
             "sizeBytes": 15474107
           },
@@ -11265,36 +11265,36 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:d1a57cb2ea557b4983fff27efe737892637acea175949729d56e0ca19245d05b",
-              "registry.example.org/mdeboer/kapow:064"
+              "registry.example.org/mdeboer/kuill@sha256:d1a57cb2ea557b4983fff27efe737892637acea175949729d56e0ca19245d05b",
+              "registry.example.org/mdeboer/kuill:064"
             ],
             "sizeBytes": 15478706
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
-              "registry.example.org/mdeboer/kapow:061"
+              "registry.example.org/mdeboer/kuill@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
+              "registry.example.org/mdeboer/kuill:061"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
-              "registry.example.org/mdeboer/kapow:062"
+              "registry.example.org/mdeboer/kuill@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
+              "registry.example.org/mdeboer/kuill:062"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
-              "registry.example.org/mdeboer/kapow:060"
+              "registry.example.org/mdeboer/kuill@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
+              "registry.example.org/mdeboer/kuill:060"
             ],
             "sizeBytes": 15474654
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
-              "registry.example.org/mdeboer/kapow:050"
+              "registry.example.org/mdeboer/kuill@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
+              "registry.example.org/mdeboer/kuill:050"
             ],
             "sizeBytes": 15382238
           },
@@ -11598,8 +11598,8 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:0c6a1a4ab69efa84cf273b88c39f74d055f6b161f5727474c51851874c937334",
-              "registry.example.org/mdeboer/kapow:088"
+              "registry.example.org/mdeboer/kuill@sha256:0c6a1a4ab69efa84cf273b88c39f74d055f6b161f5727474c51851874c937334",
+              "registry.example.org/mdeboer/kuill:088"
             ],
             "sizeBytes": 16532606
           },
@@ -11796,43 +11796,43 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:04647d54864cdb8c4d69b873794412f16faf65fe6c8de91c3e11e007dfb2f78e",
-              "registry.example.org/mdeboer/kapow:065"
+              "registry.example.org/mdeboer/kuill@sha256:04647d54864cdb8c4d69b873794412f16faf65fe6c8de91c3e11e007dfb2f78e",
+              "registry.example.org/mdeboer/kuill:065"
             ],
             "sizeBytes": 15478706
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
-              "registry.example.org/mdeboer/kapow:061"
+              "registry.example.org/mdeboer/kuill@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
+              "registry.example.org/mdeboer/kuill:061"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:543955403d1ec087880dbb288232ccbdf83f9d06d2944eddbe2b3dd38f617136",
-              "registry.example.org/mdeboer/kapow:063"
+              "registry.example.org/mdeboer/kuill@sha256:543955403d1ec087880dbb288232ccbdf83f9d06d2944eddbe2b3dd38f617136",
+              "registry.example.org/mdeboer/kuill:063"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
-              "registry.example.org/mdeboer/kapow:062"
+              "registry.example.org/mdeboer/kuill@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
+              "registry.example.org/mdeboer/kuill:062"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
-              "registry.example.org/mdeboer/kapow:060"
+              "registry.example.org/mdeboer/kuill@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
+              "registry.example.org/mdeboer/kuill:060"
             ],
             "sizeBytes": 15474654
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
-              "registry.example.org/mdeboer/kapow:050"
+              "registry.example.org/mdeboer/kuill@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
+              "registry.example.org/mdeboer/kuill:050"
             ],
             "sizeBytes": 15382238
           },
@@ -12248,57 +12248,57 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:3a61011de6359659a439e31963b2f0e8bfcca2e2548f26dd4462aff69ef059a0",
-              "registry.example.org/mdeboer/kapow:095"
+              "registry.example.org/mdeboer/kuill@sha256:3a61011de6359659a439e31963b2f0e8bfcca2e2548f26dd4462aff69ef059a0",
+              "registry.example.org/mdeboer/kuill:095"
             ],
             "sizeBytes": 16534014
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:6b548600b2e8068cd40395a7913f06a6b4f046e53ce4e737345db7493e6742a4",
-              "registry.example.org/mdeboer/kapow:090"
+              "registry.example.org/mdeboer/kuill@sha256:6b548600b2e8068cd40395a7913f06a6b4f046e53ce4e737345db7493e6742a4",
+              "registry.example.org/mdeboer/kuill:090"
             ],
             "sizeBytes": 16533502
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:4c2c047df1c09cdfd0ff9a18cb5e0810187b21d2a03e328fdd3efeca9253a2d5",
-              "registry.example.org/mdeboer/kapow:092"
+              "registry.example.org/mdeboer/kuill@sha256:4c2c047df1c09cdfd0ff9a18cb5e0810187b21d2a03e328fdd3efeca9253a2d5",
+              "registry.example.org/mdeboer/kuill:092"
             ],
             "sizeBytes": 16533470
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:cc2fcafea646a552f3c6458f0e302d9998ca07d30770ac84d908f90a005ee244",
-              "registry.example.org/mdeboer/kapow:086"
+              "registry.example.org/mdeboer/kuill@sha256:cc2fcafea646a552f3c6458f0e302d9998ca07d30770ac84d908f90a005ee244",
+              "registry.example.org/mdeboer/kuill:086"
             ],
             "sizeBytes": 16532414
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:3881dcb2d20cc6062b62700253bada6dff688e4c55e0a01df900192eb574bcb5",
-              "registry.example.org/mdeboer/kapow:084"
+              "registry.example.org/mdeboer/kuill@sha256:3881dcb2d20cc6062b62700253bada6dff688e4c55e0a01df900192eb574bcb5",
+              "registry.example.org/mdeboer/kuill:084"
             ],
             "sizeBytes": 16532382
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:9ef2969497ae57bfa4626e35872a242c65282d08e57d610d57ed1212dd59a4ee",
-              "registry.example.org/mdeboer/kapow:082"
+              "registry.example.org/mdeboer/kuill@sha256:9ef2969497ae57bfa4626e35872a242c65282d08e57d610d57ed1212dd59a4ee",
+              "registry.example.org/mdeboer/kuill:082"
             ],
             "sizeBytes": 16531902
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:928fb38dfd4763846edeaafcef95c089d63c84563305fc21bf3eccc8911a3f70",
-              "registry.example.org/mdeboer/kapow:077"
+              "registry.example.org/mdeboer/kuill@sha256:928fb38dfd4763846edeaafcef95c089d63c84563305fc21bf3eccc8911a3f70",
+              "registry.example.org/mdeboer/kuill:077"
             ],
             "sizeBytes": 16531742
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:2d15d21539dc8e067dae45f966a6101126bbf5f5e3967911ad224eff8352d8af",
-              "registry.example.org/mdeboer/kapow:075"
+              "registry.example.org/mdeboer/kuill@sha256:2d15d21539dc8e067dae45f966a6101126bbf5f5e3967911ad224eff8352d8af",
+              "registry.example.org/mdeboer/kuill:075"
             ],
             "sizeBytes": 16528414
           }
@@ -12457,29 +12457,29 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
-              "registry.example.org/mdeboer/kapow:062"
+              "registry.example.org/mdeboer/kuill@sha256:b6291153eebdcdb784443b041196454f6a32654d83b01a19be5f39324bffd760",
+              "registry.example.org/mdeboer/kuill:062"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
-              "registry.example.org/mdeboer/kapow:061"
+              "registry.example.org/mdeboer/kuill@sha256:97e8439536ee16c3559ec168cd64ae83ba6fdc8c0003b5681bab0969ed034efe",
+              "registry.example.org/mdeboer/kuill:061"
             ],
             "sizeBytes": 15478686
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
-              "registry.example.org/mdeboer/kapow:060"
+              "registry.example.org/mdeboer/kuill@sha256:46c0b93dcbbbcd3525d213a2e1ef8483b5fa47c924b8d26a128526a053775d6e",
+              "registry.example.org/mdeboer/kuill:060"
             ],
             "sizeBytes": 15474654
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
-              "registry.example.org/mdeboer/kapow:050"
+              "registry.example.org/mdeboer/kuill@sha256:4e340c17697b95acf15cca85e2b68af32bb469c10c501ef3c065508e14684147",
+              "registry.example.org/mdeboer/kuill:050"
             ],
             "sizeBytes": 15382238
           },
@@ -12821,134 +12821,134 @@
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:36208f2cc6e8a5558da068065272d7c331fea36f4ca03b7ce502022d429a3cc0",
-              "registry.example.org/mdeboer/kapow:091"
+              "registry.example.org/mdeboer/kuill@sha256:36208f2cc6e8a5558da068065272d7c331fea36f4ca03b7ce502022d429a3cc0",
+              "registry.example.org/mdeboer/kuill:091"
             ],
             "sizeBytes": 16533566
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:72e84fd2cb97a3f7b51a3029d5f4be416ea0c403220ee20c42b8d5c71873dead",
-              "registry.example.org/mdeboer/kapow:093"
+              "registry.example.org/mdeboer/kuill@sha256:72e84fd2cb97a3f7b51a3029d5f4be416ea0c403220ee20c42b8d5c71873dead",
+              "registry.example.org/mdeboer/kuill:093"
             ],
             "sizeBytes": 16533566
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:6439fc69e91cf72ad3a1f7c1dd19513828a492bf0df6a8a32bcd6aeac30c799b",
-              "registry.example.org/mdeboer/kapow:096"
+              "registry.example.org/mdeboer/kuill@sha256:6439fc69e91cf72ad3a1f7c1dd19513828a492bf0df6a8a32bcd6aeac30c799b",
+              "registry.example.org/mdeboer/kuill:096"
             ],
             "sizeBytes": 16532606
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:dc4e30cdd4a4801de437b4fe9d14efc0caa4fa769dee13c554c0a3dc46f141c4",
-              "registry.example.org/mdeboer/kapow:087"
+              "registry.example.org/mdeboer/kuill@sha256:dc4e30cdd4a4801de437b4fe9d14efc0caa4fa769dee13c554c0a3dc46f141c4",
+              "registry.example.org/mdeboer/kuill:087"
             ],
             "sizeBytes": 16532542
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:0f742fcbfece212481f0528e167bf0ef13c3f99bf18d698d6defa02a31a6ea93",
-              "registry.example.org/mdeboer/kapow:085"
+              "registry.example.org/mdeboer/kuill@sha256:0f742fcbfece212481f0528e167bf0ef13c3f99bf18d698d6defa02a31a6ea93",
+              "registry.example.org/mdeboer/kuill:085"
             ],
             "sizeBytes": 16532414
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:a2df160a6ab37fe00bd5c4627d4280666b41fd310abc0c7a5189aca4f9ec8d3e",
-              "registry.example.org/mdeboer/kapow:078"
+              "registry.example.org/mdeboer/kuill@sha256:a2df160a6ab37fe00bd5c4627d4280666b41fd310abc0c7a5189aca4f9ec8d3e",
+              "registry.example.org/mdeboer/kuill:078"
             ],
             "sizeBytes": 16531806
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:4d2bd1097bbbf22cb35959d9ad5e8490027609fc452edce77825e88f941e443f",
-              "registry.example.org/mdeboer/kapow:080"
+              "registry.example.org/mdeboer/kuill@sha256:4d2bd1097bbbf22cb35959d9ad5e8490027609fc452edce77825e88f941e443f",
+              "registry.example.org/mdeboer/kuill:080"
             ],
             "sizeBytes": 16531742
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:9612f2faf817eaddbf089f9fcd9c2f57cb268ddb83594418ff957ba08bc735e8",
-              "registry.example.org/mdeboer/kapow:074"
+              "registry.example.org/mdeboer/kuill@sha256:9612f2faf817eaddbf089f9fcd9c2f57cb268ddb83594418ff957ba08bc735e8",
+              "registry.example.org/mdeboer/kuill:074"
             ],
             "sizeBytes": 16528382
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:96cc6ad0e3f75662c1421f24bfd82d9892061e8d00cfc716d251db7feb6d593f",
-              "registry.example.org/mdeboer/kapow:076"
+              "registry.example.org/mdeboer/kuill@sha256:96cc6ad0e3f75662c1421f24bfd82d9892061e8d00cfc716d251db7feb6d593f",
+              "registry.example.org/mdeboer/kuill:076"
             ],
             "sizeBytes": 16528350
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:b6b0c1bcd44013eab9302e0dc6fe27c5550d044bed47f2930008ea965a4554be",
-              "registry.example.org/mdeboer/kapow:072"
+              "registry.example.org/mdeboer/kuill@sha256:b6b0c1bcd44013eab9302e0dc6fe27c5550d044bed47f2930008ea965a4554be",
+              "registry.example.org/mdeboer/kuill:072"
             ],
             "sizeBytes": 16528222
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:0a0a034159574afab2bc1f773aa36a27de24f925b2c55b81534dad574a2c0c7a",
-              "registry.example.org/mdeboer/kapow:070"
+              "registry.example.org/mdeboer/kuill@sha256:0a0a034159574afab2bc1f773aa36a27de24f925b2c55b81534dad574a2c0c7a",
+              "registry.example.org/mdeboer/kuill:070"
             ],
             "sizeBytes": 16527966
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:fe8efa1c6537da270a951e37a48497a276251c453fde075b9a01e2cb4c764fd3",
-              "registry.example.org/mdeboer/kapow:102"
+              "registry.example.org/mdeboer/kuill@sha256:fe8efa1c6537da270a951e37a48497a276251c453fde075b9a01e2cb4c764fd3",
+              "registry.example.org/mdeboer/kuill:102"
             ],
             "sizeBytes": 15881694
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:72b63d278c6f7fab88003e83361dc3c47160983de0b12ce319081ffe35087aac",
-              "registry.example.org/mdeboer/kapow:100"
+              "registry.example.org/mdeboer/kuill@sha256:72b63d278c6f7fab88003e83361dc3c47160983de0b12ce319081ffe35087aac",
+              "registry.example.org/mdeboer/kuill:100"
             ],
             "sizeBytes": 15881054
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:08faa2c1c9b5c2aab81add2064dd0dd296a65c3205f0c6e58c213f97329677b3",
-              "registry.example.org/mdeboer/kapow:104"
+              "registry.example.org/mdeboer/kuill@sha256:08faa2c1c9b5c2aab81add2064dd0dd296a65c3205f0c6e58c213f97329677b3",
+              "registry.example.org/mdeboer/kuill:104"
             ],
             "sizeBytes": 15880318
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:33ece2a415d19952f5726df4c4756838a2c10ae5a2e1edf05acaa2e06da67812",
-              "registry.example.org/mdeboer/kapow:098"
+              "registry.example.org/mdeboer/kuill@sha256:33ece2a415d19952f5726df4c4756838a2c10ae5a2e1edf05acaa2e06da67812",
+              "registry.example.org/mdeboer/kuill:098"
             ],
             "sizeBytes": 15834558
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:628dad3bbd2a8ffa83307923cc9c3da62a54d43448dc04318ada5a64480a0276",
-              "registry.example.org/mdeboer/kapow:120"
+              "registry.example.org/mdeboer/kuill@sha256:628dad3bbd2a8ffa83307923cc9c3da62a54d43448dc04318ada5a64480a0276",
+              "registry.example.org/mdeboer/kuill:120"
             ],
             "sizeBytes": 15744350
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:043d08f962a5b6ff96ef63f5c156869f8babd98cea46028500df47a224d0d361",
-              "registry.example.org/mdeboer/kapow:118"
+              "registry.example.org/mdeboer/kuill@sha256:043d08f962a5b6ff96ef63f5c156869f8babd98cea46028500df47a224d0d361",
+              "registry.example.org/mdeboer/kuill:118"
             ],
             "sizeBytes": 15743838
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:0abddd1cb14609804a88c9318d4690e470a3bb56706e8c95d4705a0bffe816e3",
-              "registry.example.org/mdeboer/kapow:115"
+              "registry.example.org/mdeboer/kuill@sha256:0abddd1cb14609804a88c9318d4690e470a3bb56706e8c95d4705a0bffe816e3",
+              "registry.example.org/mdeboer/kuill:115"
             ],
             "sizeBytes": 15741854
           },
           {
             "names": [
-              "registry.example.org/mdeboer/kapow@sha256:cf269676a7ca612569b7ba40f75a1c73d7ce4990bc21630e66a2fde397995756",
-              "registry.example.org/mdeboer/kapow:108"
+              "registry.example.org/mdeboer/kuill@sha256:cf269676a7ca612569b7ba40f75a1c73d7ce4990bc21630e66a2fde397995756",
+              "registry.example.org/mdeboer/kuill:108"
             ],
             "sizeBytes": 15739710
           }

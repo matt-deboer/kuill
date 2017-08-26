@@ -19,12 +19,12 @@ install:
 - dep ensure
 script:
 - make release
-- upx bin/kapow
+- upx bin/kuill
 - make docker
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
-- export REPO=mattdeboer/kapow
+- export REPO=mattdeboer/kuill
 - docker push $REPO:$TRAVIS_TAG
 - docker tag $REPO:$TRAVIS_TAG $REPO:latest
 - docker push $REPO:latest
@@ -37,7 +37,7 @@ deploy:
   skip_cleanup: true
   api_key:
     secure: lq0mEuK2HbH6AvF5IiJFvrwbODcCa4XRATMmiGGNUgxteZxe/ez2HxxOk1p6XclR4DePVe9eSK+Qf+q6MJgw1eyYgpVz6HnVaoOekZmuc64P3Ro1jpwKJR1EvrbDtpJLWcT96Yixy6zC7Ez1BwqQsSWRYSecwK0q2XTfdYgV/Lt/rh0p6L0abRctvHuNe+Fxazp2+cRzKI/sCJJTB5X3jaG2hSAnQOkEwUF2P0+68t7S75C9tLYNmEuK1zDQDoq0DN1VDRAcgCxKA4jeq2ebcCjEDUOP/l1TeCX0loEUVA7IMyFRDSe1wfcQPWjMjKxSbqNowg6UTR1TcO0vUE/1wY0ZbXFbyyiQ9pijT25IqwH1LPRmZE9CUjfEdVirAxthiCXI5bHgVd6lWqkuXWU2hdHBFc9c6tq7/TDn2s/1JihaIeH4I8C3/xkQfLD3ZYjJEKSIya0gU3KgGaTqk5ekaq2AXjkfvtXVA9CbjXSHkci6qweCfcT+npk11Q1bnfvmX3UjUmn0GJlp27T61NE5iLz6TRCTpYsWQZTLMNS9aVHTUtS5YdaCVLyg9nAGvXF04f1MIYp+oBAvxyQuDLuPDVB4NSpYzWMyuX0AocWs3h4aOdTil7I5Zne8vBosBs3UJoeZxmRx+slEeTa38uwvMHVhg2ELhXwaLsnjklacK+U=
-  file: bin/kapow
+  file: bin/kuill
   on:
-    repo: matt-deboer/kapow
+    repo: matt-deboer/kuill
     tags: true
