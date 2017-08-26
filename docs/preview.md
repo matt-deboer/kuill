@@ -1,20 +1,20 @@
 ## Login
 ![Login](./login.png)
 
-## Overview
+## Overview with Summaries for Errors, Events, and Resource Usage
 ![Overview](./overview.png)
 
-## Workloads
+## Filtered Workloads view
 ![Workloads](./workloads.png)
 
-## Nodes
+## Filtered Nodes View with Heatmap
 ![Nodes](./nodes.mov.gif)
 
 ## Resource
 ![Resource](./resource.png)
 
-## Resource
+## Multi-container Log Tailing
 ![Logs](./logs.png)
 
-## Terminal
+## Interactive Terminal
 ![Terminal](./terminal.mov.gif)
