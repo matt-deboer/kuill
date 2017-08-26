@@ -10,6 +10,7 @@ import ClusterResourceTab from './ClusterResourceTab'
 import StorageClassesTab from './StorageClassesTab'
 import ResourceQuotasTab from './ResourceQuotasTab'
 import NamespacesTab from './NamespacesTab'
+import queryString from 'query-string'
 import './ClusterPage.css'
 
 const styles = {
@@ -87,6 +88,9 @@ class ClusterPage extends React.Component {
 
   render() {
 
+    let query = queryString.parse(this.props.location.search)
+    let activeTab = query && query.view || 'nodes'
+
     return (
     <div>
         <Tabs
@@ -94,7 +98,7 @@ class ClusterPage extends React.Component {
           tabItemContainerStyle={styles.tabs}
           contentContainerStyle={{overflow: 'hidden'}}
           inkBarStyle={styles.tabsInkBar}
-          value={(this.props.location.search || 'nodes').replace('?view=','')}
+          value={activeTab}
           >
           {this.tabs.map(tab => 
             <Tab label={tab.label} key={tab.name} value={tab.name} onActive={this.props.selectView.bind(this, tab.name)}>
