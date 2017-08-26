@@ -7,24 +7,21 @@
 
 A new UI for kubernetes.
 
-Motivation
+Goal
 ---
 
-To create a Kubernetes UI experience capable of integrating with popular enterprise authentication mechanisms,
-and provide a focused but functional introduction to Kubernetes that prioritizes developer onboarding speed.
+To provide an open source Kubernetes UI experience capable of integrating with popular enterprise authentication mechanisms,
+and providing a focused but functional introduction to Kubernetes that prioritizes developer onboarding speed.
 
 ### Why create another dashboard?
 
-Other than gaining more experience in Golang and React, and learning a lot about kubernetes itself, it seemed worthwhile to have a dashboard that supports user authentication though the browser, and executes all actions **as** the authenticated user (as opposed to executing them as a privileged service account).
-
-See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the vulnerabilities introduced by running the existing dashboard in a multi-tenant environment.
+Other than gaining more experience in Golang and React, and learning a lot about kubernetes itself, there is value in a dashboard that supports user authentication though the browser--executing all actions **as** the authenticated user (as opposed to executing them under a privileged service account). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the vulnerabilities introduced by running the existing dashboard in a multi-tenant environment.
 
 ### What makes kuill different?
 
-Other than the purely cosmetic differences, **kuill** acts as an authenticating proxy, sending every request using the identity of the authenticated user; this means that a user of kuill has the same privileges** they would have using `kubectl` in their shell.
+Other than the purely cosmetic differences, **kuill** integrates with the most common modern enterprise authentication mechanisms (OpenID+Connect and SAML2), and acts as an authenticating proxy to Kubernetes--sending every request using the identity of the authenticated user; this means that a user of kuill has the same privileges** as they would have using `kubectl`.
 
-** _There is a service account which grants kuill access to proxy requests to nodes in order to access their status summary details_
-
+** _There is a service account which grants kuill access to proxy requests to nodes in order to access their status summary endpoints_
 
 Setup
 ---
@@ -126,23 +123,19 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
 Developing
 ---
 
-You can run a local development version of the dashboard using:
-```
-make dev-ui
-```
-The mock API responses are stored in the file `pkg/ui/test-proxy/data.json`; there are some requests
-sill missing a mock response--just add a key to the json object matching the path of the request, and
-fill in the JSON response as the value.
-_Mocks for the web-socket APIs and POST/PUT/DELETE methods are not yet supported._
+Run `make minidev` locally to:
 
+1. Spin up (if not already started) a `minikube` setup similar to the test-drive script above.
+1. Start a local HMR web dev environment
+
+Code away--PR's welcome!
 
 ---
 
 Roadmap:
 ---
 
-
-### 1.0 Release
+### 1.0 Release (no date yet)
 
 - [ ] General:
   - [ ] Create e2e tests for the most basic features
@@ -150,10 +143,13 @@ Roadmap:
   - [ ] Test on GKE deployments--can we even have an authenticating proxy configured?
   - [x] Come up with a better name ! (kuill)
   - [ ] Support for Third Party Resources / Custom Resource Definitions
+  - [ ] Create/Edit validation for all resources
+  - [ ] Provide better hints/tool-tips to explain what functions are available, and what they mean
 
 - [ ] Overview/Homepage:
   - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
-  - [ ] Provide better hints/tool-tips to explain what functions are available, and what they mean
+  - [ ] Integrate resource quotas into cluster resource stats
+  - [ ] Handling for large numbers of namespaces
 
 - [ ] Workloads:
   - [ ] Provide validation of resource creation/modification
