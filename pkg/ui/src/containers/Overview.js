@@ -42,6 +42,7 @@ const mapStateToProps = function(store) {
     namespaceMetrics: store.metrics.namespace,
     selectedNamespaces: store.usersettings.selectedNamespaces,
     metricsRevision: store.metrics.revision,
+    quotasByNamespace: store.cluster.quotasByNamespace,
   }
 }
 
@@ -130,8 +131,9 @@ class Overview extends React.Component {
       }
     }
 
-    let { namespaceMetrics, clusterMetrics, selectedNamespaces, countsByNamespace } = this.props
-    let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, countsByNamespace)
+    let { namespaceMetrics, clusterMetrics, selectedNamespaces, quotasByNamespace } = this.props
+
+    let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, quotasByNamespace)
 
     // nm.summary.netTx.usage += p.network.txBytes
     // nm.summary.netTx.duration += duration
@@ -155,7 +157,11 @@ class Overview extends React.Component {
                       color={blueA700}
                       title="cpu"
                       usage={stats.cpu.usage}
+                      limitsUsage={stats.cpu.limitsUsage}
+                      requestsUsage={stats.cpu.requestsUsage}
                       total={stats.cpu.total}
+                      limitsTotal={stats.cpu.limitsTotal}
+                      requestsTotal={stats.cpu.requestsTotal}
                       units={stats.cpu.units}
               />
             </div>
@@ -164,7 +170,11 @@ class Overview extends React.Component {
                       color={blueA200}
                       title="mem"
                       usage={stats.memory.usage}
+                      limitsUsage={stats.memory.limitsUsage}
+                      requestsUsage={stats.memory.requestsUsage}
                       total={stats.memory.total}
+                      limitsTotal={stats.memory.limitsTotal}
+                      requestsTotal={stats.memory.requestsTotal}
                       units={stats.memory.units}
               />
             </div>
