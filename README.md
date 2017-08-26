@@ -1,5 +1,5 @@
 
-![](./docs/kuill.png)
+![](./docs/logo.png)
 ===
 
 [![Build Status](https://travis-ci.org/matt-deboer/kuill.svg?branch=master)](https://travis-ci.org/matt-deboer/kuill)
