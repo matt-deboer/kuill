@@ -1,6 +1,6 @@
 import React from 'react'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
+import {blueA400, grey200, grey300, grey500, grey600, blueA100, white, red900 } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
@@ -12,9 +12,12 @@ import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
+import IconButton from 'material-ui/IconButton'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
+import IconDelete from 'material-ui/svg-icons/action/delete'
+import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
@@ -23,8 +26,6 @@ import { arraysEqual } from '../../comparators'
 import { resourceStatus as resourceStatusIcons } from '../icons'
 import { compareStatuses } from '../../utils/resource-utils'
 import { hostnameLabel } from '../../utils/filter-utils'
-// import BrowserUsage from './dashboard/BrowserUsage'
-// import Data from '../data'
 import KubeKinds from '../../kube-kinds'
 import './ClusterResourceTab.css'
 
@@ -39,12 +40,12 @@ const mapStateToProps = function(store) {
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
+    removeResource: function(...resources) {
+      dispatch(removeResource(...resources))
+    },
     viewResource: function(resource, view='config') {
       dispatch(routerActions.push(linkForResource(resource,view)))
     },
-    removeResource: function(...resources) {
-      dispatch(removeResource(...resources))
-    }
   } 
 }
 
@@ -99,6 +100,7 @@ const styles = {
     border: '1px solid #000',
     borderRadius: '3px',
     boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
+    display: 'flex',
   },
   paper: {
     padding: 15,
@@ -115,12 +117,67 @@ const styles = {
     marginTop: -4,
     borderTop: `1px ${blueA100} solid`,
   },
+  actionContainer: {
+    position: 'relative',
+    display: 'inline-block',
+    float: 'left',
+  },
+  actionLabel: {
+    position: 'absolute',
+    bottom: 0,
+    textAlign: 'center',
+    width: '100%',
+    color: white,
+    fontSize: 10,
+    zIndex: 100,
+    pointerEvents: 'none',
+  },
+  actionButton: {
+    backgroundColor: 'transparent',
+    marginTop: 4,
+    marginBottom: 4,
+    color: grey200,
+    fontSize: 18,
+    fontWeight: 600,
+  },
+  actionButtonLabel: {
+    textTransform: 'none',
+    color: grey300,
+  },
+  actionIcon: {
+    color: white,
+    marginTop: -4,
+  },
+  actionHoverStyle: {
+    backgroundColor: '#999',
+  },
 }
+
+const defaultColumns = [
+  {
+    id: 'name',
+    label: 'name',
+    sortable: true,
+    headerStyle: styles.header,
+    style: { ...styles.cell,
+      paddingLeft: 20,
+    },
+  },
+  {
+    id: 'modified',
+    label: 'modified',
+    sortable: true,
+    headerStyle: styles.header,
+    style: { ...styles.cell,
+      width: 90,
+    }
+  },
+]
 
 // use functional component style for representational components
 export default sizeMe({ monitorWidth: true }) (
-withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class NodesTab extends React.Component {
+connect(mapStateToProps, mapDispatchToProps) (
+class ClusterResourceTab extends React.Component {
 
   constructor(props) {
     super(props);
@@ -129,52 +186,45 @@ class NodesTab extends React.Component {
       hoveredRow: -1,
       hoveredResources: null,
     }
+
     this.selectedIds = {}
-    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === props.kind && !v.isFiltered)
-    this.resources = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === props.kind)
-    this.columns = [
-      {
-        id: 'status',
-        label: 'status',
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: 48,
-          verticalAlign: 'middle',
-          paddingLeft: 15,
-        },
-        sortable: true,
-        comparator: compareStatuses,
-      },
-      {
-        id: 'name',
-        label: 'name',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          paddingLeft: 20,
-        },
-      },
-      {
-        id: 'age',
-        label: 'age',
-        sortable: true,
-        headerStyle: styles.header,
-        style: { ...styles.cell,
-          width: 90,
-        }
-      },
-      {
-        id: 'pad_right',
-        label: '',
-        headerStyle: {...styles.header,
-          color: 'transparent',
-          pointerEvents: 'none',
-        },
-        style: { ...styles.cell,
-          width: 16,
-        },
-      },
-    ]
+    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === props.kind)
+    this.columns = props.columns || defaultColumns
+    let lastColumn = this.columns[this.columns.length - 1]
+    
+    if (lastColumn.id !== 'pad_right' && lastColumn.id !== 'actions') {
+      if (props.deletable || props.editable) {
+        this.columns.push({
+          id: 'actions',
+          label: 'actions ',
+          headerStyle: styles.header,
+          style: { ...styles.cell,
+            width: 75,
+            lineHeight: '0px',
+          },
+          className: 'resource-actions',
+        })
+      } else {
+        this.columns.push({
+          id: 'pad_right',
+          label: '',
+          headerStyle: {...styles.header,
+            color: 'transparent',
+            pointerEvents: 'none',
+          },
+          style: { ...styles.cell,
+            width: 16,
+          },
+        })
+      }
+    }
+    this.columnsById = {}
+    for (let col of this.columns) {
+      this.columnsById[col.id] = col
+    }
+    for (let fn of ['renderCell', 'getCellValue']) {
+      this[fn] = this[fn].bind(this)
+    }
   }
 
   resourcesToRows = (resources) => {
@@ -207,10 +257,11 @@ class NodesTab extends React.Component {
   handleCellClick = (rowId, colId, resource, col) => {
     this.actionsClicked = false
     if (col.id === 'actions') {
-      let trs = document.getElementsByClassName('cluster filter-table')[1].children[0].children
+      let trs = document.getElementsByClassName('filter-table ' + this.props.kind.toLowerCase())[1].children[0].children
+      let anchor = trs[rowId].children[colId]
       this.setState({
         actionsOpen: true,
-        actionsAnchor: trs[rowId].children[colId+1],
+        actionsAnchor: anchor,
         hoveredRow: rowId,
         hoveredResource: resource,
       })
@@ -233,50 +284,36 @@ class NodesTab extends React.Component {
     }
   }
 
-  componentWillUpdate = () => {
-    setTimeout(() => {
-      Perf.start()
-    }, 0)
-  }
+  // componentWillUpdate = () => {
+  //   setTimeout(() => {
+  //     Perf.start()
+  //   }, 0)
+  // }
 
-  componentDidUpdate = () => {
-    Perf.stop()
-    let m = Perf.getLastMeasurements()
-    Perf.printWasted(m)
-  }
+  // componentDidUpdate = () => {
+  //   Perf.stop()
+  //   let m = Perf.getLastMeasurements()
+  //   Perf.printWasted(m)
+  // }
 
   componentWillReceiveProps = (nextProps) => {
-    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === nextProps.kind && !v.isFiltered)
-    this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === nextProps.kind)
+    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === nextProps.kind)
   }
 
-  renderCell = (column, row) => {
-    switch(column) {
-      case 'name':
-        return row.metadata.name
-      case 'age':
-        let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
-        return moment.duration(age).humanize()
-      case 'status':
-        return resourceStatusIcons[row.statusSummary]
-      default:
-        return ''
+  renderCell = (columnId, row) => {
+    if (columnId === 'actions') {
+      return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
     }
+    let column = this.columnsById[columnId]
+    return column.render ? column.render(row) : this.getCellValue(columnId, row)
   }
 
-  getCellValue = (column, row) => {
-    switch(column) {
-      case 'id':
-        return row.key
-      case 'name':
-        return row.metadata.name
-      case 'age':
-        return row.metadata.creationTimestamp
-      case 'status':
-        return row.statusSummary
-      default:
-        return ''
+  getCellValue = (columnId, row) => {
+    if (columnId === 'id') {
+      return row.key
     }
+    let column = this.columnsById[columnId]
+    return column.value ? column.value(row) : ''
   }
 
   render() {
@@ -286,7 +323,7 @@ class NodesTab extends React.Component {
       <Paper style={styles.paper}>
 
         <FilterTable
-          className={'cluster-resource'}
+          className={this.props.kind.toLowerCase()}
           columns={this.columns}
           data={this.rows}
           height={'calc(100vh - 230px)'}
@@ -304,28 +341,70 @@ class NodesTab extends React.Component {
           headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: white}}
           />
 
-        {this.state.hoveredResource &&
-        <Popover
-          className="actions-popover"
-          style={styles.popover}
-          open={this.state.actionsOpen}
-          anchorEl={this.state.actionsAnchor}
-          onRequestClose={this.handleActionsRequestClose}
-          zDepth={0}
-          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'left', vertical: 'top'}}
-        >
-
-          {/* TODO: need to check whether this resource can actually be edited by the user */}
-          <FloatingActionButton mini={true} style={styles.miniButton}
-            onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-            data-rh="Edit...">
-            <IconEdit/>
-          </FloatingActionButton >
-        </Popover>
-        }
-       
+          {this.state.hoveredResource &&
+            <Popover
+              className="actions-popover"
+              style={styles.popover}
+              open={this.state.actionsOpen}
+              anchorEl={this.state.actionsAnchor}
+              onRequestClose={this.handleActionsRequestClose}
+              zDepth={0}
+              anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+              targetOrigin={{horizontal: 'left', vertical: 'top'}}
+            >
+              {props.editable &&
+              <div style={styles.actionContainer}>
+                <div style={styles.actionLabel}>edit</div>
+                <IconButton
+                  onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
+                  style={styles.actionButton}
+                  hoveredStyle={styles.actionHoverStyle}
+                  iconStyle={styles.actionIcon}
+                  >
+                  <IconEdit/>
+                </IconButton>
+              </div>
+              }
+    
+              {props.deletable &&
+              <div style={styles.actionContainer}>
+                <div style={styles.actionLabel}>delete</div>
+                <IconButton
+                  onTouchTap={()=>{ this.handleDelete(this.state.hoveredResources)} }
+                  style={styles.actionButton}
+                  hoveredStyle={styles.actionHoverStyle}
+                  iconStyle={styles.actionIcon}
+                  >
+                  <IconDelete/>
+                </IconButton>
+              </div>
+              }
+    
+            </Popover>
+          }
       </Paper>
     )
   }
-})))
+}))
+
+class MultiResourceActionButton extends React.Component {
+  
+  constructor(props) {
+    super(props);
+    this.state = {
+      disabled: props.disabled,
+    }
+  }
+
+  setDisabled = (disabled) => {
+    this.setState({disabled: disabled})
+  }
+
+  render() {
+    let { props } = this
+    return <FloatingActionButton {...props} disabled={this.state.disabled}>
+       {props.children}
+      </FloatingActionButton>
+  }
+
+}
