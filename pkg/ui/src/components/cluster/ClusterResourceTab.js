@@ -1,20 +1,14 @@
 import React from 'react'
-import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey200, grey300, grey500, grey600, blueA100, white, red900 } from 'material-ui/styles/colors'
+import {blueA400, grey200, grey300, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
+import { removeResource } from '../../state/actions/cluster'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
-import * as moment from 'moment'
 
-import ChipInput from 'material-ui-chip-input'
-import Chip from 'material-ui/Chip'
-import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
 import IconButton from 'material-ui/IconButton'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
+
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
@@ -22,14 +16,7 @@ import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
-import { arraysEqual } from '../../comparators'
-import { resourceStatus as resourceStatusIcons } from '../icons'
-import { compareStatuses } from '../../utils/resource-utils'
-import { hostnameLabel } from '../../utils/filter-utils'
-import KubeKinds from '../../kube-kinds'
 import './ClusterResourceTab.css'
-
-import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
@@ -284,18 +271,6 @@ class ClusterResourceTab extends React.Component {
     }
   }
 
-  // componentWillUpdate = () => {
-  //   setTimeout(() => {
-  //     Perf.start()
-  //   }, 0)
-  // }
-
-  // componentDidUpdate = () => {
-  //   Perf.stop()
-  //   let m = Perf.getLastMeasurements()
-  //   Perf.printWasted(m)
-  // }
-
   componentWillReceiveProps = (nextProps) => {
     this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === nextProps.kind)
   }
@@ -386,25 +361,3 @@ class ClusterResourceTab extends React.Component {
     )
   }
 }))
-
-class MultiResourceActionButton extends React.Component {
-  
-  constructor(props) {
-    super(props);
-    this.state = {
-      disabled: props.disabled,
-    }
-  }
-
-  setDisabled = (disabled) => {
-    this.setState({disabled: disabled})
-  }
-
-  render() {
-    let { props } = this
-    return <FloatingActionButton {...props} disabled={this.state.disabled}>
-       {props.children}
-      </FloatingActionButton>
-  }
-
-}
