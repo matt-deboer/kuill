@@ -148,7 +148,7 @@ Roadmap:
   - [ ] Create e2e tests for the most basic features
   - [ ] Working minikube example deployment/guide
   - [ ] Test on GKE deployments--can we even have an authenticating proxy configured?
-  - [ ] Come up with a better name ! (kuill)
+  - [x] Come up with a better name ! (kuill)
   - [ ] Support for Third Party Resources / Custom Resource Definitions
 
 - [ ] Overview/Homepage:
@@ -162,7 +162,7 @@ Roadmap:
   - [ ] Provide utilization metrics with pods/deployments/etc., and corresponding summaries by selection
 
 - [ ] Cluster:
-  - [ ] Use tabs for PersistentVolumes, StorageClasses, TPRs(CustomResources)
+  - [x] Use tabs for PersistentVolumes, StorageClasses, TPRs(CustomResources)
 
 - [ ] Access Controls:
   - [ ] Update styles to be consistent with Workloads/Cluster
