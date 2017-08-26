@@ -16,6 +16,6 @@ items:
     hard:
       pods: "4"
       requests.cpu: "0.4"
-      requests.memory: 200Ki
+      requests.memory: 200Mi
       limits.cpu: "0.5"
-      limits.memory: 300Ki
+      limits.memory: 300Mi
