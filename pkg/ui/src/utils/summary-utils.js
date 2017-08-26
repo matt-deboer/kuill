@@ -1,4 +1,14 @@
+import { convertUnits } from '../converters'
 
+
+/**
+ * Computes the totals for all resource kinds in the selected namespaces;
+ * if selectedNamespaces is empty, the counts for all (visible) kinds
+ * is computed.
+ * 
+ * @param {*} resources 
+ * @param {*} selectedNamespaces 
+ */
 export function calculateTotals(resources, selectedNamespaces) {
   let countsByKind = {}
   let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
@@ -38,13 +48,17 @@ const statUnits = {
   },
 }
 
-export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, allNamespaces) {
+export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, resourceQuotas) {
   
   let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
   
   const stats = {
     cpu: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
@@ -52,6 +66,10 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     },
     memory: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
@@ -59,6 +77,10 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     },
     disk: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
@@ -66,12 +88,20 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     },
     volumes: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
     },
     netRx: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
@@ -79,11 +109,26 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     },
     netTx: {
       usage: 0,
+      requestsUsage: 0,
+      limitsUsage: 0,
+      requestsTotal: 0,
+      limitsTotal: 0,
       total: 0,
       units: '',
       ratio: 0,
       shareTotal: true,
     },
+  }
+
+  if (!!resourceQuotas) {
+    for (let ns in resourceQuotas) {
+      if (ns in selectedNamespaces) {
+        let q = resourceQuotas[ns]
+        for (let s in stats) {
+          applyQuota(stats, s, q)
+        }
+      }
+    }
   }
 
   if (!!namespaceMetrics) {
@@ -106,10 +151,14 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     let statUnit = statUnits[s]
     if ('targetUnit' in statUnit) {
       if (statUnit.targetUnit.includes('/')) {
-        stat.ratio = convert(stat.ratio, statUnit.baseUnit, statUnit.targetUnit)
+        stat.ratio = convertUnits(stat.ratio, statUnit.baseUnit, statUnit.targetUnit)
       } else {
-        stat.usage = convert(stat.usage, statUnit.baseUnit, statUnit.targetUnit)
-        stat.total = convert(stat.total, statUnit.baseUnit, statUnit.targetUnit)
+        stat.usage = convertUnits(stat.usage, statUnit.baseUnit, statUnit.targetUnit)
+        stat.total = convertUnits(stat.total, statUnit.baseUnit, statUnit.targetUnit)
+        stat.requestsUsage = convertUnits(stat.requestsUsage, statUnit.baseUnit, statUnit.targetUnit)
+        stat.requestsTotal = convertUnits(stat.requestsTotal, statUnit.baseUnit, statUnit.targetUnit)
+        stat.limitsUsage = convertUnits(stat.limitsUsage, statUnit.baseUnit, statUnit.targetUnit)
+        stat.limitsTotal = convertUnits(stat.limitsTotal, statUnit.baseUnit, statUnit.targetUnit)
       }
       stat.units = statUnit.targetUnit
     }
@@ -128,53 +177,16 @@ function accumulateStats(stats, stat, m) {
   }
 }
 
-function convert(value, baseUnit, targetUnit) {
-  let base = baseUnit.split('/')
-  let target = targetUnit.split('/')
-  
-  if (base.length !== target.length) {
-    return value
-  } else {
-    let v = value
-    for (let i=0; i < base.length; ++i) {
-      let bu = base[i]
-      let tu = target[i]
-      if (bu !== tu) {
-        switch (bu) {
-          case "bytes":
-            switch (tu) {
-              case "kibibytes":
-                v = v / 1024
-                break
-              case "mebibytes":
-                v = v / ( 1024 * 1024 )
-                break
-              case "gibibytes":
-                v = v / ( 1024 * 1024 * 1024 )
-                break
-              default:
-            }
-            break
-          case "cores":
-            switch (tu) {
-              case "millicores":
-                v = v * 1000
-                break
-              default:
-            }
-            break
-          case "millicores":
-            switch (tu) {
-              case "cores":
-              v = v / 1000
-              break
-              default:
-            }
-            break
-          default:
-        }
-      }
-    }
-    return v
+function applyQuota(stats, stat, q) {
+  if (stat in q) {
+    stats[stat].requestsUsage += (q[stat].requests.used || 0)
+    stats[stat].limitsUsage += (q[stat].limits.used || 0)
+    stats[stat].requestsTotal += (q[stat].requests.total || 0)
+    stats[stat].limitsTotal += (q[stat].limits.total || 0)
+    // if (stats[stat].shareTotal) {
+    //   stats[stat].total = (m[stat].total || 0)
+    // } else {
+    //   stats[stat].total += (m[stat].total || 0)
+    // }
   }
 }
