@@ -12,6 +12,49 @@ export function durationInSeconds(fromTimestamp, toTimestamp) {
   return toSeconds - fromSeconds
 }
 
+/**
+ * Converts a number to a readable precision, using up to
+ * the provided max decimals. 
+ * 
+ * @param {*} number 
+ */
+export function fixPrecision(number, maxDecimals=2) {
+  if (typeof number === 'number') {
+    let marker = 10
+    let decimals = 0
+    while (number < marker && decimals <= maxDecimals ) {
+      marker /= 10
+      decimals++
+    }
+    
+    if (number < marker) {
+      return Math.round(number)
+    } else {
+      return number.toFixed(decimals)
+    }
+  }
+}
+
+/**
+ * 
+ * @param {*} number 
+ * @param {*} units 
+ */
+export function fixUnits(number, units) {
+  if (number < 1) {
+    switch(units) {
+      case 'gibibytes':
+        return [number * 1024, 'kibibytes']
+      case 'kibibytes':
+        return [number * 1024, 'bytes']
+      case 'cores':
+        return [number * 1000, 'millicores']
+    }
+  }
+  return [number, units]
+}
+
+
 export function toHumanizedAge(timestamp) {
   let age = Date.now() - Date.parse(timestamp)
   let humanized = moment.duration(age).humanize()
@@ -57,4 +100,92 @@ export function decodeBase64(input) {
      enc1 = enc2 = enc3 = enc4 = ""
   } while (i < input.length)
   return unescape(output)
+}
+
+
+export function convertUnits(value, baseUnit, targetUnit) {
+  let base = baseUnit.split('/')
+  let target = targetUnit.split('/')
+  
+  if (base.length !== target.length) {
+    return value
+  } else {
+    let v = value
+    for (let i=0; i < base.length; ++i) {
+      let bu = base[i]
+      let tu = target[i]
+      if (bu !== tu) {
+        switch (bu) {
+          case "bytes":
+            switch (tu) {
+              case "kibibytes":
+                v = v / 1024
+                break
+              case "mebibytes":
+                v = v / ( 1024 * 1024 )
+                break
+              case "gibibytes":
+                v = v / ( 1024 * 1024 * 1024 )
+                break
+              default:
+            }
+            break
+          case "kibibytes":
+            switch (tu) {
+              case "bytes":
+                v = v * 1024
+                break
+              case "mebibytes":
+                v = v / 1024
+                break
+              default:
+            }
+            break
+          case "mebibytes":
+            switch (tu) {
+              case "kibibytes":
+                v = v * 1024
+                break
+              case "bytes":
+                v = v * 1024 * 1024
+                break
+              default:
+            }
+            break
+          case "gibibytes":
+            switch (tu) {
+              case "mebibytes":
+                v = v * 1024
+                break
+              case "kibibytes":
+                v = v * 1024 * 1024
+                break
+              case "bytes":
+                v = v * 1024 * 1024 * 1024
+                break
+              default:
+            }
+            break
+          case "cores":
+            switch (tu) {
+              case "millicores":
+                v = v * 1000
+                break
+              default:
+            }
+            break
+          case "millicores":
+            switch (tu) {
+              case "cores":
+              v = v / 1000
+              break
+              default:
+            }
+            break
+          default:
+        }
+      }
+    }
+    return v
+  }
 }
