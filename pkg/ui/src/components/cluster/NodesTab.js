@@ -8,11 +8,8 @@ import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 import * as moment from 'moment'
 
-import ChipInput from 'material-ui-chip-input'
-import Chip from 'material-ui/Chip'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 

@@ -1,33 +1,7 @@
 
 import React from 'react'
-import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
-import { routerActions } from 'react-router-redux'
-import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
-import sizeMe from 'react-sizeme'
-import FilterTable from '../filter-table/FilterTable'
+import { white } from 'material-ui/styles/colors'
 import * as moment from 'moment'
-
-import ChipInput from 'material-ui-chip-input'
-import Chip from 'material-ui/Chip'
-import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../../routes'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
-import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
-
-import Popover from 'material-ui/Popover'
-import Paper from 'material-ui/Paper'
-
-import { arraysEqual } from '../../comparators'
-import { resourceStatus as resourceStatusIcons } from '../icons'
-import { compareStatuses } from '../../utils/resource-utils'
-import { hostnameLabel } from '../../utils/filter-utils'
-import KubeKinds from '../../kube-kinds'
-import './ClusterResourceTab.css'
-
-import Perf from 'react-addons-perf'
 import ClusterResourceTab from './ClusterResourceTab'
 
 const styles = {
