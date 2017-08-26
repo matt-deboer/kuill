@@ -89,7 +89,7 @@ class ClusterPage extends React.Component {
   render() {
 
     let query = queryString.parse(this.props.location.search)
-    let activeTab = query && query.view || 'nodes'
+    let activeTab = query.view || 'nodes'
 
     return (
     <div>
