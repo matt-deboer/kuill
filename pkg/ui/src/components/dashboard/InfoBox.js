@@ -1,7 +1,8 @@
 import React from 'react'
 import Paper from 'material-ui/Paper'
-import { white, grey800 } from 'material-ui/styles/colors'
+import { white, grey600, grey800 } from 'material-ui/styles/colors'
 import typography from 'material-ui/styles/typography'
+import { fixPrecision, fixUnits, convertUnits } from '../../converters'
 import './InfoBox.css'
 
 export default class InfoBox extends React.PureComponent {
@@ -9,47 +10,47 @@ export default class InfoBox extends React.PureComponent {
   render() {
     let {color, title, total, units, Icon} = this.props
 
-    let hasUsage = false
-    let hasLimit = false
-    let utilization = 0
-    let usage = 0
-    let limit = 0
-    let limitPercent = 0
+    let limitPercent = 35    
+    let data = {}
+    
     if ('usage' in this.props && total > 0) {
-      hasUsage = true
-      usage = this.props.usage
-      utilization = Math.round(100 * this.props.usage / total)
+      data.usage = this.props.usage
+      data.utilization = Math.round(100 * this.props.usage / total)
+      data.total = total
     }
-    if ('limit' in this.props && total > 0) {
-      hasLimit = true
-      limit = this.props.limit
-      limitPercent = 50
-      utilization = Math.round(50 * this.props.usage / limit)
+    
+    if ('limitsUsage' in this.props && this.props.limitsTotal > 0) {
+      data.limitsUsage = this.props.limitsUsage
+      data.limitsTotal = this.props.limitsTotal
+      data.limitsUtilization = Math.round(100 * data.limitsUsage / data.limitsTotal)
+      if (!('utilization' in data)) {
+        data.usage = data.limitsUsage
+        data.total = data.limitsTotal
+        data.utilization = data.limitsUtilization
+      }
     }
 
-    if (total > 0 && total < 1) {
-      if (total < 0.1) {
-        total = total.toFixed(2)
-      } else {
-        total = total.toFixed(1)
+    if ('requestsUsage' in this.props && this.props.requestsTotal > 0) {
+      data.requestsUsage = this.props.requestsUsage
+      data.requestsTotal = this.props.requestsTotal
+      data.requestsUtilization = Math.round(100 * data.requestsUsage / data.requestsTotal)
+      if (!('utilization' in data)) {
+        data.usage = data.requestsUsage
+        data.total = data.requestsTotal
+        data.utilization = data.requestsUtilization
       }
-    } else if (total > 99) {
-      total = Math.round(total)
-    } else {
-      total = total.toFixed(1)
     }
 
-    if (usage > 0 && usage < 1) {
-      if (usage < 0.1) {
-        usage = usage.toFixed(2)
-      } else {
-        usage = usage.toFixed(1)
+    let [newTotal, newUnits] = fixUnits(data.total, units)
+    if (newUnits !== units) {
+      // data.total = newTotal
+      for (let v in data) {
+        data[v] = convertUnits(data[v], units, newUnits)
       }
-    } else if (usage > 99) {
-      usage = Math.round(usage)
-    } else {
-      usage = usage.toFixed(1)
+      units = newUnits
     }
+    data.total = fixPrecision(data.total)
+    data.usage = fixPrecision(data.usage)
 
     const styles = {
       wrapper: {
@@ -137,6 +138,16 @@ export default class InfoBox extends React.PureComponent {
         marginTop: 25,
         maxWidth: '100%',
         fill: 'rgba(255,255,255,0.7)',
+      },
+      tooltipTitle: {
+        backgroundColor: grey600,
+        left: 0,
+        right: 0,
+        marginLeft: -8,
+        marginRight: -8,
+        marginTop: -2,
+        padding: '5px 20px',
+        borderBottom: '1px solid rgba(33,33,33,1)',
       }
     }
 
@@ -148,16 +159,60 @@ export default class InfoBox extends React.PureComponent {
         </span>
 
         <div style={styles.content}>
-          { hasUsage &&
+          { 'utilization' in data &&
           <div className="usage-container">
-            <div className="usage current" style={{width: `calc(${utilization}%)`}}/>
-            {/* <div className="usage average" style={{width: `calc(12%)`}}/> */}
-            <div className="usage limit" style={{width: `calc(${limitPercent}%)`}}/>
-            <div className="usage-border" data-rh={`This is the tooltip`} data-rh-cls={'infobox'}/>
+            <div className="usage current" style={{width: `calc(${data.utilization}%)`}}/>
+            {'requestsTotal' in data &&
+              <div className="usage requests" style={{width: `calc(${Math.round(100 * data.requestsTotal / data.total)}%)`}}/>
+            }
+            {'limitsTotal' in data &&
+              <div className="usage limits" style={{width: `calc(${Math.round(100 * data.limitsTotal / data.total)}%)`}}/>
+            }
+            <div className="usage-border" data-rh={`#infobox-tooltip-${title}`} data-rh-cls={'infobox'}/>
           </div>
           }
-          <div style={styles.total}>{total}</div>
+          <div style={styles.total}>{data.total}</div>
           <div style={styles.units}>{units}</div>
+        </div>
+
+        <div id={`infobox-tooltip-${title}`} className={'infobox-tooltip'}>
+          <div className={'tooltip-contents'}>
+            <h3>{title}</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>{units}</th>
+                  <th>used</th>
+                  <th>total</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {'requestsTotal' in data &&
+                  <tr>
+                    <td style={{fontWeight: 600}}>requests</td>
+                    <td>{data.requestsUsage}</td>
+                    <td>{data.requestsTotal}</td>
+                    <td>{ fixPrecision(data.requestsUsage / data.requestsTotal) }%</td>
+                  </tr>
+                }
+                {'limitsTotal' in data &&
+                  <tr>
+                    <td style={{fontWeight: 600}}>limits</td>
+                    <td>{data.limitsUsage}</td>
+                    <td>{data.limitsTotal}</td>
+                    <td>{ fixPrecision(data.limitsUsage / data.limitsTotal) }%</td>
+                  </tr>
+                }
+                <tr>
+                  <td style={{fontWeight: 600}}>actual</td>
+                  <td>{data.usage}</td>
+                  <td>{data.total}</td>
+                  <td>{ fixPrecision(data.usage / data.total) }%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </Paper>
       );
