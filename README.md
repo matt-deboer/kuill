@@ -1,5 +1,5 @@
 
-![](./kuill.png)
+![](./docs/kuill.png)
 ===
 
 [![Build Status](https://travis-ci.org/matt-deboer/kuill.svg?branch=master)](https://travis-ci.org/matt-deboer/kuill)
@@ -23,15 +23,10 @@ Other than the purely cosmetic differences, **kuill** integrates with the most c
 
 ** _There is a service account which grants kuill access to proxy requests to nodes in order to access their status summary endpoints_
 
-Setup
+What does it look like?
 ---
 
-As **kuill** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
-
-Part of this equation involves configuring **kuill** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
-
-Additionally, `kuill` must be configured to integrate with one or more identity providers, of which SAML2 and
-OpenID+Connect are currently supported.
+For the impatient, see the [preview](./docs/preview.md) page for few screen-shots and gifs of the current state.
 
 ---
 
@@ -117,6 +112,18 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
     ```sh
     open "https://$(minikube ip):30443/"
     ```
+
+---
+
+Setup
+---
+
+As **kuill** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
+
+Part of this equation involves configuring **kuill** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
+
+Additionally, `kuill` must be configured to integrate with one or more identity providers, of which SAML2 and
+OpenID+Connect are currently supported.
 
 ---
 
