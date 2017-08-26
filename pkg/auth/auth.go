@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	sessionTokenName = "kapow"
+	sessionTokenName = "kuill"
 	claimExpires     = "exp"
 	claimNotBefore   = "nbf"
 	claimCSRFToken   = "csrf"

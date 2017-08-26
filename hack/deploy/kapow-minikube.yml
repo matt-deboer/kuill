@@ -5,13 +5,13 @@ items:
 - kind: ServiceAccount
   apiVersion: v1
   metadata:
-    name: kapow
+    name: kuill
     namespace: kube-system
 
 - kind: Role
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: kapow-serviceaccount
+    name: kuill-serviceaccount
     namespace: kube-system
   rules:
   - apiGroups: [""]
@@ -21,63 +21,63 @@ items:
 - kind: RoleBinding
   apiVersion: rbac.authorization.k8s.io/v1alpha1
   metadata:
-    name: kapow-serviceaccount
+    name: kuill-serviceaccount
     namespace: kube-system
   subjects:
     - kind: ServiceAccount
-      name: kapow
+      name: kuill
   roleRef:
     kind: Role
-    name: kapow-serviceaccount
+    name: kuill-serviceaccount
     apiGroup: "rbac.authorization.k8s.io"
 
 - kind: Deployment
   apiVersion: extensions/v1beta1
   metadata:
     labels:
-      name: kapow
-    name: kapow
+      name: kuill
+    name: kuill
     namespace: kube-system
   spec:
     replicas: 1
     selector:
       matchLabels:
-        name: kapow
+        name: kuill
     template:
       metadata:
         labels:
-          name: kapow
-          service: kapow
+          name: kuill
+          service: kuill
       spec:
         volumes:
         - name: auth-proxy-certs
           secret:
             secretName: auth-proxy-certs
         containers:
-        - image: mattdeboer/kapow
-          name: kapow
+        - image: mattdeboer/kuill
+          name: kuill
           volumeMounts: 
           - name: auth-proxy-certs
             mountPath: /certs
             readOnly: true
           env:
-          - name: KAPOW_PORT
+          - name: kuill_PORT
             value: "8443"
-          - name: KAPOW_ANONYMOUS_GROUPS
+          - name: kuill_ANONYMOUS_GROUPS
             value: system:masters
-          - name: KAPOW_SERVER_CERT
+          - name: kuill_SERVER_CERT
             value: /certs/auth-proxy.pem
-          - name: KAPOW_SERVER_KEY
+          - name: kuill_SERVER_KEY
             value: /certs/auth-proxy-key.pem
-          - name: KAPOW_KUBERNETES_CLIENT_CERT
+          - name: kuill_KUBERNETES_CLIENT_CERT
             value: /certs/auth-proxy.pem
-          - name: KAPOW_KUBERNETES_CLIENT_KEY
+          - name: kuill_KUBERNETES_CLIENT_KEY
             value: /certs/auth-proxy-key.pem
-          - name: KAPOW_KUBERNETES_CLIENT_CA
+          - name: kuill_KUBERNETES_CLIENT_CA
             value: /certs/ca.pem
-          - name: KAPOW_VERBOSE
+          - name: kuill_VERBOSE
             value: "true"
-          - name: KAPOW_TRACE_REQUESTS
+          - name: kuill_TRACE_REQUESTS
             value: "true"
           ports:
           - containerPort: 8443
@@ -86,14 +86,14 @@ items:
 - kind: Service
   apiVersion: v1
   metadata:
-    name: kapow
+    name: kuill
     namespace: kube-system
   spec:
     ports:
-    - name: kapow
+    - name: kuill
       port: 8443
       targetPort: 8443
       nodePort: 30443
     selector:
-      name: kapow
+      name: kuill
     type: NodePort

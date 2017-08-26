@@ -12,7 +12,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/gorilla/websocket"
-	"github.com/matt-deboer/kapow/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/auth"
 	log "github.com/sirupsen/logrus"
 )
 

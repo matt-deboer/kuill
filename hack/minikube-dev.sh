@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
-# starts up kapow locally, pointed at the apiserver from minikube
+# starts up kuill locally, pointed at the apiserver from minikube
 
 status=$(minikube status)
 
@@ -19,7 +19,7 @@ ${SCRIPT_DIR}/get-certs.sh
 
 make -s -C ${ROOT} start-ui &
 
-${ROOT}/bin/kapow \
+${ROOT}/bin/kuill \
   --port 8888 \
   --verbose --trace-requests \
   --server-cert ${ROOT}/certs/server-cert.pem \
