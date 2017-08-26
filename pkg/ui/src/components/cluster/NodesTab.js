@@ -482,7 +482,7 @@ class NodesTab extends React.Component {
           width={'calc(100vw - 50px)'}
           revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
           wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
-          headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
+          headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: 'white'}}
           />
 
         {this.state.hoveredResource &&

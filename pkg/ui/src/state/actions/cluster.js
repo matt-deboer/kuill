@@ -135,9 +135,9 @@ function updateFilterUrl(dispatch, getState) {
   newFilterNames && newFilterNames.sort()
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
-    let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
-      `?${queryString.stringify({filters: state.cluster.filterNames})}` :
-      ''
+    let filterQuery = ('?view=nodes') + (newFilterNames && newFilterNames.length > 0 ? 
+      `&${queryString.stringify({filters: state.cluster.filterNames})}` :
+      '')
     console.log(`updateFilterUrl: pushed new location...`)
     dispatch(routerActions.push(`/cluster${filterQuery}`))
   }
