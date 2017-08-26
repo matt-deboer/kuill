@@ -19,6 +19,7 @@ const initialState = {
   resource: null,
   // resources are stored as a nested set of maps:
   //  map[kind] => map[namespace] => map[name] => resource
+  // TODO: need to store cluster resources by kind first...
   resources: {},
   editor: {
     format: 'yaml'
@@ -29,6 +30,7 @@ const initialState = {
   clusterMetrics: null,
   problemResources: {},
   namespaceMetrics: {},
+  quotasByNamespace: {},
   // the maximum resourceVersion value seen across all resource fetches
   // this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -179,6 +181,10 @@ function updatePossibleFilters(possible, resource) {
 function doUpdateResource(state, resource) {
   resource.key = keyForResource(resource)
   resource.statusSummary = statusForResource(resource)
+  if (resource.kind === 'ResourceQuota') {
+    // TODO: this should be a deep copy of quotas by namespace...
+    updateResourceQuotas(resource, state.quotasByNamespace)
+  }
   return doFilterResource(state, resource)
 }
 
@@ -266,6 +272,7 @@ function doReceiveResources(state, resources) {
       disk: 0,
       nodes: 0,
       problemResources: {},
+      quotasByNamespace: {},
   }
   
 
@@ -282,6 +289,9 @@ function doReceiveResources(state, resources) {
     resource.statusSummary = statusForResource(resource)
     if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
       newState.problemResources[resource.key] = resource
+    }
+    if (resource.kind === 'ResourceQuota') {
+      updateResourceQuotas(resource, newState.quotasByNamespace)
     }
   })
 
@@ -302,6 +312,89 @@ function doReceiveResources(state, resources) {
   }
 
   return newState
+}
+
+function defaultQuota() {
+  return {
+    cpu: {
+      requests: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      },
+      limits: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      }
+    },
+    memory: {
+      requests: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      },
+      limits: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      }
+    }, 
+    storage: {
+      requests: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      },
+      limits: {
+        used: 0,
+        total: Number.MAX_SAFE_INTEGER,
+      }
+    }, 
+    objects: {}
+  }
+}
+
+function updateResourceQuotas(quota, quotasByNamespace) {
+  let ns = quota.metadata.namespace
+  let qns = quotasByNamespace[ns] = quotasByNamespace[ns] || defaultQuota()
+  for (let h in quota.status.hard) {
+    let total = quota.status.hard[h]
+    let used = quota.status.used[h]
+    let resource = ''
+    let cat = ''
+    if (h.startsWith("requests.") || h === 'cpu' || h === 'memory') {
+      resource = h.replace('requests.', '')
+      cat = 'requests'
+    } else if (h.startsWith("limits.")) {
+      resource = h.replace('limits.', '')
+      cat = 'limits'
+    } else {
+      resource = 'objects'
+      cat = h
+    }
+
+    total = unitsToBase(total)
+    used = unitsToBase(used)
+    
+    if (!(cat in qns[resource])) {
+      qns[resource][cat] = {used: 0, total: Number.MAX_SAFE_INTEGER}
+    }
+
+    if (total < qns[resource][cat].total) {
+      qns[resource][cat].total = total
+    }
+    if (used > qns[resource][cat].used) {
+      qns[resource][cat].used = used
+    }
+  }
+}
+
+function unitsToBase(unit) {
+  if (unit.includes('m')) {
+    return parseInt(unit.replace("m", ""), 10)
+  } else if (unit.includes('Gi')) {
+    return parseInt(unit.replace("Gi", ""), 10) * 1024 * 1024
+  } else if (unit.includes('Ki')) {
+    return parseInt(unit.replace("Ki", ""), 10) * 1024
+  } else {
+    return parseInt(unit, 10)
+  }
 }
 
 /**
