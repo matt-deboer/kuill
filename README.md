@@ -10,8 +10,8 @@ A new UI for kubernetes.
 Goal
 ---
 
-To provide an open source Kubernetes UI experience capable of integrating with popular enterprise authentication mechanisms,
-and providing a focused but functional introduction to Kubernetes that prioritizes developer onboarding speed.
+To provide a multi-tennant Kubernetes UI experience (inasmuch as Kubernetes is multi-tennant) capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
+that make up their applications.
 
 ### Why create another dashboard?
 
