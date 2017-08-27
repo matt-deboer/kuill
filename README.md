@@ -13,15 +13,11 @@ Goal
 To provide a multi-tennant Kubernetes UI experience (inasmuch as Kubernetes is multi-tennant) capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
 that make up their applications.
 
-### Why create another dashboard?
+### Why create another dashboard? Why should I use this one?
 
-Other than gaining more experience in Golang and React, and learning a lot about kubernetes itself, there is value in a dashboard that supports user authentication though the browser--executing all actions **as** the authenticated user (as opposed to executing them under a privileged service account). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the vulnerabilities introduced by running the existing dashboard in a multi-tenant environment.
+The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations, combined with the proxying of all requests as the logged-in user (as opposed to executing under a shared service account). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
 
-### What makes kuill different?
-
-Other than the purely cosmetic differences, **kuill** integrates with the most common modern enterprise authentication mechanisms (OpenID+Connect and SAML2), and acts as an authenticating proxy to Kubernetes--sending every request using the identity of the authenticated user; this means that a user of kuill has the same privileges** as they would have using `kubectl`.
-
-** _There is a service account which grants kuill access to proxy requests to nodes in order to access their status summary endpoints_
+---
 
 What does it look like?
 ---
@@ -115,15 +111,10 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
 
 ---
 
-Setup
+Installation
 ---
 
-As **kuill** works by acting as an authenticating-proxy, you must configure your cluster to use an authenticating proxy; see [the kubernetes docs](https://kubernetes.io/docs/admin/authentication/#authenticating-proxy) for details.
-
-Part of this equation involves configuring **kuill** to use a certificate having a CN matching one of the `--requestheader-allowed-names` values you specified above, and signed by the `--requestheader-client-ca-file` you specified.
-
-Additionally, `kuill` must be configured to integrate with one or more identity providers, of which SAML2 and
-OpenID+Connect are currently supported.
+See the [Installation](./docs/installation.md) document for details.
 
 ---
 
