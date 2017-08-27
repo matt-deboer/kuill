@@ -140,7 +140,7 @@ func main() {
 		cli.BoolFlag{
 			Name: "oidc-credentials-in-query",
 			Usage: `Whether to pass client-id and client-secret as query parameters when communicating
-				with the provider`,
+				with the provider (Okta, for example)`,
 			EnvVar: envBase + "OIDC_CREDENTIALS_IN_QUERY",
 		},
 		cli.StringFlag{
@@ -203,7 +203,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "password-file",
-			Usage:  "A file containing tab-delimited set of [user,password,group...], on per line; for local testing only",
+			Usage:  "A file containing tab-delimited set of [user,password,group...], one per line; for local testing only",
 			EnvVar: envBase + "PASSWORD_FILE",
 		},
 		cli.BoolFlag{
