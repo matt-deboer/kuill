@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { linkForResource } from '../../routes'
 import { toHumanizedAge } from '../../converters'
 import { connect } from 'react-redux'
+import HelpText from '../../i18n/help-text'
 
 const mapStateToProps = function(store) {
   return {
@@ -87,6 +88,7 @@ class RecentUpdates extends React.Component {
 
     return (
       <Paper style={styles.wrapper}>
+        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={this.constructor.name} orientation={'left'} />
         <Subheader style={styles.subheader}>Recent Updates</Subheader>
         <List className={'list-contents'}>
           {recentEvents.map(event =>

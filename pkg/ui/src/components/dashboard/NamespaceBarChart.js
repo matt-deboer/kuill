@@ -114,7 +114,10 @@ class NamespaceBarChart extends React.PureComponent {
         <div className="title">Allocated Resource Usage</div>
         
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 namespace-barchart by-${this.state.selectBy}`}>
-          <HelpText style={{position: 'absolute', bottom: 0, left: 0}} locale={'en'} textId={this.constructor.name}/>
+          <HelpText style={{position: 'absolute', bottom: 0, left: 0}} 
+            locale={'en'} 
+            textId={`${this.constructor.name}.barchart`}
+            orientation={'right'}/>
           <DiscreteBarChart 
             items={items[this.state.selectBy] || []}
             onSelection={this.handleSelectNamespaces}
@@ -125,6 +128,7 @@ class NamespaceBarChart extends React.PureComponent {
 
         <div className={`col-xs-12 col-sm-7 col-md-6 col-lg-6 namespace-utilization by-${this.state.selectBy}`}>
           <div className="row" style={styles.chartBox}>
+            
             <UtilizationPieChart 
               total={stats.cpu.total} 
               used={stats.cpu.usage} 
@@ -182,6 +186,11 @@ class NamespaceBarChart extends React.PureComponent {
           </div>
           <div className="legend">
             <div className="title">{`relative ${this.state.selectBy} used by namespace`}</div>
+            <HelpText style={{position: 'absolute', bottom: 0, right: 0}} 
+              locale={'en'} 
+              textId={`${this.constructor.name}.donuts`}
+              orientation={'left'}/>
+
             {/* {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)} */}
           </div> 
         </div>  

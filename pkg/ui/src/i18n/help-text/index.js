@@ -52,14 +52,15 @@ export default class HelpText extends React.Component {
 
   render() {
   
-    let { id, style, iconStyle } = this.props
+    let { textId, style, iconStyle, orientation } = this.props
 
-    let normalizedId = `help-text-contents--${id}`
-    
+    let normalizedId = `help-text-contents--${textId}`
+    let hintPosition = orientation || 'top' 
+
     return (
       <div style={{...style}}>
         <IconButton style={{...styles.button}} iconStyle={{...styles.icon, ...iconStyle}}
-          data-rh={`#${normalizedId}`}>
+          data-rh={`#${normalizedId}`} data-rh-at={hintPosition}>
           <IconHelp />
         </IconButton>
         <div id={normalizedId} style={{display: 'none'}}>
