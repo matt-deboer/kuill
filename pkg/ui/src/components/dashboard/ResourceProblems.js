@@ -14,6 +14,7 @@ import { linkForResource } from '../../routes'
 import { eventsForResource } from '../../utils/resource-utils'
 import { toHumanizedAge } from '../../converters'
 import { Tabs, Tab } from 'material-ui/Tabs'
+import HelpText from '../../i18n/help-text'
 import './ResourceProblems.css'
 
 const mapStateToProps = function(store) {
@@ -283,6 +284,11 @@ class ResourceProblems extends React.PureComponent {
 
     return (
       <Paper style={styles.wrapper}>
+        <HelpText 
+          style={{position: 'absolute', top: 7, right: 25}} 
+          locale={'en'} 
+          textId={this.constructor.name}
+          iconStyle={{color: 'rgba(220,220,220,0.5)'}}/>
         <Subheader style={styles.subheader}>Problems</Subheader>
         {contents}
       </Paper>
