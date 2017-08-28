@@ -151,7 +151,7 @@ class NodeHeatmap extends React.PureComponent {
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 node-heatmap by-${this.state.selectBy}`}>
           <HelpText style={{position: 'absolute', bottom: 0, left: 0}} 
               locale={'en'} 
-              textId={`${this.constructor.name}.heatmap`}
+              textId={`NodeHeatmap.heatmap`}
               orientation={'right'}/>
           <HexagonChart items={items} onSelection={this.handleSelectNodes}/>
           <div className="legend">
@@ -184,7 +184,7 @@ class NodeHeatmap extends React.PureComponent {
           <div className="selector">
           <HelpText style={{position: 'absolute', bottom: 0, right: 0, marginRight: -25, marginBottom: -10}} 
               locale={'en'} 
-              textId={`${this.constructor.name}.donuts`}
+              textId={`NodeHeatmap.donuts`}
               orientation={'left'}/>
           </div>
           
