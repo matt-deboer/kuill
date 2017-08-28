@@ -11,7 +11,8 @@ body, h1, h2, h3, h4, h5, h6 {
 
 body {
   margin: 0;
-  background-color: #999; }
+  background-color: #999999;
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+CjxyZWN0IHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgZmlsbD0iIzc3NyI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIzIiBjeT0iNC4zIiByPSIxLjgiIGZpbGw9IiM4ODgiPjwvY2lyY2xlPgo8Y2lyY2xlIGN4PSIzIiBjeT0iMyIgcj0iMS44IiBmaWxsPSIjNTU1Ij48L2NpcmNsZT4KPGNpcmNsZSBjeD0iMTAuNSIgY3k9IjEyLjUiIHI9IjEuOCIgZmlsbD0iIzg4OCI+PC9jaXJjbGU+CjxjaXJjbGUgY3g9IjEwLjUiIGN5PSIxMS4zIiByPSIxLjgiIGZpbGw9IiM1NTUiPjwvY2lyY2xlPgo8L3N2Zz4="); }
 
 a {
   text-decoration: none;
