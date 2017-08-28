@@ -65,6 +65,14 @@ let kinds = {
     getData: ({status, spec, metadata }) => {
       return [
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
+        ['Schedule:', spec.schedule],
+        ['Concurrency Policy:', spec.concurrencyPolicy],
+        ['Suspend', spec.suspend],
+        // ['Starting Deadline Seconds:', spec.startingDeadlineSeconds || '<unset>'],
+        ['Selector:', spec.nodeSelector || '<none>'],
+        ['Parallelism:', spec.parallelism || '<unset>'],
+        ['Last Schedule Time:', status.lastScheduleTime],
+        //Completions:			<unset>
       ]
     },
   },
