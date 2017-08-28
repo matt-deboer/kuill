@@ -191,7 +191,7 @@ export default class InfoBox extends React.PureComponent {
                     <td style={{fontWeight: 600}}>requests</td>
                     <td>{data.requestsUsage}</td>
                     <td>{data.requestsTotal}</td>
-                    <td>{ fixPrecision(data.requestsUsage / data.requestsTotal) }%</td>
+                    <td>{ fixPrecision(100 * data.requestsUsage / data.requestsTotal) }%</td>
                   </tr>
                 }
                 {'limitsTotal' in data &&
@@ -199,14 +199,14 @@ export default class InfoBox extends React.PureComponent {
                     <td style={{fontWeight: 600}}>limits</td>
                     <td>{data.limitsUsage}</td>
                     <td>{data.limitsTotal}</td>
-                    <td>{ fixPrecision(data.limitsUsage / data.limitsTotal) }%</td>
+                    <td>{ fixPrecision(100 * data.limitsUsage / data.limitsTotal) }%</td>
                   </tr>
                 }
                 <tr>
                   <td style={{fontWeight: 600}}>actual</td>
                   <td>{data.usage}</td>
                   <td>{data.total}</td>
-                  <td>{ fixPrecision(data.usage / data.total) }%</td>
+                  <td>{ fixPrecision(100 * data.usage / data.total) }%</td>
                 </tr>
               </tbody>
             </table>
