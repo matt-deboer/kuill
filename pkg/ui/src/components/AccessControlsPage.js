@@ -112,6 +112,7 @@ const styles = {
     padding: 15,
     margin: 5,
     height: 'calc(100vh - 110px)',
+    border: '1px solid rgba(33,33,33,0.8)',
   },
   statusIcon: {
     marginLeft: 10,
