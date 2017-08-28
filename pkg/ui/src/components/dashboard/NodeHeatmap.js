@@ -6,6 +6,7 @@ import HexagonChart from './HexagonChart'
 import { connect } from 'react-redux'
 import { setFilterNames } from '../../state/actions/cluster'
 import { hostnameLabel } from '../../utils/filter-utils'
+import HelpText from '../../i18n/help-text'
 import './NodeHeatmap.css'
 
 const styles = {
@@ -148,7 +149,11 @@ class NodeHeatmap extends React.PureComponent {
     return (
       <div style={styles.wrapper} className="row">
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 node-heatmap by-${this.state.selectBy}`}>
-           <HexagonChart items={items} onSelection={this.handleSelectNodes}/>
+          <HelpText style={{position: 'absolute', bottom: 0, left: 0}} 
+              locale={'en'} 
+              textId={`${this.constructor.name}.heatmap`}
+              orientation={'right'}/>
+          <HexagonChart items={items} onSelection={this.handleSelectNodes}/>
           <div className="legend">
             <div className="title">{`% ${this.state.selectBy} used by node`}</div>
             {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)}
@@ -177,7 +182,12 @@ class NodeHeatmap extends React.PureComponent {
               />
           </div>
           <div className="selector">
+          <HelpText style={{position: 'absolute', bottom: 0, right: 0, marginRight: -25, marginBottom: -10}} 
+              locale={'en'} 
+              textId={`${this.constructor.name}.donuts`}
+              orientation={'left'}/>
           </div>
+          
         </div>  
       </div>
     )
