@@ -133,6 +133,7 @@ const styles = {
   },
   card: {
     margin: 5,
+    border: '1px solid rgba(33,33,33,0.8)',
   },
   cardHeader: {
     background: 'rgb(66,66,66)',

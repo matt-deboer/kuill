@@ -107,7 +107,8 @@ class Overview extends React.Component {
         background: 'rgb(99,99,99)',
         padding: '15px 0.5rem',
         height: 'calc(100vh - 110px)',
-        border: '1px solid rgba(0,0,0,0.1)',
+        // border: '1px solid rgba(0,0,0,0.1)',
+        border: '1px solid rgba(33,33,33,0.8)',
       },
       heatmap: {
         paddingTop: 20,

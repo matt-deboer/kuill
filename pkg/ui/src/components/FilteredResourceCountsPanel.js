@@ -10,11 +10,11 @@ export default class FilteredResourceCountsPanel extends React.PureComponent {
     const styles ={
       counts: {
         height: 40,
-        width: '100%',
+        width: 'calc(100% - 2px)',
         fontSize: 13,
         background: 'rgb(66,77,99)',
         color: 'rgb(240,240,240)',
-        margin: '0 -1rem',
+        margin: '0 -15px',
         padding: '10px 1rem',
       },
       countItem: {
