@@ -116,7 +116,7 @@ class NamespaceBarChart extends React.PureComponent {
         <div className={`col-xs-12 col-sm-5 col-md-6 col-lg-6 namespace-barchart by-${this.state.selectBy}`}>
           <HelpText style={{position: 'absolute', bottom: 0, left: 0}} 
             locale={'en'} 
-            textId={`${this.constructor.name}.barchart`}
+            textId={`NamespaceBarChart.barchart`}
             orientation={'right'}/>
           <DiscreteBarChart 
             items={items[this.state.selectBy] || []}
@@ -188,7 +188,7 @@ class NamespaceBarChart extends React.PureComponent {
             <div className="title">{`relative ${this.state.selectBy} used by namespace`}</div>
             <HelpText style={{position: 'absolute', bottom: 0, right: 0}} 
               locale={'en'} 
-              textId={`${this.constructor.name}.donuts`}
+              textId={`NamespaceBarChart.donuts`}
               orientation={'left'}/>
 
             {/* {usageQuantiles.map(q=><div key={q} className={'usage le-'+q} >{q}</div>)} */}

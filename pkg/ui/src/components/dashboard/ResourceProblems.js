@@ -287,7 +287,7 @@ class ResourceProblems extends React.PureComponent {
         <HelpText 
           style={{position: 'absolute', top: 7, right: 25}} 
           locale={'en'} 
-          textId={this.constructor.name}
+          textId={'ResourceProblems'}
           iconStyle={{color: 'rgba(220,220,220,0.5)'}}/>
         <Subheader style={styles.subheader}>Problems</Subheader>
         {contents}

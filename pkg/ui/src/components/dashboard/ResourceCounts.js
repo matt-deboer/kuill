@@ -129,7 +129,7 @@ class ResourceCounts extends React.PureComponent {
 
     return (
       <Paper style={styles.wrapper}>
-        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={this.constructor.name}/>
+        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={'ResourceCounts'}/>
         <Subheader style={styles.subheader}>Resource Counts</Subheader>
         <List className={'list-contents'}>
           {items}

@@ -88,7 +88,7 @@ class RecentUpdates extends React.Component {
 
     return (
       <Paper style={styles.wrapper}>
-        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={this.constructor.name} orientation={'left'} />
+        <HelpText style={{position: 'absolute', top: 7, right: 25}} locale={'en'} textId={'RecentUpdates'} orientation={'left'} />
         <Subheader style={styles.subheader}>Recent Updates</Subheader>
         <List className={'list-contents'}>
           {recentEvents.map(event =>
