@@ -53,6 +53,8 @@ export default class BasicDetailsPanel extends React.Component {
     if (!value.props && typeof value === 'object') {
       rendered = 
         <pre style={{margin: 0, fontSize: 13, fontFamily: 'Roboto, sans-serif'}}>{yaml.safeDump(value)}</pre>
+    } else if (value === false) {
+      rendered = ""+rendered
     }
     return rendered
   }
