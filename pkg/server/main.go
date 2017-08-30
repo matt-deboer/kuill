@@ -49,7 +49,7 @@ func main() {
 		cli.IntFlag{
 			Name:   "redirect-port",
 			Value:  80,
-			Usage:  "The port which ansers http requests by redirecting to the https port",
+			Usage:  "The port which answers http requests by redirecting to the https port",
 			EnvVar: envBase + "REDIRECT_PORT",
 		},
 		cli.StringFlag{
