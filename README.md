@@ -1,11 +1,12 @@
 
-![](./docs/logo.png)
+![](./docs/logo.png) 
 ===
+(_pronounced "kwill"_)
 
 [![Build Status](https://travis-ci.org/matt-deboer/kuill.svg?branch=master)](https://travis-ci.org/matt-deboer/kuill)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kuill.svg)](https://hub.docker.com/r/mattdeboer/kuill/)
 
-A new UI for kubernetes.
+A multitenant UI for kubernetes.
 
 Goal
 ---
