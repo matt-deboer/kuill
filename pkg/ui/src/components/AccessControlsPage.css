@@ -1,9 +1,0 @@
-td.resource-actions:hover {
-  cursor: pointer; }
-
-table.filter-table.access tr {
-  border-bottom: 1px solid rgba(224, 224, 224, 0.25) !important; }
-  table.filter-table.access tr.hovered td {
-    background-color: #e6e6e6 !important; }
-  table.filter-table.access tr th input:not(:checked) + div svg {
-    fill: rgba(255, 255, 255, 0.9) !important; }

@@ -1,10 +1,55 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import {blueA400, blueA100 } from 'material-ui/styles/colors'
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
-
+import './FilterBox.css'
 
 export default class FilterBox extends React.PureComponent {
+
+  static propTypes = {
+    /**
+     * The maximum number of filters to be allowed
+     */
+    maxFilters: PropTypes.number,
+    /**
+     * Whether to remove the first filter and add the new one
+     * to the end of the list when the maximum filters has been
+     * reached; if false, new filters will not be added on 
+     * reaching max
+     */
+    removeFirstOnMax: PropTypes.bool,
+    /**
+     * The text to be displayed in the floating label
+     */
+    floatingLabelText: PropTypes.string,
+    /**
+     * The names of the filters which are the current value
+     * of the set
+     */
+    filterNames: PropTypes.array.isRequired,
+    /**
+     * The list of possible filters, used for auto-complete
+     */
+    possibleFilters: PropTypes.array,
+    /**
+     * function(name) called when a filter is added
+     */
+    addFilter: PropTypes.function,
+    /**
+     * function(name, index) called when a filter is removed
+     */
+    removeFilter: PropTypes.function,
+  }
+
+  static defaultProps = {
+    maxFilters: Number.MAX_SAFE_INTEGER,
+    floatingLabelText: 'select by filters...',
+    addFilter: function() {},
+    removeFilter: function() {},
+    possibleFilters: [],
+    removeFirstOnMax: false,
+  }
 
   constructor(props) {
     super(props);
@@ -20,14 +65,22 @@ export default class FilterBox extends React.PureComponent {
   }
 
   handleAddFilter = (filter) => {
+
     let filterNames = this.state.filterNames.slice(0)
-    filterNames.push(filter)
+    while (this.props.removeFirstOnMax && filterNames.length >= this.props.maxFilters) {
+      let removed = filterNames.splice(0, 1)
+      this.props.removeFilter(removed, 0)
+    }
 
-    this.setState({
-      filterNames: filterNames
-    })
+    if (filterNames.length < this.props.maxFilters) {
+      filterNames.push(filter)
 
-    setTimeout( () => { this.props.addFilter(filter) }, 0)
+      this.setState({
+        filterNames: filterNames,
+      })
+
+      setTimeout( () => { this.props.addFilter(filter) }, 0)
+    }
   }
 
   handleRemoveFilter = (filter, index) => {
@@ -50,7 +103,7 @@ export default class FilterBox extends React.PureComponent {
       onRequestDelete={this.handleRemoveFilter}
       name={'filters'}
       dataSource={props.possibleFilters}
-      floatingLabelText={'select by filters...'}
+      floatingLabelText={props.floatingLabelText}
       defaultValue={['namespace:default']}
       menuProps={{
         desktop: true,
@@ -59,11 +112,13 @@ export default class FilterBox extends React.PureComponent {
         
         var labelText = value;
         var parts=value.split(":")
-        if (parts.length === 2) {
-          labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>{parts[0]}:</span>{parts[1]}</span>
+        if (parts.length >= 2) {
+          let prefix = parts[0]
+          let suffix = parts.slice(1).join(":")
+          labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>{prefix}:</span>{suffix}</span>
         } else if (parts.length === 1) {
           labelText=<span style={{fontWeight: 700}}><span style={{color: blueA400, paddingRight: 3}}>*:</span>{parts[0]}</span>
-        }
+        } 
         return (
           <Chip
             key={key}

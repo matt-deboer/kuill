@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { requestResources, setFilterNames } from '../state/actions/access'
-import AccessControlsPage from '../components/AccessControlsPage'
+import AccessControlsPage from '../components/access/AccessControlsPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 

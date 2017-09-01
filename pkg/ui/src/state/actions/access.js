@@ -333,7 +333,7 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
   
   let currentResource = getState().access.resource
   if (!currentResource 
-      || currentResource.metadata.namespace !== namespace
+      || (currentResource.metadata.namespace || '~') !== namespace
       || currentResource.kind !== kind
       || currentResource.metadata.name !== name) {
     

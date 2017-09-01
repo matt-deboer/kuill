@@ -79,7 +79,7 @@ export default class AnnotationsPanel extends React.Component {
     if (!props.annotations) {
       rows.push(
           <TableRow key={-1} style={{height: rowHeight}}>
-            <TableRowColumn style={{height: rowHeight, textAlign: 'center'}}>{'< none >'}</TableRowColumn>
+            <TableRowColumn style={{height: rowHeight, textAlign: 'center', color: 'rgba(0,0,0,0.3)', fontSize: 15}}>{'< none >'}</TableRowColumn>
           </TableRow>)
     } else {
       for (let key in props.annotations) {

@@ -14,6 +14,8 @@ const initialState = {
   filters: {},
   // the list of possible filters (strings), used for auto-complete
   possibleFilters: [],
+  // the list of known subjects (strings), used for permissions lookup auto-complete
+  subjects: [],
   // the currently selected resource
   resource: null,
   // pods that are transitively owned by the currently selected resource
@@ -104,21 +106,28 @@ function doSetFiltersByLocation(state, location) {
 
 function doFilterAll(state, resources) {
   let newState = { ...state, resources: { ...resources }}
-  let possible = null
   
+  let possible = null
+  let subjects = null
   if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
+  if (!newState.subjects || newState.subjects.length === 0) {
+    subjects = {}
+  }
 
   visitResources(newState.resources, function(resource) {
-    updatePossibleFilters(possible, resource)
+    updatePossibleFilters(possible, subjects, resource)
     applyFiltersToResource(newState.filters, resource)
   })
 
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
   }
-
+  if (subjects !== null) {
+    newState.subjects = Object.keys(subjects)
+  }
+  
   return newState
 }
 
@@ -140,7 +149,7 @@ function registerOwned(resources, resource) {
   }
 }
 
-function updatePossibleFilters(possible, resource) {
+function updatePossibleFilters(possible, subjects, resource) {
   if (!!possible) {
     if (!!resource.metadata.namespace) {
       possible[`namespace:${resource.metadata.namespace}`]=true
@@ -152,6 +161,7 @@ function updatePossibleFilters(possible, resource) {
     if (resource.kind === 'RoleBinding' || resource.kind === 'ClusterRoleBinding') {
       for (let subject of resource.subjects) {
         possible[`subject:${subject.name}`]=true
+        subjects[`${subject.kind}:${subject.name}`]=true
       }
       possible[`role:${resource.roleRef.name}`]=true
     }
@@ -244,12 +254,16 @@ function doReceiveResources(state, resources) {
   
 
   let possible = null
+  let subjects = null
   if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
+  if (!newState.subjects || newState.subjects.length === 0) {
+    subjects = {}
+  }
 
   visitResources(newState.resources, function(resource) {
-    updatePossibleFilters(possible, resource)
+    updatePossibleFilters(possible, subjects, resource)
     applyFiltersToResource(newState.filters, resource)
     registerOwned(newState.resources, resource)
     newState.maxResourceVersion = Math.max(newState.maxResourceVersion, resource.metadata.resourceVersion)
@@ -258,6 +272,9 @@ function doReceiveResources(state, resources) {
 
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
+  }
+  if (subjects !== null) {
+    newState.subjects = Object.keys(subjects)
   }
 
   return newState

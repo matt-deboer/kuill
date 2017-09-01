@@ -20,7 +20,7 @@ export default function FilterChip(props) {
             margin: '8px 8px 0 0',
             padding: 0,
             float: 'left', 
-            pointerEvents: props.isDisabled ? 'none' : undefined 
+            pointerEvents: props.isDisabled ? 'none' : 'all' 
           }}
           labelStyle={{'lineHeight': '22px', fontSize: '12px'}}
           backgroundColor={props.isFocused ? blueA100 : null}

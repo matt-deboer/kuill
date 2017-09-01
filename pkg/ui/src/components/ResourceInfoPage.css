@@ -12,10 +12,10 @@
   content: "";
   position: fixed;
   z-index: 1;
-  bottom: 40px;
+  bottom: 30px;
   margin-right: 45px;
   margin-left: 30px;
-  left: 0;
+  left: 1px;
   right: 0;
   pointer-events: none;
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0), white 60%);

@@ -10,6 +10,7 @@ import BasicDetailsPanel from './BasicDetailsPanel'
 // import PodTemplatePanel from './PodTemplatePanel'
 import PodDetailsPanel from './PodDetailsPanel'
 import ContainerPanel from './ContainerPanel'
+import PermissionsPane from './PermissionsPane'
 
 const styles = {
   tabs: {
@@ -120,6 +121,36 @@ class ConfigurationPane extends React.Component {
             </div>
           }
 
+          {resource.kind.endsWith('Role') &&
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12" style={{marginTop: -50, marginBottom: 0}}>
+            <Card style={{...styles.cards}}>
+              <CardHeader 
+                style={styles.cardHeader}
+                title={'permissions'}
+                titleStyle={styles.cardHeaderTitle}
+              />
+              <CardText>
+                  <PermissionsPane style={{marginLeft: 0, marginRight: 0, marginTop: 0}} role={resource} />
+              </CardText>
+            </Card>
+          </div>
+          }
+
+          {resource.kind.endsWith('RoleBinding') &&
+          <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12" style={{marginTop: -50, marginBottom: 0}}>
+            <Card style={{...styles.cards}}>
+              <CardHeader 
+                style={styles.cardHeader}
+                title={'permissions'}
+                titleStyle={styles.cardHeaderTitle}
+              />
+              <CardText>
+                  <PermissionsPane style={{marginLeft: 0, marginRight: 0, marginTop: 0}} binding={resource} />
+              </CardText>
+            </Card>
+          </div>
+          }
+
           <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <AnnotationsPanel annotations={resource.metadata.annotations} />
           </div>
@@ -127,7 +158,7 @@ class ConfigurationPane extends React.Component {
       )
     }
     return <div className={'configuration-pane'} style={{
-      height: `${window.innerHeight - props.contentTop - 40}px`,
+      height: `calc(100vh - ${props.contentTop + 30}px)`,
       overflow: 'auto',
     }}>{contents}</div>
   }

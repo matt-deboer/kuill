@@ -23,7 +23,7 @@ export default connect(mapStateToProps) (
 sizeMe({ monitorHeight: true, monitorWidth: true }) (
 function EventViewer(props) {
 
-  let availableHeight = window.innerHeight - props.contentTop - 70
+  // let availableHeight = window.innerHeight - props.contentTop - 65
 
   const styles = {
     type: {
@@ -48,8 +48,8 @@ function EventViewer(props) {
   }
 
   return (
-    <div style={{ padding: 16, height: `${availableHeight}px`}}>
-      <Table selectable={false} style={{ border: '0', margin: 15}} height={`${availableHeight-15}px`} wrapperStyle={{overflowX: 'hidden'}}>
+    <div style={{ padding: 16, height: `calc(100vh - ${props.contentTop + 62}px`}}>
+      <Table selectable={false} style={{ border: '0', margin: 15}} height={`calc(100vh - ${props.contentTop + 80}px`} wrapperStyle={{overflowX: 'hidden'}}>
         <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
           <TableRow displayBorder={true} style={{height: 28}}>
               <TableHeaderColumn style={styles.age}>Age</TableHeaderColumn>
