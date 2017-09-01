@@ -14,7 +14,7 @@ export function sameResource(res1, res2) {
   return (!!res1 === !!res2) 
       && (!res1
           || (res1.kind === res2.kind
-              && res1.metadata.namespace === res2.metadata.namespace
+              && (res1.metadata.namespace || '~') === (res2.metadata.namespace || '~')
               && res1.metadata.name === res2.metadata.name))
 }
 

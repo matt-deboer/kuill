@@ -8,10 +8,12 @@ import { linkForResourceKind } from '../routes'
 
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
+import PermissionsPane from './configuration-pane/PermissionsPane'
 import PodTemplatePane from './configuration-pane/PodTemplatePane'
 import EventViewer from './EventViewer'
 
 import IconConfiguration from 'material-ui/svg-icons/action/list'
+import IconPermissions from 'material-ui/svg-icons/communication/vpn-key'
 import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconTerminal from 'material-ui/svg-icons/hardware/computer'
@@ -287,6 +289,15 @@ class ResourceInfoPage extends React.Component {
       }
     ]
     
+    if (resource.kind === 'ServiceAccount') {
+      tabs.push({
+        name: 'permissions',
+        component: PermissionsPane,
+        icon: <IconPermissions/>,
+        props: {serviceAccount: resource, resources: this.props.resources},
+      })
+    }
+
     if (resource.spec && resource.spec.template) {
       tabs.push({
         name: 'pod template',

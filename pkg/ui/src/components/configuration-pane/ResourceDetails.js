@@ -69,12 +69,23 @@ let kinds = {
         ['Concurrency Policy:', spec.concurrencyPolicy],
         ['Suspend', spec.suspend],
         // ['Starting Deadline Seconds:', spec.startingDeadlineSeconds || '<unset>'],
-        ['Selector:', spec.nodeSelector || '<none>'],
+        ['Selector:', (spec.selector && spec.selector.matchLabels) || '<none>'],
         ['Parallelism:', spec.parallelism || '<unset>'],
         ['Last Schedule Time:', status.lastScheduleTime],
-        //Completions:			<unset>
+        //Completions:			<unset> // => need to get details of owned Jobs for this...
       ]
     },
+  },
+  Job: {
+    getData: ({status, spec, metadata}) => {
+      return [
+        ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
+        ['Selector:', (spec.selector && spec.selector.matchLabels) || '<none>'],
+        ['Parallelism:', spec.parallelism],
+        ['Completions:', spec.completions],
+        ['Start Time:', status.startTime],
+      ]
+    }
   },
   Pod: {
     getData: ({status, spec, metadata }) => {
@@ -182,12 +193,11 @@ let kinds = {
       return data
     },
   },
-  StorageClass: {
+  ServiceAccount: {
     getData: (resource) => {
       return [
         ['Created:', `${resource.metadata.creationTimestamp} (${toHumanizedAge(resource.metadata.creationTimestamp)} ago)`],  
-        ['Parameters:', `${resource.parameters ? Object.entries(resource.parameters).map(([key,val])=> key + '=' + val).join(', ') : ''}`],
-        ['Provisioner:', resource.provisioner],
+        ['Secrets:', `${resource.secrets ? resource.secrets.map((s)=> s.name).join(', ') : ''}`],
       ]
     },
   },
@@ -196,8 +206,6 @@ let kinds = {
   Namespace: {
   },
   ResourceQuota: {
-  },
-  ServiceAccount: {
   },
   Role: {
   },

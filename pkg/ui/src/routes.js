@@ -4,6 +4,7 @@ import Workloads from './containers/Workloads'
 import AccessControls from './containers/AccessControls'
 import WorkloadInfo from './containers/WorkloadInfo'
 import ClusterInfo from './containers/ClusterInfo'
+import AccessControlsInfo from './containers/AccessControlsInfo'
 import Home from 'material-ui/svg-icons/action/home'
 import IconAccessControls from 'material-ui/svg-icons/hardware/security'
 import IconCluster from 'material-ui/svg-icons/maps/layers'
@@ -68,6 +69,11 @@ const routes = [
     component: AccessControls,
     icon: <IconAccessControls/>,
     inMenu: true,
+    exact: true,
+  },
+  { 
+    path: '/access/:namespace/:kind/:name',
+    component: AccessControlsInfo,
   },
 ]
 

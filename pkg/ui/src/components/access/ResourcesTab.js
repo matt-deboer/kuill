@@ -5,13 +5,13 @@ import IconButton from 'material-ui/IconButton'
 import { blueA400, grey200, grey300, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../state/actions/access'
+import { addFilter, removeFilter, removeResource } from '../../state/actions/access'
 import sizeMe from 'react-sizeme'
-import FilterTable from './filter-table/FilterTable'
+import FilterTable from '../filter-table/FilterTable'
 import * as moment from 'moment'
 
 import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../routes'
+import { linkForResource } from '../../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
@@ -20,13 +20,12 @@ import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
-import { arraysEqual } from '../comparators'
-import { resourceStatus as resourceStatusIcons } from './icons'
+import { arraysEqual } from '../../comparators'
+import { resourceStatus as resourceStatusIcons } from '../icons'
 
-import FilterBox from './FilterBox'
-import ConfirmationDialog from './ConfirmationDialog'
-import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
-import './AccessControlsPage.css'
+import FilterBox from '../FilterBox'
+import ConfirmationDialog from '../ConfirmationDialog'
+import FilteredResourceCountsPanel from '../FilteredResourceCountsPanel'
 
 import Perf from 'react-addons-perf'
 
@@ -35,6 +34,7 @@ const mapStateToProps = function(store) {
     filters: store.access.filters,
     filterNames: store.access.filterNames,
     possibleFilters: store.access.possibleFilters,
+    resources: store.access.resources,
   };
 }
 
@@ -58,7 +58,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 const styles = {
   newResourceButton: {
     margin: 0,
-    top: 100,
+    top: 140,
     right: 60,
     bottom: 'auto',
     left: 'auto',
@@ -66,7 +66,7 @@ const styles = {
   },
   deleteResourceButton: {
     margin: 0,
-    top: 110,
+    top: 150,
     right: 130,
     bottom: 'auto',
     left: 'auto',
@@ -108,11 +108,11 @@ const styles = {
     boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
     display: 'flex',
   },
-  paper: {
+  wrapper: {
     padding: 15,
-    margin: 5,
-    height: 'calc(100vh - 110px)',
-    border: '1px solid rgba(33,33,33,0.8)',
+    margin: 0,
+    height: 'calc(100vh - 190px)',
+    // border: '1px solid rgba(33,33,33,0.8)',
   },
   statusIcon: {
     marginLeft: 10,
@@ -156,7 +156,7 @@ const styles = {
 // use functional component style for representational components
 export default sizeMe({ monitorWidth: true, monitorHeight: true }) (
 withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class AccessControlsPage extends React.Component {
+class ResourcesTab extends React.Component {
 
   constructor(props) {
     super(props);
@@ -398,7 +398,7 @@ class AccessControlsPage extends React.Component {
     let { props } = this
 
     return (
-      <Paper style={styles.paper}>
+      <div style={styles.wrapper}>
         
         <FilterBox
           addFilter={props.addFilter} 
@@ -415,7 +415,7 @@ class AccessControlsPage extends React.Component {
           className={'access'}
           columns={this.columns}
           data={this.rows}
-          height={'calc(100vh - 350px)'}
+          height={'calc(100vh - 400px)'}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection.bind(this)}
           onCellClick={this.handleCellClick.bind(this)}
@@ -426,7 +426,7 @@ class AccessControlsPage extends React.Component {
           stripedRows={false}
           iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
           iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
-          width={'calc(100vw - 60px)'}
+          width={'calc(100vw - 50px)'}
           wrapperStyle={{marginLeft: -15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
           headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
@@ -497,7 +497,7 @@ class AccessControlsPage extends React.Component {
           onConfirm={this.handleConfirmDelete}
           />
 
-      </Paper>
+      </div>
     )
   }
 })))
