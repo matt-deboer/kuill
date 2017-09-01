@@ -143,7 +143,8 @@ Roadmap:
   - [x] Come up with a better name ! (kuill)
   - [ ] Support for Third Party Resources / Custom Resource Definitions
   - [ ] Create/Edit validation for all resources
-  - [ ] Provide better hints/tool-tips to explain what functions are available, and what they mean
+  - [x] Provide better hints/tool-tips to explain what functions are available, and what they mean
+  - [ ] Large scale performance testing (1000's of resources)
 
 - [ ] Overview/Homepage:
   - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
@@ -155,6 +156,8 @@ Roadmap:
   - [ ] Test authorization for edit/create/delete actions using kube apis before
         displaying/enabling the associated controls
   - [ ] Provide utilization metrics with pods/deployments/etc., and corresponding summaries by selection
+  - [ ] Rollup ReplicaSets under Deployments as "versions"
+  - [ ] Rollup Jobs under CronJobs as "runs"
 
 - [ ] Cluster:
   - [x] Use tabs for PersistentVolumes, StorageClasses, TPRs(CustomResources)
