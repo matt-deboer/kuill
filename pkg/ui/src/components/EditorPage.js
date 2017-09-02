@@ -13,8 +13,7 @@ import 'brace/theme/iplastic'
 
 const mapStateToProps = function(store) {
   return {
-    isFetching: store.workloads.isFetching,
-  };
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {

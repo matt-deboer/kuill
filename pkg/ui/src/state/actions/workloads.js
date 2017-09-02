@@ -11,7 +11,7 @@ import { watchEvents, selectEventsFor, reconcileEvents } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
 import yaml from 'js-yaml'
-import { defaultFetchParams, sleep } from '../../utils/request-utils'
+import { defaultFetchParams, sleep, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
 export var types = {}
 for (let type of [
   'REPLACE_ALL',
@@ -690,66 +690,66 @@ async function fetchResourceTemplates(dispatch, getState) {
   })
 }
 
-const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
+// const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
 
-function removeReadOnlyFields(resource) {
-  delete resource.status
-  delete resource.metadata.generation
-  delete resource.metadata.creationTimestamp
-  delete resource.metadata.resourceVersion
-  delete resource.metadata.selfLink
-  delete resource.metadata.uid
-}
+// function removeReadOnlyFields(resource) {
+//   delete resource.status
+//   delete resource.metadata.generation
+//   delete resource.metadata.creationTimestamp
+//   delete resource.metadata.resourceVersion
+//   delete resource.metadata.selfLink
+//   delete resource.metadata.uid
+// }
 
-/**
- * Creates a valid patch body (String), compatible with `kubectl apply` functionality
- * 
- * @param {String} contents 
- */
-function createPatch(resource, contents) {
-  let patch = (typeof contents === 'string' ? yaml.safeLoad(contents) : contents)
-  patch.spec.$patch = 'replace'
-  patch.metadata.$patch = 'replace'
-  delete patch.kind
-  delete patch.apiVersion
-  // These are all read-only fields; TODO: either hide them in the editor, or present some
-  // UI feedback indicating that they cannot be changed
-  removeReadOnlyFields(patch)
+// /**
+//  * Creates a valid patch body (String), compatible with `kubectl apply` functionality
+//  * 
+//  * @param {String} contents 
+//  */
+// function createPatch(resource, contents) {
+//   let patch = (typeof contents === 'string' ? yaml.safeLoad(contents) : contents)
+//   patch.spec.$patch = 'replace'
+//   patch.metadata.$patch = 'replace'
+//   delete patch.kind
+//   delete patch.apiVersion
+//   // These are all read-only fields; TODO: either hide them in the editor, or present some
+//   // UI feedback indicating that they cannot be changed
+//   removeReadOnlyFields(patch)
   
-  if (!!resource) {
-    patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
-  }
-  return patch
-}
+//   if (!!resource) {
+//     patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
+//   }
+//   return patch
+// }
 
-function createPost(contents) {
-  let post = yaml.safeLoad(contents)
-  removeReadOnlyFields(post)
-  return post
-}
+// function createPost(contents) {
+//   let post = yaml.safeLoad(contents)
+//   removeReadOnlyFields(post)
+//   return post
+// }
 
-/**
- * Creates the 'kubectl.kubernetes.io/last-applied-configuration' value
- * to be added when creating a patch
- * 
- * @param {*} resource 
- */
-function createLastConfigAnnotation(resource) {
-  let ann = JSON.parse(JSON.stringify(resource))
-  ann.metadata.annotations = {}
-  delete ann.isFiltered
-  if (!ann.apiVersion) {
-    ann.apiVersion = KubeKinds.workloads[resource.kind].base
-  }
-  delete ann.status
-  delete ann.metadata.generation
-  delete ann.metadata.creationTimestamp
-  delete ann.metadata.resourceVersion
-  delete ann.metadata.selfLink
-  delete ann.metadata.uid
+// /**
+//  * Creates the 'kubectl.kubernetes.io/last-applied-configuration' value
+//  * to be added when creating a patch
+//  * 
+//  * @param {*} resource 
+//  */
+// function createLastConfigAnnotation(resource) {
+//   let ann = JSON.parse(JSON.stringify(resource))
+//   ann.metadata.annotations = {}
+//   delete ann.isFiltered
+//   if (!ann.apiVersion) {
+//     ann.apiVersion = KubeKinds.workloads[resource.kind].base
+//   }
+//   delete ann.status
+//   delete ann.metadata.generation
+//   delete ann.metadata.creationTimestamp
+//   delete ann.metadata.resourceVersion
+//   delete ann.metadata.selfLink
+//   delete ann.metadata.uid
 
-  return JSON.stringify(ann)
-}
+//   return JSON.stringify(ann)
+// }
 
 export function receiveResource(resource, contents, error) {
   return {
