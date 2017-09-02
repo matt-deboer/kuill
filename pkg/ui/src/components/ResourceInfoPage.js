@@ -1,9 +1,9 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import {blueA400, grey600, grey700, blueA100} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import sizeMe from 'react-sizeme'
 import { routerActions } from 'react-router-redux'
-import { editResource, removeResource, scaleResource } from '../state/actions/workloads'
 import { linkForResourceKind } from '../routes'
 
 import {Card, CardHeader} from 'material-ui/Card'
@@ -61,65 +61,42 @@ const AsyncLogViewer = Loadable({
 
 const mapStateToProps = function(store) {
   return {
-    filterNames: store.workloads.filterNames,
+    // filterNames: store.workloads.filterNames,
     pods: store.workloads.pods,
   }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
-    editResource: function(namespace, kind, name) {
-      dispatch(editResource(namespace, kind, name))
-      ownProps.selectView('edit')
-    },
-    removeResource: function(resource, filterNames) {
-      dispatch(removeResource(resource))
+    // viewKind: function(kind, namespace) {
+    //   let ns = {}
+    //   if (!!namespace) {
+    //     ns[namespace] = true
+    //   }
+    //   dispatch(routerActions.push(linkForResourceKind(kind, ns)))
+    // },
+    // viewFilters: function(filters) {
+    //   let search = `?${queryString.stringify({filters: filters})}`
+    //   dispatch(routerActions.push({
+    //     pathname: `/${ownProps.resourceGroup}`,
+    //     search: search,
+    //   }))
+    // },
+    // selectView: function(tab) {
+    //   if (tab === 'edit') {
+    //     let { params } = ownProps.match
+    //     dispatch(ownProps.editResource(params.namespace, params.kind, params.name))
+    //   }
       
-      let search = queryString.stringify({filters: filterNames})
-      if (!!search) {
-        search = '?'+search
-      }
-      dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
-        search: search,
-      }))
-    },
-    viewKind: function(kind, namespace) {
-      let ns = {}
-      if (!!namespace) {
-        ns[namespace] = true
-      }
-      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
-    },
-    viewFilters: function(filters) {
-      let search = `?${queryString.stringify({filters: filters})}`
-      dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
-        search: search,
-      }))
-    },
-    selectView: function(tab) {
-      if (tab === 'edit') {
-        let { params } = ownProps.match
-        dispatch(editResource(params.namespace, params.kind, params.name))
-      }
-      
-      let { location } = ownProps
-      let newSearch = `?view=${tab}`
-      console.log(`selectView: pushed new location...`)
-      dispatch(routerActions.push({
-        pathname: location.pathname,
-        search: newSearch,
-        hash: location.hash,
-      }))
-    },
-    scaleResource: function(resource, replicas) {
-      dispatch(scaleResource(
-        resource.metadata.namespace,
-        resource.kind,
-        resource.metadata.name,
-        replicas))
-    }
+    //   let { location } = ownProps
+    //   let newSearch = `?view=${tab}`
+    //   console.log(`selectView: pushed new location...`)
+    //   dispatch(routerActions.push({
+    //     pathname: location.pathname,
+    //     search: newSearch,
+    //     hash: location.hash,
+    //   }))
+    // },
   }
 }
 
@@ -157,6 +134,18 @@ const styles = {
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
 sizeMe({ monitorHeight: true, monitorWidth: true }) (
 class ResourceInfoPage extends React.Component {
+
+  static propTypes = {
+    editResource: PropTypes.function,
+    removeResource: PropTypes.function,
+    scaleResource: PropTypes.function,
+  }
+
+  static defaultProps = {
+    editResource: function(){},
+    removeResource: function(){},
+    scaleResource: function(){},
+  }
 
   constructor(props) {
     super(props);

@@ -4,7 +4,7 @@ import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
 import { blueA700, grey100, grey300 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
-import { requestTemplates, createResource } from '../state/actions/workloads'
+import { requestTemplates, createResource } from '../state/actions/access'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
@@ -20,9 +20,9 @@ const { Range } = ace.acequire('ace/range')
 const mapStateToProps = function(store) {
   return {
     user: store.session.user,
-    editor: store.workloads.editor,
-    templates: store.workloads.templates,
-    isFetching: store.workloads.isFetching,
+    editor: store.access.editor,
+    templates: store.access.templates,
+    isFetching: store.access.isFetching,
   }
 }
 
@@ -41,7 +41,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class NewWorkload extends React.Component {
+class NewAccessControl extends React.Component {
 
   constructor(props) {
     super(props);

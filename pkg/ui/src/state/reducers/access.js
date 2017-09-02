@@ -34,6 +34,9 @@ const initialState = {
   // TODO: we may need to store this on a per-resource basis, 
   // as the fetches for different resource kinds occur independently
   maxResourceVersion: 0,
+  // a value used internally to handle fast notification of when the
+  // resources have changed in a way such that they should be re-rendered
+  resourceRevision: 0,
 }
 
 export default (state = initialState, action) => {
@@ -81,6 +84,9 @@ export default (state = initialState, action) => {
     
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
+
+    case types.RECEIVE_TEMPLATES:
+      return {...state, templates: action.templates}
 
     default:
       return state
@@ -161,7 +167,9 @@ function updatePossibleFilters(possible, subjects, resource) {
     if (resource.kind === 'RoleBinding' || resource.kind === 'ClusterRoleBinding') {
       for (let subject of resource.subjects) {
         possible[`subject:${subject.name}`]=true
-        subjects[`${subject.kind}:${subject.name}`]=true
+        if (!!subjects) {
+          subjects[`${subject.kind}:${subject.name}`]=true
+        }
       }
       possible[`role:${resource.roleRef.name}`]=true
     }
@@ -171,7 +179,9 @@ function updatePossibleFilters(possible, subjects, resource) {
 function doUpdateResource(state, resource) {
   resource.key = keyForResource(resource)
   resource.statusSummary = statusForResource(resource)
-  return doFilterResource(state, resource)
+  let newState = {...state}
+  ++newState.resourceRevision
+  return doFilterResource(newState, resource)
 }
 
 function doFilterResource(state, resource) {
@@ -276,6 +286,7 @@ function doReceiveResources(state, resources) {
   if (subjects !== null) {
     newState.subjects = Object.keys(subjects)
   }
+  ++newState.resourceRevision
 
   return newState
 }

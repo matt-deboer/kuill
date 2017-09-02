@@ -24,6 +24,7 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
+    resourceRevision: store.access.resourceRevision,
   }
 }
 
@@ -66,11 +67,11 @@ class ClusterPage extends React.Component {
       //   component: <SubjectsTab contentTop={140}/>,
       // }
     ]
-
-    this.tabs.push()
-
-    this.tabs.push()
   }
+
+  // shouldComponentUpdate = (nextProps, nextState) => {
+  //   return nextProps.resourceRevision !== this.props.resourceRevision
+  // }
 
   render() {
 

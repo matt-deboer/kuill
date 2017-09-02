@@ -6,6 +6,9 @@ import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor } from './events'
+import { linkForResource } from '../../routes'
+import { addError } from './errors'
+import { defaultFetchParams, sleep, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
 import yaml from 'js-yaml'
 
 export var types = {}
@@ -22,16 +25,12 @@ for (let type of [
   'START_FETCHING',
   'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
+  'RECEIVE_TEMPLATES',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
 ]) {
   types[type] = `access.${type}`
-}
-
-const defaultFetchParams = {
-  credentials: 'same-origin',
-  timeout: 5000,
 }
 
 export function replaceAll(resources, maxResourceVersion, error) {
@@ -115,6 +114,24 @@ export function removeFilter(filter, index) {
 }
 
 /**
+ * Creates a new resource with the provided contents
+ */
+export function createResource(contents) {
+  return async function (dispatch, getState) {
+      let resource = null
+      await doRequest(dispatch, getState, async () => {
+        resource = await createResourceFromContents(dispatch, getState, contents)
+      })
+      if (!!resource) {
+        dispatch(routerActions.push({
+          pathname: linkForResource(resource).split('?')[0],
+          search: '?view=events',
+        }))
+      }
+  }
+}
+
+/**
  * Update the filters query parameter to reflect the
  * currently selected set of filters.
  * 
@@ -181,7 +198,7 @@ export function setFilterNames(filterNames) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
   }
@@ -195,9 +212,9 @@ export function applyResourceChanges(namespace, kind, name, contents) {
  * @param {*} getState 
  * @param {*} request 
  */
-async function doFetch(dispatch, getState, request) {
+async function doRequest(dispatch, getState, request) {
   if (getState().access.isFetching) {
-    console.warn(`doFetch called while already fetching...`)
+    console.warn(`doRequest called while already fetching...`)
   }
   dispatch({ type: types.START_FETCHING })
   let { fetchBackoff } = getState().access
@@ -210,7 +227,7 @@ async function doFetch(dispatch, getState, request) {
  */
 export function requestResources() {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, async () => {
         await fetchResources(dispatch, getState)
       })
   }
@@ -224,10 +241,111 @@ export function requestResources() {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
       })
   }
+}
+
+/**
+ * Requests the set of all available resource templates
+ */
+export function requestTemplates() {
+  return async function (dispatch, getState) {
+      doRequest(dispatch, getState, async () => {
+        await fetchResourceTemplates(dispatch, getState)
+      })
+  }
+}
+
+async function fetchResourceTemplates(dispatch, getState) {
+  
+  let templateNames = await fetch(`/templates`, defaultFetchParams
+      ).then(resp => {
+          if (!resp.ok) {
+            if (resp.status === 401) {
+              dispatch(invalidateSession())
+            } else {
+              dispatch(addError(null,'error',`Failed to fetch templates: ${resp.statusText}`))
+            }
+            return resp
+          } else {
+            return resp.json()
+          }
+        }
+      )
+
+  let urls = templateNames.map(template => `/templates/${template}`)
+  let requests = urls.map(url => fetch(url, defaultFetchParams
+    ).then(resp => {
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            dispatch(invalidateSession())
+          }
+          return resp
+        } else {
+          return resp.text()
+        }
+      }
+  ))
+
+  let results = await Promise.all(requests)
+  let templates = {}
+
+  for (var i=0, len=results.length; i < len; ++i) {
+    let result = results[i]
+    let name = templateNames[i]
+    if (typeof result === 'string') {
+      templates[name] = result    
+    } else {
+      let url = urls[i]
+      let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+      console.error(msg)
+    }
+  }
+  dispatch({
+    type: types.RECEIVE_TEMPLATES,
+    templates: templates,
+  })
+}
+
+
+async function createResourceFromContents(dispatch, getState, contents) {
+  let resource = createPost(contents)
+  let { namespace } = resource.metadata
+  let api = KubeKinds.access[resource.kind]
+  let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
+  let body = JSON.stringify(resource)
+
+  return await fetch(url, { ...defaultFetchParams,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: body,
+  }).then(resp => {
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        dispatch(invalidateSession())
+      } else {
+        dispatch(addError(null,'error',`Failed to create resource: ${resp.statusText}`))
+      }
+    } else {
+      return resp.json()
+    }
+  }).then(json => {
+    if (!!json) {
+      if (json.code) {
+        dispatch(addError(json,'error',`${json.code} ${json.reason}; ${json.message}`))
+      } else {
+        let resource = json
+        resource.key = keyForResource(resource)
+        dispatch(putResource(resource, true))
+        return getState().access.resources[resource.key]
+      }
+    }
+  })
 }
 
 function shouldFetchResources(getState) {
@@ -358,14 +476,19 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
 async function updateResourceContents(dispatch, getState, namespace, kind, name, contents) {
   
   let resource = getState().access.resource
-  let body = createPatch(resource, contents)
+  let body = JSON.stringify(createPatch(resource, contents))
 
   // mimic kubectl annotations so that changes applied in
   // the UI are compatible with those applied in the cli
   // @see https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
 
   let api = KubeKinds.access[kind]
-  let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
+  let url = `/proxy/${api.base}/`
+  if (!!namespace && namespace !== '~') {
+    url += `namespaces/${namespace}/`
+  }
+  url += `${api.plural}/${name}`
+
   await fetch(url, { ...defaultFetchParams,
     headers: {
       'Accept': 'application/json',
@@ -388,59 +511,6 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
   })
 }
 
-const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
-
-/**
- * Creates a valid patch body (String), compatible with `kubectl apply` functionality
- * 
- * @param {String} contents 
- */
-function createPatch(resource, contents) {
-  let patch = yaml.safeLoad(contents)
-  patch.spec.$patch = 'replace'
-  patch.metadata.$patch = 'replace'
-  delete patch.kind
-  delete patch.apiVersion
-  // These are all read-only fields; TODO: either hide them in the editor, or present some
-  // UI feedback indicating that they cannot be changed
-
-  delete patch.status
-  delete patch.metadata.generation
-  delete patch.metadata.creationTimestamp
-  delete patch.metadata.resourceVersion
-  delete patch.metadata.selfLink
-  delete patch.metadata.uid
-
-  if (!!resource) {
-    patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
-  }
-  
-  return JSON.stringify(patch)
-}
-
-/**
- * Creates the 'kubectl.kubernetes.io/last-applied-configuration' value
- * to be added when creating a patch
- * 
- * @param {*} resource 
- */
-function createLastConfigAnnotation(resource) {
-  let ann = JSON.parse(JSON.stringify(resource))
-  ann.metadata.annotations = {}
-  delete ann.isFiltered
-  if (!ann.apiVersion) {
-    ann.apiVersion = KubeKinds.access[resource.kind].base
-  }
-  delete ann.status
-  delete ann.metadata.generation
-  delete ann.metadata.creationTimestamp
-  delete ann.metadata.resourceVersion
-  delete ann.metadata.selfLink
-  delete ann.metadata.uid
-
-  return JSON.stringify(ann)
-}
-
 export function receiveResource(resource, contents, error) {
   return {
     type: types.RECEIVE_RESOURCE_CONTENTS,
@@ -457,10 +527,9 @@ export function clearEditor() {
   }
 }
 
-
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }
@@ -471,7 +540,13 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
   let api = KubeKinds.access[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
   let resource = getState().access.resource
-  await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 
+  let url = `/proxy/${api.base}/`
+  if (!!namespace && namespace !== '~') {
+    url += `namespaces/${namespace}/`
+  }
+  url += `${api.plural}/${name}`
+  
+  await fetch(url, 
       defaultFetchParams
     ).then(resp => {
       if (!resp.ok) {
@@ -485,8 +560,4 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
     }).then(contents => {
       dispatch(receiveResource(resource, contents))
     })
-}
-
-async function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
 }

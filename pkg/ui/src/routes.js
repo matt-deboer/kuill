@@ -19,6 +19,11 @@ const AsyncNewWorkload = Loadable({
   loading: LoadingComponentStub
 })
 
+const AsyncNewAccessControl = Loadable({
+  loader: () => import('./containers/NewAccessControl'),
+  loading: LoadingComponentStub
+})
+
 const AsyncCluster = Loadable({
   loader: () => import('./containers/Cluster'),
   loading: LoadingComponentStub
@@ -70,6 +75,10 @@ const routes = [
     icon: <IconAccessControls/>,
     inMenu: true,
     exact: true,
+  },
+  { 
+    path: '/access/new',
+    component: AsyncNewAccessControl,
   },
   { 
     path: '/access/:namespace/:kind/:name',

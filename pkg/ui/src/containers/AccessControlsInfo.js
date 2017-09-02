@@ -1,15 +1,17 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { editResource, requestResource, applyResourceChanges } from '../state/actions/access'
+import { applyResourceChanges, requestResource, editResource, removeResource } from '../state/actions/access'
 import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
 import { sameResource } from '../utils/resource-utils'
+import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
+import { linkForResourceKind } from '../routes'
 
 const AsyncEditorPage = Loadable({
   loader: () => import('../components/EditorPage'),
@@ -30,9 +32,6 @@ const mapStateToProps = function(store) {
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
-    editResource: function(namespace, kind, name) {
-      dispatch(editResource(namespace, kind, name))
-    },
     cancelEditor: function() {
       dispatch(routerActions.goBack())
     },
@@ -52,6 +51,53 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     invalidateSession: function() {
       dispatch(invalidateSession())
+    },
+    editResource: function(namespace, kind, name) {
+      dispatch(editResource(namespace, kind, name))
+      // ownProps.selectView('edit')
+      let { params } = ownProps.match
+      dispatch(editResource(params.namespace, params.kind, params.name))
+    },
+    removeResource: function(resource, filterNames) {
+      dispatch(removeResource(resource))
+      
+      let search = queryString.stringify({filters: filterNames})
+      if (!!search) {
+        search = '?'+search
+      }
+      dispatch(routerActions.push({
+        pathname: `/${ownProps.resourceGroup}`,
+        search: search,
+      }))
+    },
+    viewKind: function(kind, namespace) {
+      let ns = {}
+      if (!!namespace) {
+        ns[namespace] = true
+      }
+      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
+    },
+    viewFilters: function(filters) {
+      let search = `?${queryString.stringify({filters: filters})}`
+      dispatch(routerActions.push({
+        pathname: `/${ownProps.resourceGroup}`,
+        search: search,
+      }))
+    },
+    selectView: function(tab) {
+      if (tab === 'edit') {
+        let { params } = ownProps.match
+        dispatch(editResource(params.namespace, params.kind, params.name))
+      }
+      
+      let { location } = ownProps
+      let newSearch = `?view=${tab}`
+      console.log(`selectView: pushed new location...`)
+      dispatch(routerActions.push({
+        pathname: location.pathname,
+        search: newSearch,
+        hash: location.hash,
+      }))
     },
   }
 }
@@ -139,7 +185,7 @@ class ClusterInfo extends React.Component {
   render() {
 
     let { resource } = this.state
-    let { events } = this
+    let { events, props } = this
 
     return (<div>
       
@@ -160,6 +206,11 @@ class ClusterInfo extends React.Component {
       {!!this.state.resource &&
         <ResourceInfoPage
           resourceGroup={'access'}
+          editResource={props.editResource}
+          removeResource={props.removeResource}
+          viewKind={props.viewKind}
+          viewFilters={props.viewFilters}
+          selectView={props.selectView}
           resource={this.state.resource}
           resources={this.props.resources}
           events={events}
