@@ -25,7 +25,6 @@ for (let type of [
   'START_FETCHING',
   'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
-  'RECEIVE_TEMPLATES',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
@@ -246,69 +245,6 @@ export function requestResource(namespace, kind, name) {
       })
   }
 }
-
-/**
- * Requests the set of all available resource templates
- */
-export function requestTemplates() {
-  return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
-        await fetchResourceTemplates(dispatch, getState)
-      })
-  }
-}
-
-async function fetchResourceTemplates(dispatch, getState) {
-  
-  let templateNames = await fetch(`/templates`, defaultFetchParams
-      ).then(resp => {
-          if (!resp.ok) {
-            if (resp.status === 401) {
-              dispatch(invalidateSession())
-            } else {
-              dispatch(addError(null,'error',`Failed to fetch templates: ${resp.statusText}`))
-            }
-            return resp
-          } else {
-            return resp.json()
-          }
-        }
-      )
-
-  let urls = templateNames.map(template => `/templates/${template}`)
-  let requests = urls.map(url => fetch(url, defaultFetchParams
-    ).then(resp => {
-        if (!resp.ok) {
-          if (resp.status === 401) {
-            dispatch(invalidateSession())
-          }
-          return resp
-        } else {
-          return resp.text()
-        }
-      }
-  ))
-
-  let results = await Promise.all(requests)
-  let templates = {}
-
-  for (var i=0, len=results.length; i < len; ++i) {
-    let result = results[i]
-    let name = templateNames[i]
-    if (typeof result === 'string') {
-      templates[name] = result    
-    } else {
-      let url = urls[i]
-      let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
-      console.error(msg)
-    }
-  }
-  dispatch({
-    type: types.RECEIVE_TEMPLATES,
-    templates: templates,
-  })
-}
-
 
 async function createResourceFromContents(dispatch, getState, contents) {
   let resource = createPost(contents)
