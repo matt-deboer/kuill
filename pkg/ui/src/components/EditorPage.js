@@ -10,6 +10,21 @@ import AceEditor from 'react-ace'
 import 'brace/mode/yaml'
 import 'brace/mode/json'
 import 'brace/theme/iplastic'
+import 'brace/ext/language_tools'
+import ace from 'brace'
+
+const langTools = ace.acequire('ace/ext/language_tools')
+
+var completer = {
+  getCompletions: function(editor, session, pos, prefix, callback) {
+    callback(null, [])
+  }
+}
+langTools.addCompleter(completer);
+
+
+
+
 
 const mapStateToProps = function(store) {
   return {
@@ -115,11 +130,13 @@ class EditorPage extends React.Component {
           height={`${window.innerHeight - 300}px`}
           width={`100%`}
           editorProps={{$blockScrolling: true}}
+          enableBasicAutocompletion={true}
           value={this.contents}
           ref={(ref) => {
             if (!!ref) {
               this.editor = ref.editor
               this.onEditorLoaded(this.editor)
+              this.editor.enableBasicAutocompletion = true
             }
           }}
         />
