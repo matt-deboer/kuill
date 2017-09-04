@@ -11,7 +11,10 @@ import { watchEvents, selectEventsFor, reconcileEvents } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
 import yaml from 'js-yaml'
-import { defaultFetchParams, sleep, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
+import { defaultFetchParams, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
+import { doRequest } from './requests'
+
+
 export var types = {}
 for (let type of [
   'REPLACE_ALL',
@@ -23,13 +26,12 @@ for (let type of [
   'REMOVE_FILTER',
   'SET_FILTER_NAMES',
   'EDIT_RESOURCE',
-  'START_FETCHING',
-  'DONE_FETCHING',
+  // 'START_FETCHING',
+  // 'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
-  'RECEIVE_TEMPLATES',
   'DISABLE_KIND',
 ]) {
   types[type] = `workloads.${type}`
@@ -204,7 +206,7 @@ export function setFilterNames(filterNames) {
 export function scaleResource(namespace, kind, name, replicas) {
   return async function (dispatch, getState) {
       
-      await doRequest(dispatch, getState, async () => {
+      await doRequest(dispatch, getState, 'fetchResourceContents', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
 
@@ -219,7 +221,7 @@ export function scaleResource(namespace, kind, name, replicas) {
           resource.statusSummary = 'scaling ' + (prevReplicas > resource.spec.replicas ? 'down' : 'up')
           dispatch(putResource(resource, false))
 
-          doRequest(dispatch, getState, async () => {
+          doRequest(dispatch, getState, 'updateResourceContents', async () => {
             await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
           })
         }
@@ -244,7 +246,7 @@ export function scaleResource(namespace, kind, name, replicas) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'updateResourceContents', async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
@@ -256,30 +258,14 @@ export function applyResourceChanges(namespace, kind, name, contents) {
   }
 }
 
-/**
- * Wraps any fetch request with proper setting of the `isFetching`
- * guards, and applies any fetchBackoff value.
- * 
- * @param {*} dispatch 
- * @param {*} getState 
- * @param {*} request 
- */
-async function doRequest(dispatch, getState, request) {
-  if (getState().workloads.isFetching) {
-    console.warn(`doRequest called while already fetching...`)
-  }
-  dispatch({ type: types.START_FETCHING })
-  let { fetchBackoff } = getState().workloads
-  await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING })
-}
+
 
 /**
  * @param {Boolean} force
  */
 export function requestResources(force) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResources', async () => {
         await fetchResources(dispatch, getState, force)
       })
   }
@@ -293,19 +279,8 @@ export function requestResources(force) {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResource', async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
-      })
-  }
-}
-
-/**
- * Requests the set of all available resource templates
- */
-export function requestTemplates() {
-  return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
-        await fetchResourceTemplates(dispatch, getState)
       })
   }
 }
@@ -316,7 +291,7 @@ export function requestTemplates() {
 export function createResource(contents) {
   return async function (dispatch, getState) {
       let resource = null
-      await doRequest(dispatch, getState, async () => {
+      await doRequest(dispatch, getState, 'createResourceFromContents', async () => {
         resource = await createResourceFromContents(dispatch, getState, contents)
       })
       // let workloads = getState().workloads
@@ -345,7 +320,7 @@ export function removeResource(...resourcesToRemove) {
         }
       }
 
-      await doRequest(dispatch, getState, async () => {
+      await doRequest(dispatch, getState, 'removeResources', async () => {
         await removeResources(dispatch, getState, resourcesToRemove)
       })
 
@@ -639,118 +614,6 @@ async function removeResources(dispatch, getState, resources) {
   }
 }
 
-async function fetchResourceTemplates(dispatch, getState) {
-  
-  let templateNames = await fetch(`/templates`, defaultFetchParams
-      ).then(resp => {
-          if (!resp.ok) {
-            if (resp.status === 401) {
-              dispatch(invalidateSession())
-            } else {
-              dispatch(addError(null,'error',`Failed to fetch templates: ${resp.statusText}`))
-            }
-            return resp
-          } else {
-            return resp.json()
-          }
-        }
-      )
-
-  let urls = templateNames.map(template => `/templates/${template}`)
-  let requests = urls.map(url => fetch(url, defaultFetchParams
-    ).then(resp => {
-        if (!resp.ok) {
-          if (resp.status === 401) {
-            dispatch(invalidateSession())
-          }
-          return resp
-        } else {
-          return resp.text()
-        }
-      }
-  ))
-
-  let results = await Promise.all(requests)
-  let templates = {}
-
-  for (var i=0, len=results.length; i < len; ++i) {
-    let result = results[i]
-    let name = templateNames[i]
-    if (typeof result === 'string') {
-      templates[name] = result    
-    } else {
-      let url = urls[i]
-      let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
-      console.error(msg)
-    }
-  }
-  dispatch({
-    type: types.RECEIVE_TEMPLATES,
-    templates: templates,
-  })
-}
-
-// const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
-
-// function removeReadOnlyFields(resource) {
-//   delete resource.status
-//   delete resource.metadata.generation
-//   delete resource.metadata.creationTimestamp
-//   delete resource.metadata.resourceVersion
-//   delete resource.metadata.selfLink
-//   delete resource.metadata.uid
-// }
-
-// /**
-//  * Creates a valid patch body (String), compatible with `kubectl apply` functionality
-//  * 
-//  * @param {String} contents 
-//  */
-// function createPatch(resource, contents) {
-//   let patch = (typeof contents === 'string' ? yaml.safeLoad(contents) : contents)
-//   patch.spec.$patch = 'replace'
-//   patch.metadata.$patch = 'replace'
-//   delete patch.kind
-//   delete patch.apiVersion
-//   // These are all read-only fields; TODO: either hide them in the editor, or present some
-//   // UI feedback indicating that they cannot be changed
-//   removeReadOnlyFields(patch)
-  
-//   if (!!resource) {
-//     patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
-//   }
-//   return patch
-// }
-
-// function createPost(contents) {
-//   let post = yaml.safeLoad(contents)
-//   removeReadOnlyFields(post)
-//   return post
-// }
-
-// /**
-//  * Creates the 'kubectl.kubernetes.io/last-applied-configuration' value
-//  * to be added when creating a patch
-//  * 
-//  * @param {*} resource 
-//  */
-// function createLastConfigAnnotation(resource) {
-//   let ann = JSON.parse(JSON.stringify(resource))
-//   ann.metadata.annotations = {}
-//   delete ann.isFiltered
-//   if (!ann.apiVersion) {
-//     ann.apiVersion = KubeKinds.workloads[resource.kind].base
-//   }
-//   delete ann.status
-//   delete ann.metadata.generation
-//   delete ann.metadata.creationTimestamp
-//   delete ann.metadata.resourceVersion
-//   delete ann.metadata.selfLink
-//   delete ann.metadata.uid
-
-//   return JSON.stringify(ann)
-// }
-
 export function receiveResource(resource, contents, error) {
   return {
     type: types.RECEIVE_RESOURCE_CONTENTS,
@@ -769,7 +632,7 @@ export function clearEditor() {
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResourceContents', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }

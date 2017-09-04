@@ -37,11 +37,11 @@ const initialState = {
   editor: {
     format: 'yaml'
   },
-  isFetching: false,
+  // isFetching: false,
   countsByKind: {},
   countsByNamespace: {},
-  fetchBackoff: 0,
-  fetchError: null,
+  // fetchBackoff: 0,
+  // fetchError: null,
   watches: null,
   // kinds in this set are not supported by this cluster
   disabledKinds: {},
@@ -64,14 +64,14 @@ export default (state = initialState, action) => {
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
     
-    case types.START_FETCHING:
-      return {...state, isFetching: true}
+    // case types.START_FETCHING:
+    //   return {...state, isFetching: true}
 
-    case types.DONE_FETCHING:
-      return {...state, 
-        isFetching: false,
-        fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
-      }
+    // case types.DONE_FETCHING:
+    //   return {...state, 
+    //     isFetching: false,
+    //     fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
+    //   }
 
     case types.DISABLE_KIND:
       return doDisableKind(state, action.kind)
@@ -105,9 +105,6 @@ export default (state = initialState, action) => {
     
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
-
-    case types.RECEIVE_TEMPLATES:
-      return {...state, templates: action.templates}
 
     default:
       return state
@@ -356,13 +353,13 @@ function doSelectResource(state, namespace, kind, name) {
   }
 }
 
-function decrementBackoff(backoff) {
-  return Math.max(Math.floor(backoff / 4), 0)
-}
+// function decrementBackoff(backoff) {
+//   return Math.max(Math.floor(backoff / 4), 0)
+// }
 
-function incrementBackoff(backoff) {
-  return Math.max(backoff * 2, 1000)
-}
+// function incrementBackoff(backoff) {
+//   return Math.max(backoff * 2, 1000)
+// }
 
 
 function doReceiveResources(state, resources) {

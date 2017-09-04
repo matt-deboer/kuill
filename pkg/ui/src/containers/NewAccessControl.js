@@ -4,7 +4,8 @@ import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
 import { blueA700, grey100, grey300 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
-import { requestTemplates, createResource } from '../state/actions/access'
+import { createResource } from '../state/actions/access'
+import { requestTemplates } from '../state/actions/templates'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
@@ -21,7 +22,7 @@ const mapStateToProps = function(store) {
   return {
     user: store.session.user,
     editor: store.access.editor,
-    templates: store.access.templates,
+    templates: store.templates.templatesByGroup.access,
     isFetching: store.access.isFetching,
   }
 }
