@@ -1,7 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {Card, CardHeader, CardText} from 'material-ui/Card'
-import {grey800} from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
@@ -13,12 +11,9 @@ import {
 import sizeMe from 'react-sizeme'
 
 import FilterChip from '../FilterChip'
-import ContainerPanel from './ContainerPanel'
-import Volumes from './Volumes'
 import { connect } from 'react-redux'
 import { linkForResource } from '../../routes'
 import { routerActions } from 'react-router-redux'
-import yaml from 'js-yaml'
 import './PodTemplatePane.css'
 
 const mapStateToProps = function(store) {
@@ -42,7 +37,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   } 
 }
 
-const rowHeight = 22
 const styles = {
   verbs: {
     width: 60,

@@ -8,8 +8,7 @@ import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
-import { defaultFetchParams, sleep, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
-import yaml from 'js-yaml'
+import { defaultFetchParams, sleep, createPost, createPatch } from '../../utils/request-utils'
 
 export var types = {}
 for (let type of [
