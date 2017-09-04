@@ -74,7 +74,6 @@ export function createLastConfigAnnotation(resource) {
 }
 
 function getAPIVersion(kind) {
-  let kubeKind
   for (let k in KubeKinds) {
     let kinds = KubeKinds[k]
     if (kind in kinds) {

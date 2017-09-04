@@ -10,8 +10,7 @@ import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor, reconcileEvents } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
-import yaml from 'js-yaml'
-import { defaultFetchParams, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
+import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
 import { doRequest } from './requests'
 
 

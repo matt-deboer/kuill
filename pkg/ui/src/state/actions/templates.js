@@ -4,7 +4,7 @@ import { addError } from './errors'
 import KubeKinds from '../../kube-kinds'
 import yaml from 'js-yaml'
 
-import { defaultFetchParams, createPost, createPatch, removeReadOnlyFields } from '../../utils/request-utils'
+import { defaultFetchParams } from '../../utils/request-utils'
 
 export var types = {}
 for (let type of [

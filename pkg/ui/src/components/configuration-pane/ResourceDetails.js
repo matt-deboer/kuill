@@ -54,13 +54,6 @@ let kinds = {
       ]
     },
   },
-  Job: {
-    getData: ({status, spec, metadata }) => {
-      return [
-        ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
-      ]
-    },
-  },
   CronJob: {
     getData: ({status, spec, metadata }) => {
       return [

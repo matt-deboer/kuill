@@ -1,22 +1,7 @@
 import React from 'react'
-import { grey200, grey300, grey500, grey700, grey800, red900, white } from 'material-ui/styles/colors'
-import { typography } from 'material-ui/styles'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom' 
-import IconButton from 'material-ui/IconButton'
-import IconError from 'material-ui/svg-icons/action/info'
-import IconClearError from 'material-ui/svg-icons/action/delete'
-import IconRetry from 'material-ui/svg-icons/av/loop'
-import Dialog from 'material-ui/Dialog'
-import FlatButton from 'material-ui/FlatButton'
-import RaisedButton from 'material-ui/FlatButton'
 import queryString from 'query-string'
-import {
-  Table,
-  TableBody,
-  TableRow,
-  TableRowColumn,
-} from 'material-ui/Table'
 import FilterBox from '../FilterBox'
 import PermissionsPane from '../configuration-pane/PermissionsPane'
 
@@ -30,10 +15,6 @@ const mapStateToProps = function(store) {
 const mapDispatchToProps = function(dispatch) {
   return {
   }
-}
-
-const errorIcons = {
-  error: <IconError style={{color: grey500}}/>,
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (

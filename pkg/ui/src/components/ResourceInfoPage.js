@@ -3,8 +3,6 @@ import PropTypes from 'prop-types'
 import {blueA400, grey600, grey700, blueA100} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import sizeMe from 'react-sizeme'
-import { routerActions } from 'react-router-redux'
-import { linkForResourceKind } from '../routes'
 
 import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
@@ -38,7 +36,6 @@ import Menu from 'material-ui/Menu'
 import MenuItem from 'material-ui/MenuItem'
 import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
-import queryString from 'query-string'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
 
