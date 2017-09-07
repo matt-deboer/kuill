@@ -13,15 +13,25 @@ import KubeKinds from './kube-kinds'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from './components/LoadingComponentStub'
+import { createResource as createWorkload } from './state/actions/workloads'
+import { createResource as createAccessControl } from './state/actions/access'
 
 const AsyncNewWorkload = Loadable({
-  loader: () => import('./containers/NewWorkload'),
-  loading: LoadingComponentStub
+  loader: () => import('./containers/NewResource'),
+  loading: LoadingComponentStub,
+  properties: {
+    resourceGroup: 'workloads',
+    resourceCreator: createWorkload,
+  },
 })
 
 const AsyncNewAccessControl = Loadable({
-  loader: () => import('./containers/NewAccessControl'),
-  loading: LoadingComponentStub
+  loader: () => import('./containers/NewResource'),
+  loading: LoadingComponentStub,
+  properties: {
+    resourceGroup: 'access',
+    resourceCreator: createAccessControl,
+  }
 })
 
 const AsyncCluster = Loadable({

@@ -40,12 +40,18 @@
     "redux-thunk": "^2.2.0",
     "shallowequal": "^1.0.2",
     "source-map-explorer": "^1.4.0",
+    "swagger-object-validator": "^1.1.4",
     "text-encoding-utf-8": "^1.0.1",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
     "xterm": "^2.6.0"
   },
   "devDependencies": {
+    "babel-jest": "^21.0.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-register": "^6.26.0",
     "concurrently": "^3.4.0",
+    "jest-cli": "^21.0.1",
     "node-sass-chokidar": "0.0.1",
     "npm-run-all": "^4.0.2",
     "react-addons-perf": "^15.4.2",
