@@ -1,11 +1,13 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
 import { blueA700, grey100, grey300 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
-import { createResource } from '../state/actions/workloads'
+// import { createResource } from '../state/actions/access'
 import { requestTemplates } from '../state/actions/templates'
+import { requestSwagger } from '../state/actions/apimodels'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
@@ -14,6 +16,13 @@ import IconApply from 'material-ui/svg-icons/action/get-app'
 import RaisedButton from 'material-ui/RaisedButton'
 import Popover from 'material-ui/Popover'
 import Menu from 'material-ui/Menu'
+import * as SwaggerValidator from 'swagger-object-validator'
+import { getErrorPosition } from '../utils/yaml-utils'
+// import Validator from 'swagger-model-validator'
+// import swaggerValidate from 'swagger-validate'
+// import AJV from 'ajv'
+import KubeKinds from '../kube-kinds'
+import yaml from 'js-yaml'
 
 import ace from 'brace'
 const { Range } = ace.acequire('ace/range')
@@ -21,9 +30,11 @@ const { Range } = ace.acequire('ace/range')
 const mapStateToProps = function(store) {
   return {
     user: store.session.user,
-    editor: store.workloads.editor,
-    templates: store.templates.templatesByGroup.workloads,
-    isFetching: store.workloads.isFetching,
+    editor: store.access.editor,
+    templates: store.templates.templatesByGroup.access,
+    isFetching: store.access.isFetching,
+    // modelsByAPIGroup: store.apimodels.modelsByAPIGroup,
+    swagger: store.apimodels.swagger,
   }
 }
 
@@ -33,16 +44,29 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(routerActions.goBack())
     },
     createResource: function(contents) {
-      dispatch(createResource(contents))
+      dispatch(ownProps.resourceCreator(contents))
     },
     requestTemplates: function() {
       dispatch(requestTemplates())
-    }
+    },
+    requestSwagger: function() {
+      dispatch(requestSwagger())
+    },
+    resourceGroup: 'access',
   }
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class NewWorkload extends React.Component {
+class NewResource extends React.Component {
+
+  static propTypes = {
+    resourceCreator: PropTypes.func.isRequired,
+    resourceGroup: PropTypes.string.isRequired,
+  }
+
+  static defaultProps = {
+    resourceCreator: function(){},
+  }
 
   constructor(props) {
     super(props);
@@ -61,9 +85,15 @@ class NewWorkload extends React.Component {
       templateNames: templateNames || [],
       selectedTemplate,
       variables: [],
+      errors: [],
       selectedVariable: '',
     }
     this.contents = ''
+    if (props.swagger) {
+      this.validator = new SwaggerValidator.Handler(props.swagger)
+    }
+    // this.validator = new Validator()
+    // this.validator = new AJV({allErrors: true})
   }
 
   handleTouchTapTemplates = (event) => {
@@ -142,6 +172,93 @@ class NewWorkload extends React.Component {
 
   }
 
+  handleEditorApply = () => {
+    this.validate(true).then(errors=> {
+      if (errors.length) {
+        this.setState({errors: errors})
+      } else {
+        this.props.createResource(this.contents)
+      }
+    })
+  }
+
+  validate = async (includeVariableRefs) => {
+  
+    let errors = []
+    if (includeVariableRefs) {
+      let vars = this.detectVariables(this.contents)
+      if (vars.length) {
+        errors.push({
+          row: 0,
+          column: 0,
+          text: `there are template variables that still need values (${vars.join(',')})`,
+          type: 'error'
+        })
+      }
+    }
+
+    if (this.validator) {
+      let resource
+      try {
+        resource = yaml.safeLoad(this.contents)
+        if ('kind' in resource) {
+          let kinds = KubeKinds[this.props.resourceGroup]
+          let kind = kinds[resource.kind]
+          let modelGuess = `io.k8s.apimachinery.pkg.${kind.base.replace(/\//g,'.')}.${resource.kind}`
+          
+          // TODO: The model version exposed by the swagger spec does not always match
+          // the api version exposed--this may be due to exposing multiple versions of
+          // the same resource type...
+          let actualModel = modelGuess
+          let suffix = `.${resource.kind}`
+          for (let type in this.props.swagger.definitions) {
+            if (type.endsWith(suffix)) {
+              actualModel = type
+              break
+            }
+          }
+  
+          let result = await this.validator.validateModel(resource, actualModel)
+          if (result.errors && result.errors.length) {
+            let lines = this.contents.split(/\n/g)
+            for (let error of result.errors) {
+              errors.push({
+                row: getErrorPosition(lines, error) || 0,
+                column: 0,
+                text: this.getTextForError(error),
+                type: 'error',
+              })
+            }
+          }
+        }
+      } catch (e) {
+        errors.push({row: e.mark.line, column: e.mark.column, text: e.reason, type: 'error'})
+      }
+    }
+    return errors
+  }
+
+  getTextForError = (error) => {
+    let path = ""
+    for (let i=1; i < error.trace.length; ++i) {
+      let part = error.trace[i]
+      if (!!path) {
+        path += '.'
+      }
+      path += part.stepName
+      if ('arrayPos' in part) {
+        path += `[${part.arrayPos}]`
+      }
+    }
+    if (error.errorType === 0) {
+      return `'${path}' is required`
+    } else if (error.errorType === 2) {
+      return `'${path}' is of the wrong type; expected ${error.typeShouldBe} but found ${error.typeIs}`
+    } else {
+      return `'${path}' is not expected for this resource kind`
+    }
+  }
+
   getSortedTemplateNames = (templates) => {
     if (!!templates) {
       let templateNames = []
@@ -175,6 +292,12 @@ class NewWorkload extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
+    if (!props.swagger) {
+      props.requestSwagger()
+    } else if (!this.validator) {
+      this.validator = new SwaggerValidator.Handler(props.swagger)
+    }
+
     if (!props.templates && !props.isFetching) {
       props.requestTemplates()
     } else if (props.templates) {
@@ -283,9 +406,10 @@ class NewWorkload extends React.Component {
 
     return (
       <EditorPage 
-        open={true}
+        open={!!this.props.user}
+        errors={this.state.errors}
         onChange={this.handleEditorChange}
-        onEditorApply={this.props.createResource}
+        onEditorApply={this.handleEditorApply.bind(this)}
         onEditorCancel={this.props.cancelEditor}
         onSelectionChange={this.handleSelectionChange.bind(this)}
         onCursorChange={this.handleCursorChange.bind(this)}
