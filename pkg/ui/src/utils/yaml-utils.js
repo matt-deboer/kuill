@@ -1,4 +1,3 @@
-
 /**
  * Finds the position [row, column] for a given error within
  * the yaml document contents
@@ -20,7 +19,6 @@ export function getErrorPosition(lines, error) {
   }
   for (let i=1; i < maxTrace; ++i) {
     let part = error.trace[i]
-    part.stepName
 
     indent = findNextIndent(lines, row, false)
     prefix = `${indent}${part.stepName}:`
@@ -56,7 +54,8 @@ function findNextIndent(lines, startingLine, isArray) {
   for (let i=startingLine, len=lines.length; i < len; ++i) {
     let line = lines[i]
     let trimmed = line.trim()
-    if (trimmed.startsWith('#') || (isArray && !trimmed.startsWith('-') || (!isArray && trimmed.startsWith('-')))) {
+    let beginsArray = trimmed.startsWith('-')
+    if (trimmed.startsWith('#') || (isArray && !beginsArray) || (!isArray && beginsArray)) {
       continue
     } else {
       let indent = line.substr(0, line.length - trimmed.length)
