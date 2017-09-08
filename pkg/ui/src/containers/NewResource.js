@@ -184,16 +184,20 @@ class NewResource extends React.Component {
 
   validate = async (includeVariableRefs) => {
   
+    let lines = (this.contents && this.contents.split(/\n/g)) || []
     let errors = []
     if (includeVariableRefs) {
-      let vars = this.detectVariables(this.contents)
-      if (vars.length) {
-        errors.push({
-          row: 0,
-          column: 0,
-          text: `there are template variables that still need values (${vars.join(',')})`,
-          type: 'error'
-        })
+      for (let i=0, len=lines.length; i < len; ++i) {
+        let line = lines[i]
+        let vars = this.detectVariables(line)
+        if (vars.length) {
+          errors.push({
+            row: i,
+            column: 0,
+            html: this.getHtmlForTemplateVariableError(vars),
+            type: 'error'
+          })
+        }
       }
     }
 
@@ -220,12 +224,11 @@ class NewResource extends React.Component {
   
           let result = await this.validator.validateModel(resource, actualModel)
           if (result.errors && result.errors.length) {
-            let lines = this.contents.split(/\n/g)
             for (let error of result.errors) {
               errors.push({
                 row: getErrorPosition(lines, error) || 0,
                 column: 0,
-                text: this.getTextForError(error),
+                html: this.getHtmlForError(error),
                 type: 'error',
               })
             }
@@ -238,9 +241,10 @@ class NewResource extends React.Component {
     return errors
   }
 
-  getTextForError = (error) => {
+  getHtmlForError = (error) => {
     let path = ""
-    for (let i=1; i < error.trace.length; ++i) {
+    let maxTrace = (error.errorType > 0 ? error.trace.length : error.trace.length - 1)
+    for (let i=1; i < maxTrace; ++i) {
       let part = error.trace[i]
       if (!!path) {
         path += '.'
@@ -251,11 +255,44 @@ class NewResource extends React.Component {
       }
     }
     if (error.errorType === 0) {
-      return `'${path}' is required`
+      return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required in<span className="error yaml-ref"> {path} </span></div>
     } else if (error.errorType === 2) {
-      return `'${path}' is of the wrong type; expected ${error.typeShouldBe} but found ${error.typeIs}`
+      return (
+        <div>
+          <span className="error yaml-ref">{path} </span>
+          is of the wrong type; expected 
+          <span className="error type-ref"> {error.typeShouldBe} </span>
+          but found<span className="error type-ref"> {error.typeIs}</span>
+        </div>
+      )
     } else {
-      return `'${path}' is not expected for this resource kind`
+      return <div><span className="error yaml-ref">{path}</span> is not expected for this resource kind</div>
+    }
+  }
+
+  getHtmlForTemplateVariableError = (vars) => {
+    if (vars.length === 1) {
+      return (
+        <div>
+          <span>template variable </span>
+          <span className="error variable-ref">${vars[0]}</span>
+          <span> needs a value</span>
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <span>template variables </span>
+          {vars.map((v, index) => {
+            let joiner = null
+            if (index > 0) {
+              joiner = <span>, </span>
+            }
+            return (joiner, <span className="error variable-ref">${v}</span>)
+          })}
+          <span> need values</span>
+        </div>
+      )
     }
   }
 
