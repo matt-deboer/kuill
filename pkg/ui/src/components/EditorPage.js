@@ -152,13 +152,13 @@ class EditorPage extends React.Component {
     for (let e of this.props.errors) {
       let i = `${e.row+1}`
       errorsByRow[i] = errorsByRow[e.row] || []
-      errorsByRow[i].push(e.text)
+      errorsByRow[i].push(e.html || e.text)
     }
     let errorTexts = []
     for (let row in errorsByRow) {
       errorTexts.push(
         <div id={`errors-for-row-${row}`} key={`errors-for-row-${row}`} style={{display: 'none'}}>
-          {errorsByRow[row].map(text => <div>{text}</div>)}
+          {errorsByRow[row]}
         </div>)
     }  
 
