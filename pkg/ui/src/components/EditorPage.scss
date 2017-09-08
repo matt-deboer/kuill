@@ -16,19 +16,20 @@
 
 .react-hint {
   &.error {
-    left: 6vw !important;
+    left: calc(5% + 15px) !important;
     margin-left: 0 !important;
     margin-top: -3px !important;
-
 
     -webkit-animation: .25s fadeIn;
     animation: .25s fadeIn;
 
     &:after {
-      left: 1.75vw !important;
+      // left: 1.75vw !important;
+      left: 15px !important;
       right: auto !important;
       border-top-color: rgb(150,0,0) !important;
     }
+    
     .react-hint__content {
       background-color: rgb(150,0,0) !important;
     }
