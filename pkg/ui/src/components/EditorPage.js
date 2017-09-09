@@ -53,7 +53,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 
 const styles = {
   dialogOverlay: {
-    background: 'rgba(0,0,0,0.3)'
+    background: 'rgba(0,0,0,0.5)'
   }
 }
 
