@@ -6,6 +6,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import Dialog from 'material-ui/Dialog'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
+import { grey500 } from 'material-ui/styles/colors'
 
 import AceEditor from 'react-ace'
 import 'brace/mode/yaml'
@@ -13,7 +14,7 @@ import 'brace/mode/json'
 import 'brace/theme/iplastic'
 import 'brace/ext/language_tools'
 import ace from 'brace'
-
+import EditorTheme from './EditorTheme'
 import './EditorPage.css'
 
 const langTools = ace.acequire('ace/ext/language_tools')
@@ -43,6 +44,12 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   }
 }
 
+const styles = {
+  dialogOverlay: {
+    background: 'rgba(0,0,0,0.3)'
+  }
+}
+
 // use functional component style for representational components
 export default connect(mapStateToProps, mapDispatchToProps) (
 class EditorPage extends React.Component {
@@ -59,6 +66,12 @@ class EditorPage extends React.Component {
   static defaultProps = {
     errors: [],
     contents: '',
+  }
+
+  constructor(props) {
+    super(props)
+    this.updateErrorTooltips = this.updateErrorTooltips.bind(this)
+    this.displayErrors = this.displayErrors.bind(this)
   }
 
   componentDidMount = () => {
@@ -90,7 +103,7 @@ class EditorPage extends React.Component {
     if (this.editor && this.contents) {
       this.editor.getSession().setAnnotations(this.props.errors)
       if (this.props.errors.length) {
-        window.setTimeout(this.updateErrorTooltips.bind(this), 0)
+        window.setTimeout(this.updateErrorTooltips, 0)
       }
     }
   }
@@ -138,7 +151,8 @@ class EditorPage extends React.Component {
       ...additionalActions,
       <FlatButton
         label="Cancel"
-        primary={true}
+        labelStyle={{color: 'rgb(220,220,220)'}}
+        hoverColor={grey500}
         onTouchTap={props.onEditorCancel}
       />,
       <RaisedButton
@@ -164,19 +178,22 @@ class EditorPage extends React.Component {
 
     return (
       <Dialog
+        className={'editor-dialog'}
+        contentClassName={'editor-dialog-content'}
         actions={actions}
         title={props.title}
         titleStyle={props.titleStyle || {}}
         modal={true}
+        overlayStyle={styles.dialogOverlay}
         open={props.open}
-        contentStyle={{width: '90%', maxWidth: 'none'}}
+        contentStyle={{width: '90%', maxWidth: 'none', }}
         actionsContainerStyle={{padding: 25}}
       >
         {errorTexts}
         
         <AceEditor
           mode={"yaml"}
-          theme={"iplastic"}
+          theme={"kubernetes"}
           name={"kubernetes-editor"}
           onChange={this.onChange.bind(this)}
           onSelectionChange={this.onSelectionChange.bind(this)}

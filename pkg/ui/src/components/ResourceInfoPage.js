@@ -316,7 +316,9 @@ class ResourceInfoPage extends React.Component {
       })
     }
 
-    activeTab = (activeTab || tabs[0].name)
+    if (!activeTab || activeTab === 'edit') {
+      activeTab = tabs[0].name
+    }
 
     return (
       <div>
