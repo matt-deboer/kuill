@@ -19,19 +19,11 @@ import { createResource as createAccessControl } from './state/actions/access'
 const AsyncNewWorkload = Loadable({
   loader: () => import('./containers/NewResource'),
   loading: LoadingComponentStub,
-  properties: {
-    resourceGroup: 'workloads',
-    resourceCreator: createWorkload,
-  },
 })
 
 const AsyncNewAccessControl = Loadable({
   loader: () => import('./containers/NewResource'),
   loading: LoadingComponentStub,
-  properties: {
-    resourceGroup: 'access',
-    resourceCreator: createAccessControl,
-  }
 })
 
 const AsyncCluster = Loadable({
@@ -60,6 +52,10 @@ const routes = [
   { 
     path: '/workloads/new',
     component: AsyncNewWorkload,
+    props: {
+      resourceGroup: 'workloads',
+      resourceCreator: createWorkload,
+    },
   },
   { 
     path: '/workloads/:namespace/:kind/:name',
@@ -89,6 +85,10 @@ const routes = [
   { 
     path: '/access/new',
     component: AsyncNewAccessControl,
+    props: {
+      resourceGroup: 'access',
+      resourceCreator: createAccessControl,
+    },
   },
   { 
     path: '/access/:namespace/:kind/:name',
