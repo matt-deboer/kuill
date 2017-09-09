@@ -9,21 +9,22 @@ import yaml from 'js-yaml'
 
 export default class ManifestValidator {
 
-  constructor(swagger, resourceGroup) {
+  constructor(swagger, resourceGroup, detectVariables) {
     this.swagger = swagger
     this.validator = new SwaggerValidator.Handler(swagger)
     this.resourceGroup = resourceGroup
+    this.detectVariables = detectVariables
   }
  
 
-  validate = async (contents, detectVariables) => {
+  validate = async (contents, testVariables) => {
   
     let lines = (contents && contents.split(/\n/g)) || []
     let errors = []
-    if (typeof detectVariables === 'function') {
+    if (testVariables && typeof this.detectVariables === 'function') {
       for (let i=0, len=lines.length; i < len; ++i) {
         let line = lines[i]
-        let vars = detectVariables(line)
+        let vars = this.detectVariables(line)
         if (vars.length) {
           errors.push({
             row: i,

@@ -79,7 +79,6 @@ class NewResource extends React.Component {
       selectedVariable: '',
     }
     this.contents = ''
-    this.validateOnChange = this.validateOnChange.bind(this)
   }
 
   handleTouchTapTemplates = (event) => {
@@ -112,7 +111,6 @@ class NewResource extends React.Component {
 
   handleEditorChange = (contents) => {
     this.contents = contents
-    this.validateOnChange()
   }
 
   handleSelectionChange = (selection, event) => {
@@ -165,22 +163,7 @@ class NewResource extends React.Component {
   }
 
   handleEditorApply = () => {
-    this.validator && this.validator.validate(this.contents, this.detectVariables)
-      .then(errors=> {
-        if (errors.length) {
-          this.setState({errors: errors})
-        } else {
-          this.props.createResource(this.contents)
-        }
-      })
-  }
-
-  validateOnChange = () => {
-    this.validator && this.validator.validate(this.contents).then(errors=> {
-      this.ignoreSelectionChange = true
-      this.setState({errors: errors})
-      this.ignoreSelectionChange = false
-    })
+    this.props.createResource(this.contents)
   }
 
   getSortedTemplateNames = (templates) => {
@@ -217,9 +200,6 @@ class NewResource extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
-    if (props.swagger && !this.validator) {
-      this.validator = new ManifestValidator(props.swagger, props.resourceGroup)
-    }
     
     if (!props.templates && !props.isFetching) {
       props.requestTemplates()
@@ -337,7 +317,8 @@ class NewResource extends React.Component {
     return (
         <EditorPage 
           open={!!this.props.user}
-          errors={this.state.errors}
+          resourceGroup={this.props.resourceGroup}
+          detectVariables={this.detectVariables}
           onChange={this.handleEditorChange}
           onEditorApply={this.handleEditorApply.bind(this)}
           onEditorCancel={this.props.cancelEditor}
