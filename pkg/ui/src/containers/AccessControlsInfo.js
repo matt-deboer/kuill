@@ -196,8 +196,8 @@ class ClusterInfo extends React.Component {
         contents={this.state.editor.contents}
         title={!!resource &&
           <div>
-            <span style={{fontStyle: 'italic', paddingRight: 10}}>Editing:</span>
-            <span style={{fontWeight: 600}}>{`${resource.metadata.namespace}/${resource.kind}/${resource.metadata.name}`}</span>
+          <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>Editing:</span>
+          <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
           </div>
         }
         />
