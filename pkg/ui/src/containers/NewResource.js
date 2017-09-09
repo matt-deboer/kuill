@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
-import { white, blueA700, grey100, grey200, grey300, grey400, grey700, grey800 } from 'material-ui/styles/colors'
+import { white, blueA700, grey100, grey300, grey700, grey800 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
 // import { createResource } from '../state/actions/access'
 import { requestTemplates } from '../state/actions/templates'
@@ -11,18 +11,11 @@ import { requestSwagger } from '../state/actions/apimodels'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
-
 import IconApply from 'material-ui/svg-icons/action/get-app'
 import RaisedButton from 'material-ui/RaisedButton'
 import Popover from 'material-ui/Popover'
 import Menu from 'material-ui/Menu'
-import * as SwaggerValidator from 'swagger-object-validator'
-import { getErrorPosition } from '../utils/yaml-utils'
-// import Validator from 'swagger-model-validator'
-// import swaggerValidate from 'swagger-validate'
-// import AJV from 'ajv'
-import KubeKinds from '../kube-kinds'
-import yaml from 'js-yaml'
+import ManifestValidator from '../utils/ManifestValidator'
 
 import ace from 'brace'
 const { Range } = ace.acequire('ace/range')
@@ -33,7 +26,6 @@ const mapStateToProps = function(store) {
     editor: store.access.editor,
     templates: store.templates.templatesByGroup.access,
     isFetching: store.access.isFetching,
-    // modelsByAPIGroup: store.apimodels.modelsByAPIGroup,
     swagger: store.apimodels.swagger,
   }
 }
@@ -52,7 +44,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     requestSwagger: function() {
       dispatch(requestSwagger())
     },
-    resourceGroup: 'access',
   }
 }
 
@@ -71,9 +62,8 @@ class NewResource extends React.Component {
   constructor(props) {
     super(props);
 
-    if (!props.templates && !props.isFetching) {
-      props.requestTemplates()
-    }
+    props.requestTemplates()
+    props.requestSwagger()
 
     let templateNames = this.getSortedTemplateNames(props.templates)
     let selectedTemplate = templateNames && templateNames[0]
@@ -89,12 +79,7 @@ class NewResource extends React.Component {
       selectedVariable: '',
     }
     this.contents = ''
-    if (props.swagger) {
-      this.validator = new SwaggerValidator.Handler(props.swagger)
-    }
     this.validateOnChange = this.validateOnChange.bind(this)
-    // this.validator = new Validator()
-    // this.validator = new AJV({allErrors: true})
   }
 
   handleTouchTapTemplates = (event) => {
@@ -180,141 +165,22 @@ class NewResource extends React.Component {
   }
 
   handleEditorApply = () => {
-    this.validate(true).then(errors=> {
-      if (errors.length) {
-        this.setState({errors: errors})
-      } else {
-        this.props.createResource(this.contents)
-      }
-    })
+    this.validator && this.validator.validate(this.contents, this.detectVariables)
+      .then(errors=> {
+        if (errors.length) {
+          this.setState({errors: errors})
+        } else {
+          this.props.createResource(this.contents)
+        }
+      })
   }
 
   validateOnChange = () => {
-    // if (this.state.errors && this.state.errors.length > 0) {
-    this.validate(false).then(errors=> {
+    this.validator && this.validator.validate(this.contents).then(errors=> {
       this.ignoreSelectionChange = true
       this.setState({errors: errors})
       this.ignoreSelectionChange = false
     })
-    // }
-  }
-
-  validate = async (includeVariableRefs) => {
-  
-    let lines = (this.contents && this.contents.split(/\n/g)) || []
-    let errors = []
-    if (includeVariableRefs) {
-      for (let i=0, len=lines.length; i < len; ++i) {
-        let line = lines[i]
-        let vars = this.detectVariables(line)
-        if (vars.length) {
-          errors.push({
-            row: i,
-            column: 0,
-            html: this.getHtmlForTemplateVariableError(vars),
-            type: 'error'
-          })
-        }
-      }
-    }
-
-    if (this.validator) {
-      let resource
-      try {
-        resource = yaml.safeLoad(this.contents)
-        if ('kind' in resource) {
-          let kinds = KubeKinds[this.props.resourceGroup]
-          let kind = kinds[resource.kind]
-          let modelGuess = `io.k8s.apimachinery.pkg.${kind.base.replace(/\//g,'.')}.${resource.kind}`
-          
-          // TODO: The model version exposed by the swagger spec does not always match
-          // the api version exposed--this may be due to exposing multiple versions of
-          // the same resource type...
-          let actualModel = modelGuess
-          let suffix = `.${resource.kind}`
-          for (let type in this.props.swagger.definitions) {
-            if (type.endsWith(suffix)) {
-              actualModel = type
-              break
-            }
-          }
-  
-          let result = await this.validator.validateModel(resource, actualModel)
-          if (result.errors && result.errors.length) {
-            for (let error of result.errors) {
-              errors.push({
-                row: getErrorPosition(lines, error) || 0,
-                column: 0,
-                html: this.getHtmlForError(error),
-                type: 'error',
-              })
-            }
-          }
-        }
-      } catch (e) {
-        if ('mark' in e) {
-          errors.push({row: e.mark.line, column: e.mark.column, text: e.reason, type: 'error'})
-        } else {
-          errors.push({row: 0, column: 0, text: e.reason, type: 'error'})
-        }
-      }
-    }
-    return errors
-  }
-
-  getHtmlForError = (error) => {
-    let path = ""
-    let maxTrace = (error.errorType > 0 ? error.trace.length : error.trace.length - 1)
-    for (let i=1; i < maxTrace; ++i) {
-      let part = error.trace[i]
-      if (!!path) {
-        path += '.'
-      }
-      path += part.stepName
-      if ('arrayPos' in part) {
-        path += `[${part.arrayPos}]`
-      }
-    }
-    if (error.errorType === 0) {
-      return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required in<span className="error yaml-ref"> {path} </span></div>
-    } else if (error.errorType === 2) {
-      return (
-        <div>
-          <span className="error yaml-ref">{path} </span>
-          is of the wrong type; expected 
-          <span className="error type-ref"> {error.typeShouldBe} </span>
-          but found<span className="error type-ref"> {error.typeIs}</span>
-        </div>
-      )
-    } else {
-      return <div><span className="error yaml-ref">{path}</span> is not expected for this resource kind</div>
-    }
-  }
-
-  getHtmlForTemplateVariableError = (vars) => {
-    if (vars.length === 1) {
-      return (
-        <div>
-          <span>template variable </span>
-          <span className="error variable-ref">${vars[0]}</span>
-          <span> needs a value</span>
-        </div>
-      )
-    } else {
-      return (
-        <div>
-          <span>template variables </span>
-          {vars.map((v, index) => {
-            let joiner = null
-            if (index > 0) {
-              joiner = <span>, </span>
-            }
-            return (joiner, <span className="error variable-ref">${v}</span>)
-          })}
-          <span> need values</span>
-        </div>
-      )
-    }
   }
 
   getSortedTemplateNames = (templates) => {
@@ -351,12 +217,10 @@ class NewResource extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
-    if (!props.swagger) {
-      props.requestSwagger()
-    } else if (!this.validator) {
-      this.validator = new SwaggerValidator.Handler(props.swagger)
+    if (props.swagger && !this.validator) {
+      this.validator = new ManifestValidator(props.swagger, props.resourceGroup)
     }
-
+    
     if (!props.templates && !props.isFetching) {
       props.requestTemplates()
     } else if (props.templates) {
@@ -471,26 +335,26 @@ class NewResource extends React.Component {
     let additionalActions = []
 
     return (
-      <EditorPage 
-        open={!!this.props.user}
-        errors={this.state.errors}
-        onChange={this.handleEditorChange}
-        onEditorApply={this.handleEditorApply.bind(this)}
-        onEditorCancel={this.props.cancelEditor}
-        onSelectionChange={this.handleSelectionChange.bind(this)}
-        onCursorChange={this.handleCursorChange.bind(this)}
-        onBlur={this.handleEditorBlur}
-        additionalActions={additionalActions}
-        title={title}
-        titleStyle={{width: '100%', justifyContent: 'flex-start'}}
-        contents={this.contents}
-        onEditorLoaded={this.handleEditorLoaded}
-        ref={(ref) => {
-          if (!!ref) {
-            this.editorPage = ref
-          }
-        }}
-      />
+        <EditorPage 
+          open={!!this.props.user}
+          errors={this.state.errors}
+          onChange={this.handleEditorChange}
+          onEditorApply={this.handleEditorApply.bind(this)}
+          onEditorCancel={this.props.cancelEditor}
+          onSelectionChange={this.handleSelectionChange.bind(this)}
+          onCursorChange={this.handleCursorChange.bind(this)}
+          onBlur={this.handleEditorBlur}
+          additionalActions={additionalActions}
+          title={title}
+          titleStyle={{width: '100%', justifyContent: 'flex-start'}}
+          contents={this.contents}
+          onEditorLoaded={this.handleEditorLoaded}
+          ref={(ref) => {
+            if (!!ref) {
+              this.editorPage = ref
+            }
+          }}
+        />
     )
   }
 }))
