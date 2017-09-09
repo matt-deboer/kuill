@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
-import { blueA700, grey100, grey300 } from 'material-ui/styles/colors'
+import { white, blueA700, grey100, grey200, grey300, grey400, grey700, grey800 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
 // import { createResource } from '../state/actions/access'
 import { requestTemplates } from '../state/actions/templates'
@@ -92,6 +92,7 @@ class NewResource extends React.Component {
     if (props.swagger) {
       this.validator = new SwaggerValidator.Handler(props.swagger)
     }
+    this.validateOnChange = this.validateOnChange.bind(this)
     // this.validator = new Validator()
     // this.validator = new AJV({allErrors: true})
   }
@@ -126,6 +127,7 @@ class NewResource extends React.Component {
 
   handleEditorChange = (contents) => {
     this.contents = contents
+    this.validateOnChange()
   }
 
   handleSelectionChange = (selection, event) => {
@@ -165,11 +167,16 @@ class NewResource extends React.Component {
 
   handleEditorLoaded = (editor) => {
     this.editor = editor
-    this.state.selectedVariable && this.selectAllInstancesOfVariable(this.state.selectedVariable)
+    if (this.state.selectedVariable) {
+      this.selectAllInstancesOfVariable(this.state.selectedVariable)
+      this.setState({
+        selectedVariable: null,
+      })
+    }
   }
 
   handleEditorBlur = () => {
-
+    
   }
 
   handleEditorApply = () => {
@@ -180,6 +187,16 @@ class NewResource extends React.Component {
         this.props.createResource(this.contents)
       }
     })
+  }
+
+  validateOnChange = () => {
+    // if (this.state.errors && this.state.errors.length > 0) {
+    this.validate(false).then(errors=> {
+      this.ignoreSelectionChange = true
+      this.setState({errors: errors})
+      this.ignoreSelectionChange = false
+    })
+    // }
   }
 
   validate = async (includeVariableRefs) => {
@@ -235,7 +252,11 @@ class NewResource extends React.Component {
           }
         }
       } catch (e) {
-        errors.push({row: e.mark.line, column: e.mark.column, text: e.reason, type: 'error'})
+        if ('mark' in e) {
+          errors.push({row: e.mark.line, column: e.mark.column, text: e.reason, type: 'error'})
+        } else {
+          errors.push({row: 0, column: 0, text: e.reason, type: 'error'})
+        }
       }
     }
     return errors
@@ -320,6 +341,7 @@ class NewResource extends React.Component {
 
   onApplyTemplate = () => {
     let contents = this.props.templates[this.state.selectedTemplate]
+    this.editor && this.editor.setValue(contents)
     let variables = this.detectVariables(contents)
     this.contents = contents
     this.setState({
@@ -355,8 +377,9 @@ class NewResource extends React.Component {
         lineHeight: '24px',
         marginRight: 5,
         fontSize: 14,
-        fontWeight: 600,
+        // fontWeight: 600,
         display: 'inline-block',
+        color: white,
       },
       button: {
         minWidth: 160,
@@ -364,16 +387,19 @@ class NewResource extends React.Component {
         textTransform: 'none',
         display: 'inline-block',
         marginLeft: 8,
+        color: grey300,
       },
       applyButton: {
         textTransform: 'none',
         display: 'inline-block',
         marginLeft: 8,
+        color: white,
       },
       buttonLabel: {
         textTransform: 'none',
         fontSize: 14,
         fontWeight: 600,
+        color: grey300,
       },
       popoverMenu: {
         fontSize: 14,
@@ -401,7 +427,8 @@ class NewResource extends React.Component {
           labelStyle={styles.buttonLabel}
           style={styles.button}
           label={selectedTemplate}
-          backgroundColor={grey300}
+          hoverColor={grey700}
+          backgroundColor={grey800}
           onTouchTap={this.handleTouchTapTemplates.bind(this)}
           icon={<IconExpand style={{height: 18, width: 18}}/>}
         />
@@ -430,9 +457,11 @@ class NewResource extends React.Component {
 
         <RaisedButton
           label="Replace"
-          icon={<IconApply/>}
+          icon={<IconApply style={{fill: grey300}}/>}
           style={styles.applyButton}
-          backgroundColor={grey100}
+          labelColor={grey300}
+          backgroundColor={grey800}
+          hoverColor={grey700}
           onTouchTap={this.onApplyTemplate.bind(this)}
         />
 
@@ -456,6 +485,11 @@ class NewResource extends React.Component {
         titleStyle={{width: '100%', justifyContent: 'flex-start'}}
         contents={this.contents}
         onEditorLoaded={this.handleEditorLoaded}
+        ref={(ref) => {
+          if (!!ref) {
+            this.editorPage = ref
+          }
+        }}
       />
     )
   }

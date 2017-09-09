@@ -1,6 +1,4 @@
 .global-errors {
-
-
   .error {
     color: rgb(180,0,0);
   }
@@ -53,5 +51,11 @@
   &.variable-ref {
     font-weight: 600;
     color: rgb(114, 224, 255);
+  }
+}
+
+.editor-dialog-content {
+  > div {
+    background-color: rgb(120,120,120) !important;
   }
 }

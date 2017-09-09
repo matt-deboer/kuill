@@ -1,0 +1,89 @@
+.ace-kubernetes .ace_gutter {
+  background: #444444;
+  color: #929292
+  }
+  .ace-kubernetes .ace_print-margin {
+  width: 1px;
+  background: #444444
+  }
+  .ace-kubernetes {
+  background-color: #333333;
+  color: #BBBBBB
+  }
+  .ace-kubernetes .ace_cursor {
+  color: #7DA5DC
+  }
+  .ace-kubernetes .ace_marker-layer .ace_selection {
+  background: #000000
+  }
+  .ace-kubernetes.ace_multiselect .ace_selection.ace_start {
+  box-shadow: 0 0 3px 0px #191919;
+  }
+  .ace-kubernetes .ace_marker-layer .ace_step {
+  background: rgb(102, 82, 0)
+  }
+  .ace-kubernetes .ace_marker-layer .ace_bracket {
+  margin: -1px 0 0 -1px;
+  border: 1px solid #BFBFBF
+  }
+  .ace-kubernetes .ace_marker-layer .ace_active-line {
+  background: rgba(255, 255, 255, 0.075)
+  }
+  .ace-kubernetes .ace_gutter-active-line {
+  background-color: rgba(255, 255, 255, 0.075)
+  }
+  .ace-kubernetes .ace_marker-layer .ace_selected-word {
+  border: 1px solid #000000
+  }
+  .ace-kubernetes .ace_invisible {
+  color: #666
+  }
+  .ace-kubernetes .ace_keyword,
+  .ace-kubernetes .ace_meta,
+  .ace-kubernetes .ace_support.ace_constant.ace_property-value {
+  // color: #927C5D
+  color: rgb(30, 136, 229)
+  }
+  .ace-kubernetes .ace_keyword.ace_operator {
+  color: #4B4B4B
+  }
+  .ace-kubernetes .ace_keyword.ace_other.ace_unit {
+  color: #366F1A
+  }
+  .ace-kubernetes .ace_constant.ace_language {
+  color: #39946A
+  }
+  .ace-kubernetes .ace_constant.ace_numeric {
+  color: #E9D71F
+  }
+  .ace-kubernetes .ace_constant.ace_character.ace_entity {
+  color: #A165AC
+  }
+  .ace-kubernetes .ace_invalid {
+  color: #FFFFFF;
+  background-color: #E92E2E
+  }
+  .ace-kubernetes .ace_fold {
+  background-color: #927C5D;
+  border-color: #929292
+  }
+  .ace-kubernetes .ace_storage,
+  .ace-kubernetes .ace_support.ace_class,
+  .ace-kubernetes .ace_support.ace_function,
+  .ace-kubernetes .ace_support.ace_other,
+  .ace-kubernetes .ace_support.ace_type {
+  color: #E92E2E
+  }
+  .ace-kubernetes .ace_string {
+  color: #84B7F5
+  }
+  .ace-kubernetes .ace_comment {
+  color: #9E713D
+  }
+  .ace-kubernetes .ace_entity.ace_name.ace_tag,
+  .ace-kubernetes .ace_entity.ace_other.ace_attribute-name {
+  color: #606060
+  }
+  .ace-kubernetes .ace_indent-guide {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHB3d/8PAAOIAdULw8qMAAAAAElFTkSuQmCC) right repeat-y
+  }
