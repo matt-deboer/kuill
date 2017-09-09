@@ -14,7 +14,7 @@ import 'brace/mode/json'
 import 'brace/theme/iplastic'
 import 'brace/ext/language_tools'
 import ace from 'brace'
-import EditorTheme from './EditorTheme'
+import './EditorTheme'
 import './EditorPage.css'
 
 const langTools = ace.acequire('ace/ext/language_tools')
