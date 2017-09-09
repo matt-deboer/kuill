@@ -51,11 +51,13 @@ const store = createStore(
   middleware
 )
 
-const RouteWithSubRoutes = ({component: Component, ...rest}) => (
+const RouteWithSubRoutes = ({component: Component, props: componentProps, ...rest}) => (
     <Route {...rest} render={props => (
-        <Component {...props} routes={rest.routes}/>
+        <Component {...componentProps} {...props} routes={rest.routes}/>
     )} />
 )
+
+
 
 render(
     <Provider store={store}>
