@@ -142,7 +142,7 @@ Roadmap:
   - [ ] Test on GKE deployments--can we even have an authenticating proxy configured?
   - [x] Come up with a better name ! (kuill)
   - [ ] Support for Third Party Resources / Custom Resource Definitions
-  - [ ] Create/Edit validation for all resources
+  - [x] Create/Edit validation for all resources
   - [x] Provide better hints/tool-tips to explain what functions are available, and what they mean
   - [ ] Large scale performance testing (1000's of resources)
 
@@ -152,7 +152,6 @@ Roadmap:
   - [ ] Handling for large numbers of namespaces
 
 - [ ] Workloads:
-  - [ ] Provide validation of resource creation/modification
   - [ ] Test authorization for edit/create/delete actions using kube apis before
         displaying/enabling the associated controls
   - [ ] Provide utilization metrics with pods/deployments/etc., and corresponding summaries by selection
@@ -166,4 +165,4 @@ Roadmap:
   - [ ] Update styles to be consistent with Workloads/Cluster
   - [ ] Add 'Can user X do action Y on resource Z?' button/check to aid with permissions
         checks
-  - [ ] Add 'What can user X do?' view which lists a summary of a given user's permissions 
+  - [x] Add 'What can user X do?' view which lists a summary of a given user's permissions 
