@@ -103,7 +103,7 @@ class EditorPage extends React.Component {
 
   componentWillReceiveProps = (props) => {
     if (props.swagger && !this.validator) {
-      this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables)
+      this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables, props.resource)
     }
     
     if (!this.contents) {
