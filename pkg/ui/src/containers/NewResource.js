@@ -15,7 +15,6 @@ import IconApply from 'material-ui/svg-icons/action/get-app'
 import RaisedButton from 'material-ui/RaisedButton'
 import Popover from 'material-ui/Popover'
 import Menu from 'material-ui/Menu'
-import ManifestValidator from '../utils/ManifestValidator'
 
 import ace from 'brace'
 const { Range } = ace.acequire('ace/range')

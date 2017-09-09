@@ -144,7 +144,7 @@ export default class ManifestValidator {
       }
     }
     if (error.errorType === 0) {
-      if (error.trace.length == 2) {
+      if (error.trace.length === 2) {
         return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required</div>
       } else {
         return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required in<span className="error yaml-ref"> {path} </span></div>
