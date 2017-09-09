@@ -51,7 +51,7 @@ export function getErrorPosition(lines, error) {
 }
 
 function findNextIndent(lines, startingLine, isArray) {
-  for (let i=startingLine, len=lines.length; i < len; ++i) {
+  for (let i=startingLine+1, len=lines.length; i < len; ++i) {
     let line = lines[i]
     let trimmed = line.trim()
     let beginsArray = trimmed.startsWith('-')
@@ -63,4 +63,24 @@ function findNextIndent(lines, startingLine, isArray) {
     }
   }
   return ''
+}
+
+/**
+ * Finds the position [row, column] for a given path within
+ * the yaml document contents
+ * 
+ * @param {*} lines the contents of the yaml document, split into lines
+ * @param {*} path the path reference
+ */
+export function getPositionForPath(lines, path) {
+  let trace = [{}]
+  for (let segment of path.split(/[.]/g)) {
+    let parts = segment.split(/\[/)
+    let step = {stepName: parts[0]}
+    if (parts.length > 1) {
+      step.arrayPos = parseInt(parts[1].substr(0, parts[1].length - 1), 10)
+    }
+    trace.push(step)
+  }
+  return getErrorPosition(lines, {trace: trace, errorType: -1})
 }
