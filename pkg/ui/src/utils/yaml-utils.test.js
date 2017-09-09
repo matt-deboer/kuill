@@ -1,4 +1,4 @@
-import { getErrorPosition } from './yaml-utils'
+import { getErrorPosition, getPositionForPath } from './yaml-utils'
 
 it('finds position for missing required member', () => {
   
@@ -105,4 +105,40 @@ rules:
   let lines = doc.split(/\n/g, -1)
   
   expect(getErrorPosition(lines, error)).toEqual(17)
+})
+
+it('finds position for path', () => {
+  
+  let error = {
+    errorType: -1,
+    trace: [
+      {},
+      {stepName: 'metadata'},
+      {stepName: 'name'},
+    ]
+  }
+  let doc =
+`apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: sample
+
+# edit rules as necessary
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - 0
+    blerbs:
+      pow: 'biff!'
+  `
+  let lines = doc.split(/\n/g, -1)
+  
+  expect(getPositionForPath(lines, 'metadata.name')).toEqual(3)
 })

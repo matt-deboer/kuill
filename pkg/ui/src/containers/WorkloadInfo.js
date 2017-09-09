@@ -259,6 +259,7 @@ class ResourceInfo extends React.Component {
       <div>  
         <AsyncEditorPage 
           open={!!this.state.resource && !!this.state.editor.contents && this.props.location.search === '?view=edit'}
+          resourceGroup={'workloads'}
           onEditorApply={this.props.onEditorApply}
           onEditorCancel={this.onEditorCancel}
           resource={this.state.resource}
