@@ -8,6 +8,9 @@ import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { grey500 } from 'material-ui/styles/colors'
 
+import { requestSwagger } from '../state/actions/apimodels'
+import ManifestValidator from '../utils/ManifestValidator'
+
 import AceEditor from 'react-ace'
 import 'brace/mode/yaml'
 import 'brace/mode/json'
@@ -28,6 +31,7 @@ langTools.addCompleter(completer);
 
 const mapStateToProps = function(store) {
   return {
+    swagger: store.apimodels.swagger,
   }
 }
 
@@ -40,6 +44,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search: '?view=edit',
         hash: location.hash,
       }))
+    },
+    requestSwagger: function() {
+      dispatch(requestSwagger())
     },
   }
 }
@@ -55,7 +62,6 @@ export default connect(mapStateToProps, mapDispatchToProps) (
 class EditorPage extends React.Component {
 
   static propTypes = {
-    errors: PropTypes.array,
     /**
      * the initial contents of the editor; use the 'setContents' method
      * to change the contents of an already-initialized editor
@@ -64,7 +70,6 @@ class EditorPage extends React.Component {
   }
 
   static defaultProps = {
-    errors: [],
     contents: '',
   }
 
@@ -72,6 +77,10 @@ class EditorPage extends React.Component {
     super(props)
     this.updateErrorTooltips = this.updateErrorTooltips.bind(this)
     this.displayErrors = this.displayErrors.bind(this)
+    props.requestSwagger()
+    this.state = {
+      errors: []
+    }
   }
 
   componentDidMount = () => {
@@ -93,16 +102,26 @@ class EditorPage extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
+    if (props.swagger && !this.validator) {
+      this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables)
+    }
+    
     if (!this.contents) {
       this.contents = props.contents
     }
     this.displayErrors()
   }
 
+  validateOnChange = () => {
+    this.validator && this.validator.validate(this.contents).then(errors=> {
+      this.setState({errors: errors})
+    })
+  }
+
   displayErrors = () => {
     if (this.editor && this.contents) {
-      this.editor.getSession().setAnnotations(this.props.errors)
-      if (this.props.errors.length) {
+      this.editor.getSession().setAnnotations(this.state.errors)
+      if (this.state.errors.length) {
         window.setTimeout(this.updateErrorTooltips, 0)
       }
     }
@@ -110,7 +129,7 @@ class EditorPage extends React.Component {
 
   updateErrorTooltips = () => {
     let errorsByRow = {}
-    for (let e of this.props.errors) {
+    for (let e of this.state.errors) {
       let i = `${e.row+1}`
       errorsByRow[i] = errorsByRow[e.row] || []
       errorsByRow[i].push(e.text)
@@ -133,6 +152,7 @@ class EditorPage extends React.Component {
 
   onChange = (contents) => {
     this.contents = contents
+    this.validateOnChange()
     this.props.onChange && this.props.onChange(contents)
   }
 
@@ -141,7 +161,14 @@ class EditorPage extends React.Component {
   }
 
   applyChanges = () => {
-    this.props.onEditorApply(this.contents)
+    this.validator && this.validator.validate(this.contents, true)
+    .then(errors=> {
+      if (errors.length) {
+        this.setState({errors: errors})
+      } else {
+        this.props.onEditorApply(this.contents)
+      }
+    })
   }
 
   render() {
@@ -163,7 +190,7 @@ class EditorPage extends React.Component {
     ]
 
     let errorsByRow = {}
-    for (let e of this.props.errors) {
+    for (let e of this.state.errors) {
       let i = `${e.row+1}`
       errorsByRow[i] = errorsByRow[e.row] || []
       errorsByRow[i].push(e.html || e.text)
