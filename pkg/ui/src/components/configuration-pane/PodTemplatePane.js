@@ -69,7 +69,7 @@ class PodTemplatePane extends React.Component {
 
     return (
       <div style={{
-        height: `${window.innerHeight - props.contentTop - 40}px`,
+        height: `calc(100vh - ${props.contentTop + 30}px)`,
         overflow: 'auto',
         marginRight: 0,
         marginLeft: 0,
