@@ -1,11 +1,9 @@
 import ace from 'brace'
 
 ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(acequire, exports, module) {
-  "use strict";
   
-  var oop = acequire("../lib/oop");
-  var TextHighlightRules = acequire("./text_highlight_rules").TextHighlightRules;
-  var lastMatch = ''
+  var oop = acequire("../lib/oop")
+  var TextHighlightRules = acequire("./text_highlight_rules").TextHighlightRules
   var KubeYamlHighlightRules = function() {
       this.$rules = {
           "start" : [
@@ -17,7 +15,7 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
                   regex : /^(?:-{3}|\.{3})\s*(?=#|$)/     
               },  {
                   token : "list.markup",
-                  regex : /^\s*[\-?](?:$|\s)/     
+                  regex : /^\s*[-?](?:$|\s)/     
               }, {
                   token: "constant",
                   regex: "!![\\w//]+"
@@ -57,12 +55,12 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
                   regex : "[\\])}]"
               }, {
                   token : "constant.numeric", // other number
-                  regex : /(?:\s+|^)([+\-]?\.inf\b|NaN\b|0x[\dA-Fa-f_]+|0b[10_]+)(?:\s+|$)/,
+                  regex : /(?:\s+|^)([+-]?\.inf\b|NaN\b|0x[\dA-Fa-f_]+|0b[10_]+)(?:\s+|$)/,
               }, {
                 token : "constant.numeric", // float
                 regex : /[\w_\-+.]+/,
                 onMatch : function(val, state, stack) {
-                  if (val.match(/^[\d][\d_-]*(?:(?:\.[\d_]*)?(?:[eE][+\-]?[\d_]+)?)(?:=[^\w-]|$)$/)) {
+                  if (val.match(/^[\d][\d_-]*(?:(?:\.[\d_]*)?(?:[eE][+-]?[\d_]+)?)(?:=[^\w-]|$)$/)) {
                     return "constant.numeric"
                   } else {
                     return "text"
@@ -90,7 +88,6 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
   });
   
   ace.define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"], function(acequire, exports, module) {
-  "use strict";
   
   var Range = acequire("../range").Range;
   
@@ -114,7 +111,7 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
           var column = match[1].length;
           var openBracePos = doc.findMatchingBracket({row: row, column: column});
   
-          if (!openBracePos || openBracePos.row == row) return 0;
+          if (!openBracePos || openBracePos.row === row) return 0;
   
           var indent = this.$getIndent(doc.getLine(openBracePos.row));
           doc.replace(new Range(row, 0, row, column-1), indent);
@@ -130,7 +127,6 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
   });
   
   ace.define("ace/mode/folding/coffee",["require","exports","module","ace/lib/oop","ace/mode/folding/fold_mode","ace/range"], function(acequire, exports, module) {
-  "use strict";
   
   var oop = acequire("../../lib/oop");
   var BaseFoldMode = acequire("./fold_mode").FoldMode;
@@ -149,7 +145,7 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
           var re = /\S/;
           var line = session.getLine(row);
           var startLevel = line.search(re);
-          if (startLevel == -1 || line[startLevel] != "#")
+          if (startLevel === -1 || line[startLevel] !== "#")
               return;
   
           var startColumn = line.length;
@@ -161,10 +157,10 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
               line = session.getLine(row);
               var level = line.search(re);
   
-              if (level == -1)
+              if (level === -1)
                   continue;
   
-              if (line[level] != "#")
+              if (line[level] !== "#")
                   break;
   
               endRow = row;
@@ -183,25 +179,25 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
           var prevIndent = prev.search(/\S/);
           var nextIndent = next.search(/\S/);
   
-          if (indent == -1) {
-              session.foldWidgets[row - 1] = prevIndent!= -1 && prevIndent < nextIndent ? "start" : "";
+          if (indent === -1) {
+              session.foldWidgets[row - 1] = prevIndent !== -1 && prevIndent < nextIndent ? "start" : "";
               return "";
           }
-          if (prevIndent == -1) {
-              if (indent == nextIndent && line[indent] == "#" && next[indent] == "#") {
+          if (prevIndent === -1) {
+              if (indent === nextIndent && line[indent] === "#" && next[indent] === "#") {
                   session.foldWidgets[row - 1] = "";
                   session.foldWidgets[row + 1] = "";
                   return "start";
               }
-          } else if (prevIndent == indent && line[indent] == "#" && prev[indent] == "#") {
-              if (session.getLine(row - 2).search(/\S/) == -1) {
+          } else if (prevIndent === indent && line[indent] === "#" && prev[indent] === "#") {
+              if (session.getLine(row - 2).search(/\S/) === -1) {
                   session.foldWidgets[row - 1] = "start";
                   session.foldWidgets[row + 1] = "";
                   return "";
               }
           }
   
-          if (prevIndent!= -1 && prevIndent < indent)
+          if (prevIndent!== -1 && prevIndent < indent)
               session.foldWidgets[row - 1] = "start";
           else
               session.foldWidgets[row - 1] = "";
@@ -217,7 +213,6 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
   });
   
   ace.define("ace/mode/kube_yaml",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/kube_yaml_highlight_rules","ace/mode/matching_brace_outdent","ace/mode/folding/coffee"], function(acequire, exports, module) {
-  "use strict";
   
   var oop = acequire("../lib/oop");
   var TextMode = acequire("./text").Mode;
@@ -240,8 +235,8 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
       this.getNextLineIndent = function(state, line, tab) {
           var indent = this.$getIndent(line);
   
-          if (state == "start") {
-              var match = line.match(/^.*[\{\(\[]\s*$/);
+          if (state === "start") {
+              var match = line.match(/^.*[{([]\s*$/);
               if (match) {
                   indent += tab;
               }
