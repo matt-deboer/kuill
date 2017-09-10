@@ -16,6 +16,9 @@ export function removeReadOnlyFields(resource) {
   delete resource.status
   delete resource.metadata.generation
   delete resource.metadata.creationTimestamp
+  if ('spec' in resource && 'template' in resource.spec && 'metadata' in resource.spec.template) {
+    delete resource.spec.template.metadata.creationTimestamp
+  }
   delete resource.metadata.resourceVersion
   delete resource.metadata.selfLink
   delete resource.metadata.uid
