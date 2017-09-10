@@ -18,6 +18,7 @@ import 'brace/theme/iplastic'
 import 'brace/ext/language_tools'
 import ace from 'brace'
 import './EditorTheme'
+import './EditorYamlMode'
 import './EditorPage.css'
 
 const langTools = ace.acequire('ace/ext/language_tools')
@@ -219,7 +220,7 @@ class EditorPage extends React.Component {
         {errorTexts}
         
         <AceEditor
-          mode={"yaml"}
+          mode={"kube_yaml"}
           theme={"kubernetes"}
           name={"kubernetes-editor"}
           onChange={this.onChange.bind(this)}
