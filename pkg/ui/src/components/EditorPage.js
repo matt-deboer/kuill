@@ -10,6 +10,7 @@ import { grey500 } from 'material-ui/styles/colors'
 
 import { requestSwagger } from '../state/actions/apimodels'
 import ManifestValidator from '../utils/ManifestValidator'
+import ManifestAutocompleter from '../utils/ManifestAutocompleter'
 
 import AceEditor from 'react-ace'
 import 'brace/mode/yaml'
@@ -22,13 +23,6 @@ import './EditorYamlMode'
 import './EditorPage.css'
 
 const langTools = ace.acequire('ace/ext/language_tools')
-
-var completer = {
-  getCompletions: function(editor, session, pos, prefix, callback) {
-    callback(null, [])
-  }
-}
-langTools.addCompleter(completer);
 
 const mapStateToProps = function(store) {
   return {
@@ -105,6 +99,8 @@ class EditorPage extends React.Component {
   componentWillReceiveProps = (props) => {
     if (props.swagger && !this.validator) {
       this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables, props.resource)
+      this.autocompleter = new ManifestAutocompleter(props.swagger, props.resourceGroup, props.resource)
+      langTools.setCompleters([this.autocompleter])
     }
     
     if (!this.contents) {
@@ -135,11 +131,17 @@ class EditorPage extends React.Component {
       errorsByRow[i] = errorsByRow[e.row] || []
       errorsByRow[i].push(e.text)
     }
-    let errDivs = document.getElementsByClassName('ace_gutter-cell ace_error')
-    for (let div of errDivs) {
-      div.dataset.rh = `#errors-for-row-${div.innerText}`
-      div.dataset.rhAt = 'top'
-      div.dataset.rhCls = 'error'
+    let gutterDivs = document.getElementsByClassName('ace_gutter-cell')
+    for (let div of gutterDivs) {
+      if (div.className.match(/\bace_error\b/)) {
+        div.dataset.rh = `#errors-for-row-${div.innerText}`
+        div.dataset.rhAt = 'top'
+        div.dataset.rhCls = 'error'
+      } else {
+        delete div.dataset.rh
+        delete div.dataset.rhAt
+        delete div.dataset.rhCls
+      }
     }
   }
 
@@ -153,7 +155,7 @@ class EditorPage extends React.Component {
 
   onChange = (contents) => {
     this.contents = contents
-    this.validateOnChange()
+    debounce(this.validateOnChange(), 500)
     this.props.onChange && this.props.onChange(contents)
   }
 
@@ -231,12 +233,12 @@ class EditorPage extends React.Component {
           width={`100%`}
           editorProps={{$blockScrolling: true}}
           enableBasicAutocompletion={true}
+          enableLiveAutocompletion={false}
           value={this.contents}
           ref={(ref) => {
             if (!!ref) {
               this.editor = ref.editor
               this.onEditorLoaded(this.editor)
-              this.editor.enableBasicAutocompletion = true
               this.displayErrors()
             }
           }}
@@ -246,3 +248,18 @@ class EditorPage extends React.Component {
     )
   }
 })
+
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments
+		var later = function() {
+			timeout = null
+			if (!immediate) func.apply(context, args)
+		};
+		var callNow = immediate && !timeout
+		clearTimeout(timeout)
+		timeout = setTimeout(later, wait)
+		if (callNow) func.apply(context, args)
+	}
+}
