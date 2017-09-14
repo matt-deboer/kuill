@@ -239,8 +239,10 @@ ace.define("ace/mode/kube_yaml_highlight_rules",["require","exports","module","a
               var match = line.match(/^.*[{([]\s*$/);
               if (match) {
                   indent += tab;
-              } else if (line.match(/^\s*-.*$/)) {
+              } else if (line.match(/^\s*-.*:\s*$/)) {
                   indent += tab;
+              } else if (line.match(/^\s*-.*$/)) {
+                  indent += '- ';
               }
           }
   
