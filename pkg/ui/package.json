@@ -16,6 +16,7 @@
     "material-ui": "^0.18.0",
     "material-ui-chip-input": "^0.14.0",
     "moment": "^2.18.1",
+    "node-interval-tree": "^1.2.0",
     "prop-types": "^15.5.10",
     "query-string": "^4.3.4",
     "react": "^15.6.1",
@@ -44,7 +45,8 @@
     "swagger-object-validator": "git://github.com/matt-deboer/swagger-object-validator.git#1.1.4-es5",
     "text-encoding-utf-8": "^1.0.1",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
-    "xterm": "^2.6.0"
+    "xterm": "^2.6.0",
+    "yaml-ast-parser": "0.0.34"
   },
   "devDependencies": {
     "babel-jest": "^21.0.0",
