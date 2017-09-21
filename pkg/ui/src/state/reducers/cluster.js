@@ -5,6 +5,7 @@ import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../utils/filter-utils'
+import { removeReadOnlyFields } from '../../utils/request-utils'
 
 const initialState = {
   // the filter names in string form
@@ -442,12 +443,7 @@ function filterContents(contents) {
   // These are all read-only field values; we just hide them for now,
   // although it would be nice to display them in some sort of readonly
   // fashion for reference
-  delete contents.status
-  delete contents.metadata.generation
-  delete contents.metadata.creationTimestamp
-  delete contents.metadata.resourceVersion
-  delete contents.metadata.selfLink
-  delete contents.metadata.uid 
+  removeReadOnlyFields(contents)
 }
 
 function formatYaml(contents) {

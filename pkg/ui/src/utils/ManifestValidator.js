@@ -68,7 +68,7 @@ export default class ManifestValidator {
             })
           }
         }
-        if ('kind' in resource) {
+        if (typeof resource === 'object' && 'kind' in resource) {
           let kinds = KubeKinds[this.resourceGroup]
           let kind = kinds[resource.kind]
           if (!!kind) {
@@ -118,20 +118,20 @@ export default class ManifestValidator {
   }
 
   getHtmlForCannotChange = (ref, value) => {
-    return (<div><span className="error yaml-ref">{ref} </span>
+    return (<div key={`err-text-${ref}`}><span className="error yaml-ref">{ref} </span>
         cannot be changed from it's original value of
         <span className="error type-ref"> {value} </span>
       </div>)
   }
 
   getHtmlForInvalidValue = (ref, value) => {
-    return (<div><span className="error type-ref">{value} </span>
+    return (<div key={`err-text-${ref}`}><span className="error type-ref">{value} </span>
         is not valid for<span className="error yaml-ref"> {ref} </span>
       </div>)
   }
 
   getHtmlForError = (error) => {
-    let path = ""
+    let path = ''
     let maxTrace = (error.errorType > 0 ? error.trace.length : error.trace.length - 1)
     for (let i=1; i < maxTrace; ++i) {
       let part = error.trace[i]
@@ -143,15 +143,24 @@ export default class ManifestValidator {
         path += `[${part.arrayPos}]`
       }
     }
+    
+    let key = path
+    if (error.errorType === 0) {
+      key += `.${error.trace[maxTrace].stepName}`
+      if ('arrayPos' in error.trace[maxTrace]) {
+        key += `[${error.trace[maxTrace].arrayPos}]`
+      }
+    }
+    
     if (error.errorType === 0) {
       if (error.trace.length === 2) {
-        return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required</div>
+        return <div key={key}><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required</div>
       } else {
-        return <div><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required in<span className="error yaml-ref"> {path} </span></div>
+        return <div key={key}><span className="error yaml-ref">{error.trace[maxTrace].stepName} </span>is required in<span className="error yaml-ref"> {path} </span></div>
       }
     } else if (error.errorType === 2) {
       return (
-        <div>
+        <div key={key}>
           <span className="error yaml-ref">{path} </span>
           is of the wrong type; expected 
           <span className="error type-ref"> {error.typeShouldBe} </span>
@@ -159,7 +168,7 @@ export default class ManifestValidator {
         </div>
       )
     } else {
-      return <div><span className="error yaml-ref">{path}</span> is not expected for this resource kind</div>
+      return <div key={key}><span className="error yaml-ref">{path}</span> is not expected for this resource kind</div>
     }
   }
 
