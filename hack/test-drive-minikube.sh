@@ -1,7 +1,7 @@
 #!/bin/sh
 
 minikube start \
-  --kubernetes-version v1.7.0 \
+  --kubernetes-version v1.7.5 \
   --extra-config apiserver.Authorization.Mode=RBAC \
   --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
   --extra-config apiserver.Authentication.RequestHeader.ClientCAFile=/var/lib/localkube/certs/ca.crt \
