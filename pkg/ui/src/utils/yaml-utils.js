@@ -165,6 +165,8 @@ class YamlIndex {
           nodeIndent = this.lines[startRow-1].match(/^([\s]*)/)[1] + '  '
         } else if (node.parent && node.parent.kind === YAML.Kind.SEQ && node.parent.items.indexOf(node) === 0) {
           nodeIndent += '  '
+        } else if (node.parent && node.parent.kind === YAML.Kind.MAPPING && !('kind' in node)) {
+          nodeIndent += '  '
         }
         
         if (column === nodeIndent.length) {
@@ -260,10 +262,15 @@ class YamlIndex {
       let elementStart = this.lines[r].indexOf('-') + 1
       node.startPosition += (elementStart - c)
       node._adjustedForSequence = true
+    // } else if (node.parent && node.parent.kind === YAML.Kind.MAPPING && !node._adjustedForMapping && !('kind' in node)) {
+    //   // let [r, c] = this.positionToRowCol(node.startPosition)
+    //   node.startPosition += 3
+    //   node.endPosition = Math.max(node.endPosition, node.startPosition)
+    //   node._adjustedForMapping = true
     }
 
     if (node !== this.ast) {
-      this.trimEndPosition(node, path)
+      this.adjustEndPosition(node, path)
     }
     this._index.range.insert(node.startPosition, node.endPosition, [path, node])
   }
@@ -297,7 +304,6 @@ class YamlIndex {
   visitMap(node) {
     node.mappings.map(n => this.visitMapping(n))
     let path = pathForNode(node)
-
     this.indexPositionAndPath(path, node.parent, node)
   }
   
@@ -306,15 +312,16 @@ class YamlIndex {
   visitIncludeRef(node) {
   }
 
-  trimEndPosition(node, path) {
+  adjustEndPosition(node, path) {
     
-    while (node.endPosition >= node.startPosition) {
-      let [endRow, endCol] = this.positionToRowCol(node.endPosition)
+    let [startRow, startCol] = this.positionToRowCol(node.startPosition)
+    let [endRow, endCol] = this.positionToRowCol(node.endPosition)
+    if (node.endPosition > node.startPosition) {
       if (this.lines[endRow].substr(0, endCol).match(/^\s*$/)) {
         node.endPosition -= (endCol + 1)
-      } else {
-        break
       }
+    } else if (startRow === endRow && endCol < this.lines[endRow].length) {
+      node.endPosition += (this.lines[endRow].length - endCol)
     }
   }
 

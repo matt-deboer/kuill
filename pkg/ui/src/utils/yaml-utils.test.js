@@ -291,11 +291,11 @@ rules:
 
 `
 
-it('finds correct path after objects: 5,0', () => {
+it('finds correct path after sequences: 5,0', () => {
   expect(getPathAndIndentForPosition(pathFollowingObjectsDoc, 5, 0)).toEqual({paths:['.rules[0]'],indent:''})
 })
 
-it('finds correct path after objects: 6,0', () => {
+it('finds correct path after sequences: 6,0', () => {
   expect(getPathAndIndentForPosition(pathFollowingObjectsDoc, 6, 0)).toEqual({paths:['.','.rules'],indent:''})
 })
 
@@ -306,10 +306,28 @@ rules:
   - ''
   `
 
-it('finds correct path after objects: 4,0', () => {
+it('finds correct path after sequences: 4,0', () => {
   expect(getPathAndIndentForPosition(pathAfterDoc, 4, 0)).toEqual({paths:['.','.rules'],indent:''})
 })
 
-it('finds correct path after objects: 4,2', () => {
+it('finds correct path after sequences: 4,2', () => {
   expect(getPathAndIndentForPosition(pathAfterDoc, 4, 2)).toEqual({paths:['.rules[0]', '.rules[0].apiGroups'],indent:'  '})
+})
+
+var pathAfterObjectDoc =
+`kind: Role
+metadata:
+`
+
+it('finds correct path after objects: 2,0', () => {
+  expect(getPathAndIndentForPosition(pathAfterObjectDoc, 2, 0)).toEqual({paths:['.'],indent:''})
+})
+
+it('finds correct path after objects: 2,0', () => {
+  let doc =
+`kind: Role
+metadata:
+  generation: `
+
+  expect(getPathAndIndentForPosition(doc, 2, 14)).toEqual({paths:['.metadata.generation'],indent:'  '})
 })

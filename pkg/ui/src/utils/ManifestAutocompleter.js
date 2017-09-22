@@ -15,8 +15,12 @@ export default class ManifestAutocompleter {
     this.resource = resource
     this.kubeKinds = KubeKinds[this.resourceGroup]
     this.completions = {
-      'kind': Object.keys(this.kubeKinds),
-      '.': ['kind', 'apiVersion', 'metadata'],
+      kind: Object.keys(this.kubeKinds),
+      '.': {
+        kind: {type:'string'},
+        apiVersion: {type:'string'},
+        metadata: {type:'object'},
+      },
     }
   }
  
@@ -87,7 +91,7 @@ export default class ManifestAutocompleter {
             completions.push(['false', path])
           } else if (def === 'string') {
             completions.push(["''", path])
-          } else if (def === 'number') {
+          } else if (def === 'number' || def === 'integer') {
             completions.push(["1", path])
           }
         }
@@ -108,12 +112,8 @@ export default class ManifestAutocompleter {
           break
         }
       }
-      if (mapping) {
-        if (arrayPos) {
-          return mapping.items[parseInt(arrayPos, 10)]
-        } else {
-          return mapping.value
-        }
+      if (mapping && arrayPos) {
+        return mapping.items[parseInt(arrayPos, 10)]
       }
       return mapping
     }
@@ -147,7 +147,7 @@ export default class ManifestAutocompleter {
         }
       }
     }
-    return this.completions['.'].map(prop=> `${prop}: `)
+    return this.propsToCompletions(this.completions['.'],null,'')
   }
 
   propsToCompletions(properties, doc, indent) {
@@ -156,7 +156,7 @@ export default class ManifestAutocompleter {
       .map( ([key, val]) => {
         if (val.type === 'array') {
           return `${key}:\n${indent}- `
-        } else if (typeof val.type === 'object') {
+        } else if (val.type === 'object' || val.$ref) {
           return `${key}:\n${indent}  `
         } else {
           return `${key}: `

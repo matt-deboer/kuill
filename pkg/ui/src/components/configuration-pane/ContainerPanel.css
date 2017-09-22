@@ -1,0 +1,54 @@
+dl.mounts {
+  padding: 0.5em; }
+  dl.mounts dt {
+    float: left;
+    clear: left;
+    width: 100px;
+    text-align: right;
+    font-weight: bold; }
+  dl.mounts dt::after {
+    content: ":"; }
+  dl.mounts dd {
+    margin: 0 0 0 110px;
+    padding: 0 0 0.5em 0; }
+
+span.mount-name {
+  font-weight: 600;
+  padding-right: 2px;
+  width: 200px; }
+
+span.mount-perms {
+  font-weight: 600;
+  padding-right: 2px;
+  padding-left: 2px; }
+  span.mount-perms.ro {
+    color: #2979ff; }
+
+span.mount-from {
+  font-weight: 600; }
+
+span.env-ref-type {
+  font-weight: 600;
+  padding-right: 3px; }
+
+span.env-ref-key {
+  padding-left: 3px; }
+
+.quoted-string {
+  color: #1e88e5; }
+  .quoted-string:before {
+    content: "\""; }
+  .quoted-string:after {
+    content: "\""; }
+  .quoted-string + .quoted-string:before {
+    content: ", \""; }
+
+.item-array {
+  font-weight: 600;
+  color: #1e88e5; }
+  .item-array:before {
+    content: "[";
+    color: black; }
+  .item-array:after {
+    content: "]";
+    color: black; }
