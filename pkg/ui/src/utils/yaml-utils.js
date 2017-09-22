@@ -314,7 +314,7 @@ class YamlIndex {
 
   adjustEndPosition(node, path) {
     
-    let [startRow, startCol] = this.positionToRowCol(node.startPosition)
+    let [startRow,] = this.positionToRowCol(node.startPosition)
     let [endRow, endCol] = this.positionToRowCol(node.endPosition)
     if (node.endPosition > node.startPosition) {
       if (this.lines[endRow].substr(0, endCol).match(/^\s*$/)) {
