@@ -92,13 +92,14 @@ class ClusterPage extends React.Component {
     let activeTab = query.view || 'nodes'
 
     return (
-    <div style={{border: '1px solid rgba(33,33,33,0.8)'}}>
+    <div style={{border: '1px solid rgba(33,33,33,0.8)', position: 'absolute'}}>
         <Tabs
-          style={{background: 'white'}}
+          style={{background: 'white', height: 'calc(100vh - 112px)', width: 'calc(100vw - 50px)'}}
           tabItemContainerStyle={styles.tabs}
           contentContainerStyle={{overflow: 'hidden'}}
           inkBarStyle={styles.tabsInkBar}
           value={activeTab}
+          className={'tabs cluster'}
           >
           {this.tabs.map(tab => 
             <Tab label={tab.label} key={tab.name} value={tab.name} onActive={this.props.selectView.bind(this, tab.name)}>

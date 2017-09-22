@@ -162,3 +162,34 @@ a:hover {
 //   }
     
 // }
+
+.route-appear {
+  opacity: 0;
+}
+
+.route-appear.route-appear-active {
+  opacity: 1;
+  transition: opacity .5s ease-in;
+}
+
+.route-enter {
+  opacity: 0;
+}
+
+.route-enter.route-enter-active {
+  opacity: 1;
+  transition: opacity .5s ease-in;
+}
+
+.route-leave {
+  opacity: 1;
+  .tabs.access > div {
+    visibility: hidden !important;
+    position: absolute !important;
+  }
+}
+
+.route-leave.route-leave-active {
+  opacity: 0;
+  transition: opacity .3s ease-in;
+}

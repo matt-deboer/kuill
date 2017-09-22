@@ -11,6 +11,8 @@ import {createLogger} from 'redux-logger'
 import thunk from 'redux-thunk'
 import {Route, Switch} from 'react-router-dom'
 import App from './containers/App'
+import { CSSTransitionGroup } from 'react-transition-group'
+// import Transition from 'react-transition-group/Transition'
 
 import injectTapEventPlugin from 'react-tap-event-plugin'
 
@@ -64,11 +66,20 @@ render(
         <ConnectedRouter history={history}>
             <App>
                 <div>
-                    <Switch>
-                        {routes.map((route, i) => (
-                            <RouteWithSubRoutes key={i} {...route}/>
-                        ))}
-                    </Switch>
+                    <Route render={({ location }) => (
+                        <CSSTransitionGroup
+                        transitionName="route"
+                        transitionAppear={true}
+                        transitionAppearTimeout={500}
+                        transitionEnterTimeout={500}
+                        transitionLeaveTimeout={300}>
+                            <Switch key={location.pathname} location={location}>
+                                {routes.map((route, i) => (
+                                    <RouteWithSubRoutes key={i} {...route}/>
+                                ))}
+                            </Switch>
+                        </CSSTransitionGroup>
+                    )}/>
                 </div>
             </App>
         </ConnectedRouter>

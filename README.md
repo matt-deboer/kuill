@@ -145,6 +145,7 @@ Roadmap:
   - [x] Create/Edit validation for all resources
   - [x] Provide better hints/tool-tips to explain what functions are available, and what they mean
   - [ ] Large scale performance testing (1000's of resources)
+  - [ ] Mobile testing/fixes/support
 
 - [ ] Overview/Homepage:
   - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
