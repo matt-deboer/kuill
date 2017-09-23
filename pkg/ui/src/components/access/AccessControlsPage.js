@@ -61,17 +61,8 @@ class ClusterPage extends React.Component {
         name: 'subjects',
         component: <SubjectsTab contentTop={140}/>,
       },
-      // {
-      //   label: 'Permissions',
-      //   name: 'permissions',
-      //   component: <SubjectsTab contentTop={140}/>,
-      // }
     ]
   }
-
-  // shouldComponentUpdate = (nextProps, nextState) => {
-  //   return nextProps.resourceRevision !== this.props.resourceRevision
-  // }
 
   render() {
 

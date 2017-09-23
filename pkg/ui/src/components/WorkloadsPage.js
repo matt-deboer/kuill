@@ -119,10 +119,13 @@ const styles = {
     margin: 10,
   },
   popover: {
-    marginTop: -55,
-    marginLeft: 0,
+    marginTop: 8,
+    marginLeft: 15,
+    marginRight: 0,
     paddingLeft: 15,
     paddingRight: 15,
+    paddingTop: 6,
+    paddingBottom: 6,
     backgroundColor: '#BBB',
     border: '1px solid #000',
     borderRadius: '3px',
@@ -546,7 +549,7 @@ class WorkloadsPage extends React.Component {
           onRequestClose={this.handleActionsRequestClose}
           zDepth={0}
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'left', vertical: 'top'}}
+          targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
         >
           {(this.state.hoveredResource.kind === 'Pod' || this.getCellValue('pods', this.state.hoveredResource) > 0) &&
             <div style={styles.actionContainer}>
