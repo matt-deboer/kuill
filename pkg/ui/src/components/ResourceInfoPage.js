@@ -65,35 +65,6 @@ const mapStateToProps = function(store) {
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
-    // viewKind: function(kind, namespace) {
-    //   let ns = {}
-    //   if (!!namespace) {
-    //     ns[namespace] = true
-    //   }
-    //   dispatch(routerActions.push(linkForResourceKind(kind, ns)))
-    // },
-    // viewFilters: function(filters) {
-    //   let search = `?${queryString.stringify({filters: filters})}`
-    //   dispatch(routerActions.push({
-    //     pathname: `/${ownProps.resourceGroup}`,
-    //     search: search,
-    //   }))
-    // },
-    // selectView: function(tab) {
-    //   if (tab === 'edit') {
-    //     let { params } = ownProps.match
-    //     dispatch(ownProps.editResource(params.namespace, params.kind, params.name))
-    //   }
-      
-    //   let { location } = ownProps
-    //   let newSearch = `?view=${tab}`
-    //   console.log(`selectView: pushed new location...`)
-    //   dispatch(routerActions.push({
-    //     pathname: location.pathname,
-    //     search: newSearch,
-    //     hash: location.hash,
-    //   }))
-    // },
   }
 }
 
