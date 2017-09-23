@@ -82,7 +82,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     viewFilters: function(filters) {
       let search = `?${queryString.stringify({filters: filters})}`
       dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
+        pathname: `/workloads`,
         search: search,
       }))
     },
