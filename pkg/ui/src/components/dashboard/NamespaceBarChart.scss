@@ -73,38 +73,64 @@ $le-100: rgb(6, 65, 168);
   position: relative;
   text-align: center;
 
-  rect.hover {
-    fill: rgba(0,0,0,0.4) !important;
-    &:hover {
-      fill: rgba(0,0,0,0.7) !important;
+  g.group {
+    
+    pointer-events: none !important;
+    
+    rect.hover, rect.highlight {
+      fill: rgba(33,33,33,1) !important;
     }
-  }
 
-  g.group:hover {
-    rect.highlight {
-      fill: rgba(33,33,33,1) !important;
-      fill-opacity: 1 !important;
+    rect {
+      fill-opacity: 0.8;
+      stroke-opacity: 0.8;
+      &.highlight, &.hover {
+        fill-opacity: 1;
+        stroke-opacity: 1;
+      }
     }
+    
+    &.deselected {
+      rect {
+        fill-opacity: 0.2;
+        stroke-opacity: 0.2;
+        &.highlight, &.hover {
+          fill-opacity: 1;
+          stroke-opacity: 1;
+          fill: rgba(55,55,55,1) !important;
+        }
+      }
+    }
+  
+    &.selected {  
+      rect.hover {
+        stroke: tan !important;
+        stroke-opacity: 0.5 !important;
+      }
+    }
+
     rect.hover {
-      fill: rgba(33,33,33,1) !important;
-      fill-opacity: 1 !important;
+      pointer-events: all !important;
+    }
+  
+    &:hover {
+      cursor: pointer;
+      rect:not(.hover) {
+        fill-opacity: 1;
+        stroke-opacity: 1;
+      }
+      rect.hover, rect.highlight {
+        fill: rgba(15,15,15,1) !important;
+      }
+      rect.hover {
+        stroke: tan !important;
+        stroke-opacity: 1 !important;
+      }
     }
   }
 
   g.group.deselected {
     pointer-events: all;
-  }
-
-  g.group.deselected:hover {
-    rect.hover {
-      fill: rgba(0,0,0,0.7) !important;
-      fill-opacity: 0.7 !important;
-      stroke-opacity: 0.7 !important;
-    }
-  }
-
-  rect.highlight {
-    fill: rgba(46,46,46,1) !important;
   }
 
   .legend {
@@ -117,7 +143,6 @@ $le-100: rgb(6, 65, 168);
 
     .title {
       margin: 0 auto;
-      // position: absolute;
       bottom: 12px;
       font-size: 15px;
       color: rgba(255,255,255,0.8);
@@ -136,6 +161,18 @@ $le-100: rgb(6, 65, 168);
   }
 }
 .namespace-utilization {
+
+  div[data-select-by]:hover {
+    g.recharts-pie {
+      path {
+        stroke: tan !important;
+      }
+    }
+    * {
+      cursor: pointer;
+    }
+  }
+  
   .selector {
     height: 0px;
     margin-top: -10px;

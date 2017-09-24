@@ -164,7 +164,7 @@ export default class DiscreteBarChart extends React.PureComponent {
     var margin = {top: 10, right: 0, bottom: 70, left: 0};
 
     var width = 340 - margin.left - margin.right,
-        height = 150 - margin.top - margin.bottom;
+        height = 150 - margin.top - margin.bottom - 1;
 
     var svg = d3.select(el)
       .append('svg')
