@@ -37,9 +37,10 @@ $le-100: rgb(247, 202, 24);
 
     &:hover {
       cursor: pointer;
+      stroke: tan !important;
     }
   }
- 
+
   &.by-memory .hex.memory-le-20,
   &.by-cpu .hex.cpu-le-20,
   &.by-disk .hex.disk-le-20,
@@ -117,6 +118,18 @@ $le-100: rgb(247, 202, 24);
   }
 }
 .node-utilization {
+  
+  div[data-select-by]:hover {
+    g.recharts-pie {
+      path {
+        stroke: tan !important;
+      }
+    }
+    * {
+      cursor: pointer;
+    }
+  }
+  
   .selector {
     height: 0px;
     margin-top: -10px;
