@@ -53,6 +53,20 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     invalidateSession: function() {
       dispatch(invalidateSession())
     },
+    selectView: function(tab) {
+      if (tab === 'edit') {
+        let { params } = ownProps.match
+        dispatch(editResource(params.namespace, params.kind, params.name))
+      }
+      
+      let { location } = ownProps
+      let newSearch = `?view=${tab}`
+      dispatch(routerActions.push({
+        pathname: location.pathname,
+        search: newSearch,
+        hash: location.hash,
+      }))
+    },
   }
 }
 
@@ -184,6 +198,7 @@ class ClusterInfo extends React.Component {
         onEditorApply={this.props.onEditorApply}
         onEditorCancel={this.onEditorCancel}
         resource={this.state.resource}
+        resourceGroup={'cluster'}
         contents={this.state.editor.contents}
         title={!!resource &&
           <div>
@@ -199,6 +214,7 @@ class ClusterInfo extends React.Component {
           resource={this.state.resource}
           logs={logs}
           events={events}
+          selectView={this.props.selectView}
           onLogsActivated={this.onLogsActivated.bind(this)}
           activeTab={(this.props.location.search || 'config').replace('?view=','')}
           />

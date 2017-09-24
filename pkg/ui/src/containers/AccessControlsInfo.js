@@ -212,13 +212,13 @@ class ClusterInfo extends React.Component {
           viewFilters={props.viewFilters}
           selectView={props.selectView}
           resource={this.state.resource}
-          resources={this.props.resources}
+          resources={props.resources}
           events={events}
-          activeTab={(this.props.location.search || 'config').replace('?view=','')}
+          activeTab={(props.location.search || 'config').replace('?view=','')}
           />
       }
       
-      <LoadingSpinner loading={this.props.isFetching} />
+      <LoadingSpinner loading={props.isFetching} />
     </div>)
   }
 }))

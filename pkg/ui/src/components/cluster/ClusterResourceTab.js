@@ -16,6 +16,8 @@ import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
+import EmptyListPage from '../EmptyListPage'
+
 import './ClusterResourceTab.css'
 
 const mapStateToProps = function(store) {
@@ -356,6 +358,10 @@ class ClusterResourceTab extends React.Component {
               }
     
             </Popover>
+          }
+
+          {this.rows.length === 0 &&
+            <EmptyListPage />
           }
       </Paper>
     )
