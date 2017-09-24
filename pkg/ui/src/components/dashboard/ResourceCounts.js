@@ -108,7 +108,7 @@ class ResourceCounts extends React.PureComponent {
       } else if (name.endsWith('ss')) {
         name += 'es'
       }
-      let link = linkForResourceKind(kind)
+      let link = linkForResourceKind(kind, selectedNamespaces)
 
       items.push(
         <div key={kind}>
