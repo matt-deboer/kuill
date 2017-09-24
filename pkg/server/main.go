@@ -270,6 +270,7 @@ func main() {
 		setupTemplates(c)
 		setupMetrics(c, authManager)
 
+		http.HandleFunc("/version", serveVersion)
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
@@ -318,6 +319,10 @@ func requiredInt(c *cli.Context, name string) int {
 		argError(c, fmt.Sprintf("'%s' is required.", name))
 	}
 	return value
+}
+
+func serveVersion(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(version.Version))
 }
 
 func serveUI(w http.ResponseWriter, r *http.Request) {

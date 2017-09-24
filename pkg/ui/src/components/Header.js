@@ -18,7 +18,7 @@ import Popover from 'material-ui/Popover'
 import Menu from 'material-ui/Menu'
 import MenuItem from 'material-ui/MenuItem'
 import IconLogout from 'material-ui/svg-icons/action/power-settings-new'
-
+import { defaultFetchParams } from '../utils/request-utils'
 import Breadcrumbs from './Breadcrumbs'
 import ErrorsDialog from './ErrorsDialog'
 import Snackbar from 'material-ui/Snackbar'
@@ -64,6 +64,9 @@ class Header extends React.Component {
     }
     this.handleLatestErrorRequestClose = this.handleLatestErrorRequestClose.bind(this)
     this.handleProfileTouchTap = this.handleProfileTouchTap.bind(this)
+    this.requestVersion().then(version=> {
+      this.setState({version: version})
+    })
   }
 
   handleLatestErrorRequestClose = () => {
@@ -73,7 +76,10 @@ class Header extends React.Component {
   }
 
   handleOpen = () => {
-    this.setState({open: true})
+    this.setState({
+      open: true,
+      profileOpen: false,
+    })
   }
 
   handleClose = () => {
@@ -89,13 +95,31 @@ class Header extends React.Component {
     })
   }
 
+  requestVersion = async () => {
+    return fetch('/version', defaultFetchParams
+    ).then(resp => {
+      if (resp.ok) {
+        return resp.text()
+      }
+    }).then(version => {
+      let parts = version.split(/-/)
+      version = parts.slice(0,2).join('-')
+      if (parts.length > 2) {
+        version += '+'
+      }
+      return version
+    })
+  }
+
   handleProfileRequestClose = () => {
     this.setState({profileOpen: false})
   }
 
   handleLogout = () => {
     this.props.invalidateSession()
-    this.setState({profileOpen: false})
+    this.setState({
+      profileOpen: false
+    })
   }
 
   componentWillReceiveProps = (props) => {
@@ -243,20 +267,44 @@ class Header extends React.Component {
               labelStyle={{textTransform: 'none', color: '#9e9e9e'}}
               style={{margin: 0}}
             />
-            {/* buttonStyle={{height: 48}} */}
             <Popover
               open={this.state.profileOpen}
               anchorEl={this.state.profileAnchor}
               onRequestClose={this.handleProfileRequestClose}
               anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
               targetOrigin={{horizontal: 'right', vertical: 'top'}}
+              style={{backgroundColor: 'rgb(33,33,33)'}}
             >
-              <Menu desktop={false}>
+              <Menu 
+                desktop={false} 
+                className={'profile-menu'}
+                style={{
+                  background: 'white',
+                  padding: 0, 
+                  display: 'block'
+                }}
+                >
                 <MenuItem primaryText="Log out" 
                   leftIcon={<IconLogout/>}
                   onTouchTap={this.handleLogout}
                   />
               </Menu>
+              <div style={{
+                backgroundImage: `url(${require('../images/logo_small.png')})`,
+                backgroundSize: '70px 27px',
+                backgroundPosition: '15px 10px',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'rgb(33,33,33)',
+                height: 55,
+                borderTop: '3px solid rgb(41, 121, 255)',
+                textAlign: 'right',
+                fontSize: 14,
+                color: 'rgb(180,180,180)',
+                lineHeight: '60px',
+                paddingRight: 15,
+              }}>
+              {this.state.version}
+              </div>
             </Popover>
           </ToolbarGroup>
         </Toolbar>

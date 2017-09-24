@@ -96,6 +96,11 @@
       "target": "https://localhost:8888",
       "secure": false,
       "ws": true
+    },
+    "/version": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
     }
   },
   "_proxy": {
@@ -115,6 +120,11 @@
       "ws": true
     },
     "/templates": {
+      "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    },
+    "/version": {
       "target": "http://localhost:3001",
       "secure": false,
       "ws": true
