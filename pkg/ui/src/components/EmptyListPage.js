@@ -26,7 +26,7 @@ export default function EmptyListPage(props){
           backgroundImage: `url(${require('../images/paper-volcano.png')})`,
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '45%',
+          backgroundSize: '350px',
           width: '100%',
           height: 400,
           position: 'absolute',
