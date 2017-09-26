@@ -22,9 +22,8 @@ const { Range } = ace.acequire('ace/range')
 const mapStateToProps = function(store) {
   return {
     user: store.session.user,
-    editor: store.access.editor,
-    templates: store.templates.templatesByGroup.access,
-    isFetching: store.access.isFetching,
+    templatesByGroup: store.templates.templatesByGroup,
+    isFetching: store.templates.isFetching,
     swagger: store.apimodels.swagger,
   }
 }
@@ -64,11 +63,10 @@ class NewResource extends React.Component {
     props.requestTemplates()
     props.requestSwagger()
 
-    let templateNames = this.getSortedTemplateNames(props.templates)
+    let templateNames = this.getSortedTemplateNames(props.templatesByGroup[props.resourceGroup])
     let selectedTemplate = templateNames && templateNames[0]
 
     this.state = {
-      editor: props.editor,
       templateMenuOpen: false,
       variablesMenuOpen: false,
       templateNames: templateNames || [],
@@ -200,10 +198,10 @@ class NewResource extends React.Component {
 
   componentWillReceiveProps = (props) => {
     
-    if (!props.templates && !props.isFetching) {
+    if (!props.templatesByGroup && !props.isFetching) {
       props.requestTemplates()
-    } else if (props.templates) {
-      let templateNames = this.getSortedTemplateNames(props.templates)
+    } else if (props.templatesByGroup) {
+      let templateNames = this.getSortedTemplateNames(props.templatesByGroup[props.resourceGroup])
       let selectedTemplate = this.state.selectedTemplate || (templateNames && templateNames[0])
       this.setState({
         templateNames: (templateNames || []),
