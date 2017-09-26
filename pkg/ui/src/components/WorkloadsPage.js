@@ -509,7 +509,7 @@ class WorkloadsPage extends React.Component {
     let { props } = this
 
     return (
-      <Paper style={styles.paper}>
+      <Paper style={styles.paper} className={'workloads-page'}>
         
         <FilterBox
           addFilter={props.addFilter} 

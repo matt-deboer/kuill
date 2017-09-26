@@ -1,4 +1,5 @@
 import { types } from '../actions/workloads'
+import { types as session } from '../actions/session'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
@@ -62,6 +63,9 @@ export default (state = initialState, action) => {
   
   switch (action.type) {
     
+    case session.INVALIDATE:
+      return initialState
+
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
     

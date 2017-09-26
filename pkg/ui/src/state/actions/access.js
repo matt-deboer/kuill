@@ -260,12 +260,8 @@ async function createResourceFromContents(dispatch, getState, contents) {
     method: 'POST',
     body: body,
   }).then(resp => {
-    if (!resp.ok) {
-      if (resp.status === 401) {
-        dispatch(invalidateSession())
-      } else {
-        dispatch(addError(null,'error',`Failed to create resource: ${resp.statusText}`))
-      }
+    if (!resp.ok && resp.status === 401) {
+      dispatch(invalidateSession())
     } else {
       return resp.json()
     }

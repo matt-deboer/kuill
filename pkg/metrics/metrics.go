@@ -15,8 +15,8 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/ericchiang/k8s"
 	apiv1 "github.com/ericchiang/k8s/api/v1"
-	"github.com/ghodss/yaml"
 	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/helpers"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,39 +34,9 @@ type Provider struct {
 // NewMetricsProvider returns a Provider capable of returning metrics for the cluster
 func NewMetricsProvider(kubeconfig string) (*Provider, error) {
 
-	var client *k8s.Client
-	var err error
-	var bearerToken []byte
-	if len(kubeconfig) > 0 {
-		data, err := ioutil.ReadFile(kubeconfig)
-		if err != nil {
-			return nil, fmt.Errorf("read kubeconfig: %v", err)
-		}
-
-		// Unmarshal YAML into a Kubernetes config object.
-		var config k8s.Config
-		if err := yaml.Unmarshal(data, &config); err != nil {
-			return nil, fmt.Errorf("unmarshal kubeconfig: %v", err)
-		}
-
-		log.Infof("Using kubeconfig %s", kubeconfig)
-		client, err = k8s.NewClient(&config)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		log.Infof("Using in-cluster kubeconfig")
-		client, err = k8s.NewInClusterClient()
-		if err != nil {
-			return nil, err
-		}
-		bearerToken, err = ioutil.ReadFile(serviceAccountTokenFile)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to read service account token file %s: %v", serviceAccountTokenFile, err)
-		}
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Got serviceaccount token: '%s'", string(bearerToken))
-		}
+	client, err := helpers.NewKubeClient(kubeconfig)
+	if err != nil {
+		return nil, err
 	}
 
 	m := &Provider{

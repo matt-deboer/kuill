@@ -27,6 +27,7 @@ const langTools = ace.acequire('ace/ext/language_tools')
 const mapStateToProps = function(store) {
   return {
     swagger: store.apimodels.swagger,
+    latestError: store.errors.latestError,
   }
 }
 
@@ -49,6 +50,18 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 const styles = {
   dialogOverlay: {
     background: 'rgba(0,0,0,0.5)'
+  },
+  latestError: {
+    color: 'white',
+    position: 'absolute',
+    width: '50%',
+    background: '#960000',
+    zIndex: 1,
+    bottom: 110,
+    right: 40,
+    fontSize: 14,
+    padding: 10,
+    borderRadius: 2,
   }
 }
 
@@ -206,6 +219,15 @@ class EditorPage extends React.Component {
         </div>)
     }  
 
+    let latestError = null
+    if (this.props.latestError) {
+      latestError = (
+        <div className={'latest-error'} style={styles.latestError}>
+          {this.props.latestError.message}
+        </div>
+      )
+    }
+
     return (
       <Dialog
         className={'editor-dialog'}
@@ -213,7 +235,7 @@ class EditorPage extends React.Component {
         actions={actions}
         title={props.title}
         titleStyle={props.titleStyle || {}}
-        modal={true}
+        modal={false}
         overlayStyle={styles.dialogOverlay}
         open={props.open}
         contentStyle={{width: '90%', maxWidth: 'none', }}
@@ -243,6 +265,8 @@ class EditorPage extends React.Component {
             }
           }}
         />
+
+        {latestError}
 
       </Dialog>
     )

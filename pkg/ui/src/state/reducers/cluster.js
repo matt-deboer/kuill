@@ -6,6 +6,7 @@ import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../utils/filter-utils'
 import { removeReadOnlyFields } from '../../utils/request-utils'
+import { types as session } from '../actions/session'
 
 const initialState = {
   // the filter names in string form
@@ -46,6 +47,9 @@ export default (state = initialState, action) => {
   
   switch (action.type) {
     
+    case session.INVALIDATE:
+      return initialState
+
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
     

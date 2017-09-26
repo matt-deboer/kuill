@@ -102,7 +102,7 @@ class Header extends React.Component {
         return resp.text()
       }
     }).then(version => {
-      let parts = version.split(/-/)
+      let parts = version.split(/-|\+/)
       version = parts.slice(0,2).join('-')
       if (parts.length > 2) {
         version += '+'
@@ -191,6 +191,34 @@ class Header extends React.Component {
       avatar: {
         marginRight: 10,
       },
+      snackbar: {
+        right: 10,
+        top: 65,
+        transform: 'translate3d(0px, 0px, 0px)',
+        transition: '-webkit-transform 225ms cubic-bezier(0, 0, 0.2, 1) 0ms',
+        bottom: 'auto',
+        left: 'auto',
+        zIndex: 15000,
+      },
+      logo: {
+        backgroundImage: `url(${require('../images/logo_small.png')})`,
+        backgroundSize: '70px 27px',
+        backgroundPosition: '15px 10px',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: 'rgb(33,33,33)',
+        height: 55,
+        borderTop: '3px solid rgb(41, 121, 255)',
+        textAlign: 'right',
+        fontSize: 14,
+        color: 'rgb(180,180,180)',
+        lineHeight: '60px',
+        paddingRight: 15,
+      },
+      profileMenu: {
+        background: 'white',
+        padding: 0, 
+        display: 'block'
+      },
     }
 
     let { props } = this
@@ -221,7 +249,7 @@ class Header extends React.Component {
             <ToolbarSeparator className="separator-bar"/>
             {
               props.menu.map(menuItem =>
-                <Link to={menuItem.link} key={menuItem.name}>
+                <Link to={menuItem.link} key={menuItem.name} id={`goto-${menuItem.link.replace(/^([^\w]*)([\w-]+)(.*)$/,'$2')}`}>
                   <RaisedButton
                     label={menuItem.name}
                     icon={menuItem.icon}
@@ -278,31 +306,14 @@ class Header extends React.Component {
               <Menu 
                 desktop={false} 
                 className={'profile-menu'}
-                style={{
-                  background: 'white',
-                  padding: 0, 
-                  display: 'block'
-                }}
+                style={styles.profileMenu}
                 >
                 <MenuItem primaryText="Log out" 
                   leftIcon={<IconLogout/>}
                   onTouchTap={this.handleLogout}
                   />
               </Menu>
-              <div style={{
-                backgroundImage: `url(${require('../images/logo_small.png')})`,
-                backgroundSize: '70px 27px',
-                backgroundPosition: '15px 10px',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'rgb(33,33,33)',
-                height: 55,
-                borderTop: '3px solid rgb(41, 121, 255)',
-                textAlign: 'right',
-                fontSize: 14,
-                color: 'rgb(180,180,180)',
-                lineHeight: '60px',
-                paddingRight: 15,
-              }}>
+              <div style={styles.logo}>
               {this.state.version}
               </div>
             </Popover>
@@ -313,7 +324,7 @@ class Header extends React.Component {
 
         <Snackbar
           className="error-bar"
-          style={{right: 10, top: 65, transform: 'translate3d(0px, 0px, 0px)', transition: '-webkit-transform 225ms cubic-bezier(0, 0, 0.2, 1) 0ms', bottom: 'auto', left: 'auto'}}
+          style={styles.snackbar}
           open={this.state.latestErrorOpen}
           message={!!this.props.latestError ? this.props.latestError.message : ''}
           autoHideDuration={5000}

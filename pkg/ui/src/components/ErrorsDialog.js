@@ -105,6 +105,9 @@ class ErrorsDialog extends React.Component {
       avatar: {
         marginRight: 10,
       },
+      message: {
+        whiteSpace: 'pre-wrap',
+      }
     }
 
     const actions = [

@@ -1,6 +1,7 @@
 import { types } from '../actions/events'
 import { objectEmpty } from '../../comparators'
 import { keyForResource, ownersForResource, eventsForResource } from '../../utils/resource-utils'
+import { types as session } from '../actions/session'
 
 const maxRecentEvents = 20
 
@@ -25,7 +26,8 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    
+    case session.INVALIDATE:
+      return initialState
     case types.RECEIVE_EVENTS:
       return doReceiveEvents(state, action.resources, action.events)
     case types.SET_WATCH:

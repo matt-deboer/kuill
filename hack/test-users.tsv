@@ -1,3 +1,4 @@
 admin	password	system:masters
 guest	guest	system:authenticated
 toad	toad	system:nodes
+nsadmin	nsadmin	system:authenticated

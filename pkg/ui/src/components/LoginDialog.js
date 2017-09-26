@@ -72,17 +72,20 @@ export default function LoginDialog(props) {
             display: 'table',
             }}>{getIcon(props.credsLink)}<span style={{paddingLeft: 20, verticalAlign: 'middle', display: 'table-cell'}}>Login with {props.credsLink.desc || props.credsLink.name}</span></div>
           <TextField
+            id={'username'}
             ref={(ref) => { props.updateInputs({username: (ref && ref.input)}); }}
             errorText={props.loginError}
             onKeyPress={(e) => (e.key === 'Enter') && props.handleLogin()}
             hintText="Username" floatingLabelText="Username" fullWidth={true} />
           <TextField
+            id={'password'}
             ref={(ref) => { props.updateInputs({password: (ref && ref.input)}); }}
             errorText={props.loginError}
             onKeyPress={(e) => (e.key === 'Enter') && props.handleLogin()}
             hintText="Password" floatingLabelText="Password" fullWidth={true} type="password" />
           <RaisedButton 
             label="Login"
+            id={'login'}
             primary={true}
             style={styles.loginBtn}
             onTouchTap={props.handleLogin}

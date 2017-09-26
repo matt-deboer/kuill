@@ -1,4 +1,5 @@
 import { types } from '../actions/errors'
+import { types as session } from '../actions/session'
 
 const initialState = {
   errors: [],
@@ -7,7 +8,8 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    
+    case session.INVALIDATE:
+      return initialState
     case types.ADD_ERROR:
       return doAddError(state, action.error, action.id, action.severity, 
           action.message, action.retryText, action.retryAction)    
