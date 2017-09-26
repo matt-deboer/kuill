@@ -233,7 +233,7 @@ class EditorPage extends React.Component {
           width={`100%`}
           editorProps={{$blockScrolling: true}}
           enableBasicAutocompletion={true}
-          enableLiveAutocompletion={false}
+          enableLiveAutocompletion={true}
           value={this.contents}
           ref={(ref) => {
             if (!!ref) {
