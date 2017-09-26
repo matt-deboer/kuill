@@ -5,7 +5,6 @@ import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
 import { white, blueA700, grey100, grey300, grey700, grey800 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
-// import { createResource } from '../state/actions/access'
 import { requestTemplates } from '../state/actions/templates'
 import { requestSwagger } from '../state/actions/apimodels'
 import MenuItem from 'material-ui/MenuItem'
@@ -186,7 +185,7 @@ class NewResource extends React.Component {
   }
 
   onApplyTemplate = () => {
-    let contents = this.props.templates[this.state.selectedTemplate]
+    let contents = this.props.templatesByGroup[this.props.resourceGroup][this.state.selectedTemplate]
     this.editor && this.editor.setValue(contents)
     let variables = this.detectVariables(contents)
     this.contents = contents
