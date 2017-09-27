@@ -42,7 +42,7 @@ export default class ResourceKindWatcher {
         window.setTimeout(this.reset.bind(this), 2000)
       } else {
         dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
-          'Try Again', () => { this.initialize() }))
+          'Try Again', this.initialize ))
       }
     }
     this.socket.onmessage = this.onEvent.bind(this)
