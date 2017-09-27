@@ -41,6 +41,7 @@ const initialState = {
   // a value used internally to handle fast notification of when the
   // resources have changed in a way such that they should be re-rendered
   resourceRevision: 0,
+  namespaces: [],
 }
 
 export default (state = initialState, action) => {
@@ -91,6 +92,9 @@ export default (state = initialState, action) => {
     
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
+
+    case types.PUT_NAMESPACES:
+      return {...state, namespaces: action.namespaces}
 
     default:
       return state
