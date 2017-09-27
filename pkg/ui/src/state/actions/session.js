@@ -1,6 +1,7 @@
 import { addError } from './errors'
 import { doRequest } from './requests'
 import { defaultFetchParams } from '../../utils/request-utils'
+import { requestNamespaces } from './cluster'
 
 export var types = {}
 for (let type of [
@@ -24,9 +25,7 @@ export function fetching(isFetching) {
 export function initializeSession(user, authMethod) {
   return async function (dispatch, getState) {
     
-    // let review = await doRequest(dispatch, getState, 'selfSubjectAccessReview', async () => {
-    //   return await selfSubjectAccessReview(dispatch, getState)
-    // })
+    dispatch(requestNamespaces())
 
     dispatch({
       type: types.INITIALIZE,
@@ -72,7 +71,7 @@ async function isActionPermitted(dispatch, getState, path, verb, namespace='') {
       resourceAttributes: [
         {
           group: '*',
-          namespace: '',
+          namespace: namespace,
           resource: '',
           subresource: '',
           verb: '',
