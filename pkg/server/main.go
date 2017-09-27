@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/helpers"
 	"github.com/matt-deboer/kuill/pkg/metrics"
 	"github.com/matt-deboer/kuill/pkg/proxy"
 	"github.com/matt-deboer/kuill/pkg/templates"
@@ -270,7 +271,12 @@ func main() {
 		setupTemplates(c)
 		setupMetrics(c, authManager)
 
-		http.HandleFunc("/version", serveVersion)
+		err := helpers.ServeNamespaces(c.String("kubeconfig"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		helpers.ServeVersion()
+
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
@@ -319,10 +325,6 @@ func requiredInt(c *cli.Context, name string) int {
 		argError(c, fmt.Sprintf("'%s' is required.", name))
 	}
 	return value
-}
-
-func serveVersion(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(version.Version))
 }
 
 func serveUI(w http.ResponseWriter, r *http.Request) {

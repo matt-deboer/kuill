@@ -12,7 +12,7 @@ import (
 // ServeNamespaces provides version information for kuill
 func ServeNamespaces(kubeconfig string) error {
 
-	client, err := NewKubeClient(kubeconfig)
+	client, _, err := NewKubeClient(kubeconfig)
 	if err != nil {
 		return err
 	}

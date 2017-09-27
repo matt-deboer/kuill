@@ -34,7 +34,7 @@ type Provider struct {
 // NewMetricsProvider returns a Provider capable of returning metrics for the cluster
 func NewMetricsProvider(kubeconfig string) (*Provider, error) {
 
-	client, err := helpers.NewKubeClient(kubeconfig)
+	client, bearerToken, err := helpers.NewKubeClient(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
