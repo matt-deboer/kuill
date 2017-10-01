@@ -19,18 +19,19 @@ import (
 var whitelistedHeaders = []string{"Content-Type"}
 
 type KubeAPIProxy struct {
-	client             *http.Client
-	usernameHeader     string
-	groupHeader        string
-	extraHeadersPrefix string
-	kubernetesURL      *url.URL
-	proxyBasePath      string
-	websocketProxy     *WebsocketProxy
-	traceRequests      bool
+	client              *http.Client
+	usernameHeader      string
+	groupHeader         string
+	extraHeadersPrefix  string
+	kubernetesURL       *url.URL
+	proxyBasePath       string
+	websocketProxy      *WebsocketProxy
+	traceRequests       bool
+	authenticatedGroups []string
 }
 
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
-	usernameHeader, groupHeader, extraHeadersPrefix string, traceRequests bool) (*KubeAPIProxy, error) {
+	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string, traceRequests bool) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -105,14 +106,15 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	log.Infof("Enabled kubernetes api proxy for %s", kubeURL)
 
 	return &KubeAPIProxy{
-		client:             client,
-		kubernetesURL:      kubeURL,
-		usernameHeader:     usernameHeader,
-		groupHeader:        groupHeader,
-		extraHeadersPrefix: extraHeadersPrefix,
-		proxyBasePath:      proxyBasePath,
-		websocketProxy:     wsp,
-		traceRequests:      traceRequests,
+		client:              client,
+		kubernetesURL:       kubeURL,
+		usernameHeader:      usernameHeader,
+		groupHeader:         groupHeader,
+		extraHeadersPrefix:  extraHeadersPrefix,
+		proxyBasePath:       proxyBasePath,
+		websocketProxy:      wsp,
+		traceRequests:       traceRequests,
+		authenticatedGroups: authenticatedGroups,
 	}, nil
 }
 
@@ -185,6 +187,9 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 func (p *KubeAPIProxy) addAuthHeaders(req *http.Request, authContext auth.Context) {
 	req.Header.Add(p.usernameHeader, authContext.User())
 	for _, group := range authContext.Groups() {
+		req.Header.Add(p.groupHeader, group)
+	}
+	for _, group := range p.authenticatedGroups {
 		req.Header.Add(p.groupHeader, group)
 	}
 }

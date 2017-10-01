@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"mime"
@@ -232,6 +233,13 @@ func main() {
 			EnvVar: envBase + "ANONYMOUS_GROUPS",
 		},
 		cli.StringFlag{
+			Name: "authenticated-groups",
+			Usage: `This comma-separated list of groups will be automatically applied to all proxy requests for 
+			authenticated users (including the anonymous login, if enabled)`,
+			Value:  "system:authenticated",
+			EnvVar: envBase + "AUTHENTICATED_GROUPS",
+		},
+		cli.StringFlag{
 			Name:   "templates-path",
 			Value:  "./templates",
 			Usage:  "The path containing a set of *.json and/or *.yml/*.yaml files that are used to initialize the editor for a new resource",
@@ -265,17 +273,21 @@ func main() {
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
+		err := helpers.ServeNamespaces(c.String("kubeconfig"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = helpers.ServeApiModels(c.String("kubeconfig"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		helpers.ServeVersion()
+
 		authManager, _ := auth.NewAuthManager()
 		setupAuthenticators(c, authManager)
 		setupProxy(c, authManager)
 		setupTemplates(c)
 		setupMetrics(c, authManager)
-
-		err := helpers.ServeNamespaces(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		helpers.ServeVersion()
 
 		http.HandleFunc("/", serveUI)
 
@@ -467,9 +479,16 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 		"group-header":           "string",
 		"extra-headers-prefix":   "string",
 		"trace-requests":         "bool",
+		"authenticated-groups":   "string",
 	})
 
 	if err == nil {
+		var authenticatedGroups []string
+		groupsString := flags["authenticated-groups"].(string)
+		if len(groupsString) > 0 {
+			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
+		}
+
 		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
 			flags["kubernetes-client-ca"].(string),
 			flags["kubernetes-client-cert"].(string),
@@ -477,6 +496,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 			flags["username-header"].(string),
 			flags["group-header"].(string),
 			flags["extra-headers-prefix"].(string),
+			authenticatedGroups,
 			flags["trace-requests"].(bool),
 		)
 		if err != nil {
