@@ -1,7 +1,9 @@
-import { addError } from './errors'
-import { doRequest } from './requests'
-import { defaultFetchParams } from '../../utils/request-utils'
+// import { addError } from './errors'
+// import { doRequest } from './requests'
+// import { defaultFetchParams } from '../../utils/request-utils'
 import { requestNamespaces } from './cluster'
+import { requestSwagger } from './apimodels'
+import AccessEvaluator from '../../utils/AccessEvaluator'
 
 export var types = {}
 for (let type of [
@@ -10,6 +12,7 @@ for (let type of [
   'INVALIDATE',
   'REPLACE_LOGIN_METHODS',
   'FETCHING',
+  'PUT_PERMISSIONS',
 ]) {
   types[type] = `session.${type}`
 }
@@ -25,12 +28,17 @@ export function fetching(isFetching) {
 export function initializeSession(user, authMethod) {
   return async function (dispatch, getState) {
     
+    dispatch(requestSwagger())
     dispatch(requestNamespaces())
 
     dispatch({
       type: types.INITIALIZE,
       user: user,
       authMethod: authMethod,
+      accessEvaluator: new AccessEvaluator({
+        dispatch: dispatch,
+        getState: getState,
+      })
     })
   }
 }
@@ -56,45 +64,15 @@ export function replaceLoginMethods(loginMethods) {
   }
 }
 
-async function isActionPermitted(dispatch, getState, path, verb, namespace='') {
-  
-  let body = {
-    kind: 'SelfSubjectAccessReview',
-    apiVersion: 'v1',
-    spec: {
-      nonResourceAttributes: [
-        {
-          path: '',
-          verb: '',
-        }
-      ],
-      resourceAttributes: [
-        {
-          group: '*',
-          namespace: namespace,
-          resource: '',
-          subresource: '',
-          verb: '',
-          version: '*',
-        }
-      ]
-    }
+/**
+ * 
+ * @param {*} kind 
+ * @param {*} permissions 
+ */
+export function updatePermissionsForKind(kind, permissions) {
+  return {
+    type: types.PUT_PERMISSIONS,
+    kind: kind,
+    permissions: permissions,
   }
-
-  let url = '/proxy/apis/authorization.k8s.io/v1beta1/selfsubjectaccessreviews'
-  let result = await fetch( url, {...defaultFetchParams, 
-    method: 'POST',
-    body: JSON.stringify(body),
-  }).then(resp => {
-    if (!resp.ok) {
-      if (resp.status === 401) {
-        dispatch(invalidateSession())
-      }
-      return resp
-    } else {
-      return resp.json()
-    }
-  })
-  return result
-
 }
