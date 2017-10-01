@@ -86,6 +86,11 @@
       "secure": false,
       "ws": true
     },
+    "/namespaces": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    },
     "/proxy": {
       "target": "https://localhost:8888",
       "secure": false,
@@ -110,6 +115,11 @@
   "_proxy": {
     "/auth": {
       "target": "http://localhost:3001",
+      "secure": false,
+      "ws": true
+    },
+    "/namespaces": {
+      "target": "https://localhost:3001",
       "secure": false,
       "ws": true
     },
