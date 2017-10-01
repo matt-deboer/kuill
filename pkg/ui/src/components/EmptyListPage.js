@@ -1,5 +1,25 @@
 import React from 'react'
 
+
+const images = [
+  {
+    text: [
+      <p>sorry, nothing to see here...</p>,
+      <p>other than this volcano:</p>
+    ],
+    src: require('../images/paper-volcano.png')
+  },
+  {
+    text: [
+      <p>sorry, no more of those...</p>,
+      <p>perhaps they were eaten by this t-rex:</p>
+    ],
+    src: require('../images/t-rex.png')
+  },
+]
+
+var imageIndex = 0
+
 export default function EmptyListPage(props){
 
   let style = {
@@ -16,14 +36,16 @@ export default function EmptyListPage(props){
     height: 'calc(100vh - 250px)',
   }
 
+    
+  let image = images[imageIndex++ % images.length]
+
   return (
     <div 
       style={style}>
-      <p>sorry, nothing to see here...</p>
-      <p>other than this volcano:</p>
+      {image.text}
       <div 
         style={{
-          backgroundImage: `url(${require('../images/paper-volcano.png')})`,
+          backgroundImage: `url(${image.src})`,
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           backgroundSize: '350px',
