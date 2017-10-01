@@ -25,6 +25,7 @@ import { resourceStatus as resourceStatusIcons } from '../icons'
 import FilterBox from '../FilterBox'
 import ConfirmationDialog from '../ConfirmationDialog'
 import FilteredResourceCountsPanel from '../FilteredResourceCountsPanel'
+import RowActionMenu from '../RowActionMenu'
 
 import Perf from 'react-addons-perf'
 
@@ -34,6 +35,7 @@ const mapStateToProps = function(store) {
     filterNames: store.access.filterNames,
     possibleFilters: store.access.possibleFilters,
     resources: store.access.resources,
+    accessEvaluator: store.session.accessEvaluator,
   };
 }
 
@@ -273,11 +275,15 @@ class ResourcesTab extends React.Component {
     this.actionsClicked = false
     if (col.id === 'actions') {
       let trs = document.getElementsByClassName('access filter-table')[1].children[0].children
-      this.setState({
-        actionsOpen: true,
-        actionsAnchor: trs[rowId].children[colId+1],
-        hoveredRow: rowId,
-        hoveredResource: resource,
+      let that = this
+      this.props.accessEvaluator.getObjectAccess(resource, 'access').then((access) => {
+        that.setState({
+          actionsOpen: true,
+          actionsAnchor: trs[rowId].children[colId+1],
+          hoveredRow: rowId,
+          hoveredResource: resource,
+          hoveredResourceAccess: access,
+        })
       })
       this.actionsClicked = true
       return false
@@ -433,43 +439,17 @@ class ResourcesTab extends React.Component {
           headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
 
-        {this.state.hoveredResource &&
-        <Popover
-          className="actions-popover"
-          style={styles.popover}
-          open={this.state.actionsOpen}
+        <RowActionMenu
+          open={!!this.state.hoveredResource}
+          handlers={{
+            edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
+            delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+            close: this.handleActionsRequestClose,
+          }}
+          access={this.state.hoveredResourceAccess}
           anchorEl={this.state.actionsAnchor}
-          onRequestClose={this.handleActionsRequestClose}
-          zDepth={0}
-          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-        >
-          
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>edit</div>
-            <IconButton
-              onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconEdit/>
-            </IconButton>
-          </div>
+          />
 
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>delete</div>
-            <IconButton
-              onTouchTap={()=>{ this.handleDelete(this.state.hoveredResources)} }
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconDelete/>
-            </IconButton>
-          </div>
-
-        </Popover>
         }
         <Link to="/access/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>

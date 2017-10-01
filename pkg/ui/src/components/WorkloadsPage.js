@@ -32,6 +32,7 @@ import FilterBox from './FilterBox'
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
 import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
+import RowActionMenu from './RowActionMenu'
 import './WorkloadsPage.css'
 
 import Perf from 'react-addons-perf'
@@ -41,7 +42,8 @@ const mapStateToProps = function(store) {
     filters: store.workloads.filters,
     filterNames: store.workloads.filterNames,
     possibleFilters: store.workloads.possibleFilters,
-  };
+    accessEvaluator: store.session.accessEvaluator,
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
@@ -323,12 +325,17 @@ class WorkloadsPage extends React.Component {
     this.actionsClicked = false
     if (col.id === 'actions') {
       let trs = document.getElementsByClassName('workloads filter-table')[1].children[0].children
-      this.setState({
-        actionsOpen: true,
-        actionsAnchor: trs[rowId].children[colId+1],
-        hoveredRow: rowId,
-        hoveredResource: resource,
+      let that = this
+      this.props.accessEvaluator.getObjectAccess(resource, 'workloads').then((access) => {
+        that.setState({
+          actionsOpen: true,
+          actionsAnchor: trs[rowId].children[colId+1],
+          hoveredRow: rowId,
+          hoveredResource: resource,
+          hoveredResourceAccess: access,
+        })
       })
+
       this.actionsClicked = true
       return false
     } else {
@@ -507,6 +514,7 @@ class WorkloadsPage extends React.Component {
 
   render() {
     let { props } = this
+    let accessEvaluator = props.accessEvaluator
 
     return (
       <Paper style={styles.paper} className={'workloads-page'}>
@@ -540,99 +548,21 @@ class WorkloadsPage extends React.Component {
           headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
 
-        {this.state.hoveredResource &&
-        <Popover
-          className="actions-popover"
-          style={styles.popover}
-          open={this.state.actionsOpen}
+        <RowActionMenu
+          open={!!this.state.hoveredResource}
+          handlers={{
+            logs: ()=> { this.props.viewResource(this.state.hoveredResource,'logs') },
+            term: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
+            suspend: ()=>{ this.handleSuspend(this.state.hoveredResource)},
+            scale: this.handleScale,
+            edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
+            delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+            close: this.handleActionsRequestClose,
+          }}
+          access={this.state.hoveredResourceAccess}
           anchorEl={this.state.actionsAnchor}
-          onRequestClose={this.handleActionsRequestClose}
-          zDepth={0}
-          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-        >
-          {(this.state.hoveredResource.kind === 'Pod' || this.getCellValue('pods', this.state.hoveredResource) > 0) &&
-            <div style={styles.actionContainer}>
-              <div style={styles.actionLabel}>logs</div>
-              <IconButton
-                onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'logs') }}
-                style={styles.actionButton}
-                hoveredStyle={styles.actionHoverStyle}
-                iconStyle={styles.actionIcon}
-              >
-                <IconLogs/>
-              </IconButton>
-            </div>
-          }
+          />
 
-          {(this.state.hoveredResource.kind === 'Pod' || this.getCellValue('pods', this.state.hoveredResource) > 0) &&
-            <div style={styles.actionContainer}>
-              <div style={styles.actionLabel}>term</div>
-              <IconButton
-                onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
-                style={styles.actionButton}
-                hoveredStyle={styles.actionHoverStyle}
-                iconStyle={styles.actionIcon}
-              >
-                <IconShell/>
-              </IconButton>
-            </div>
-          }
-          
-          {(this.getCellValue('pods', this.state.hoveredResource) > -1) && this.state.hoveredResource.spec.replicas > 0 &&
-            <div style={styles.actionContainer}>
-              <div style={styles.actionLabel}>suspend</div>
-              <IconButton
-                onTouchTap={()=>{ this.handleSuspend(this.state.hoveredResource)} }
-                style={styles.actionButton}
-                hoveredStyle={styles.actionHoverStyle}
-                iconStyle={styles.actionIcon}
-                >
-                <IconSuspend/>
-              </IconButton>
-            </div>
-          }
-
-          {(this.getCellValue('pods', this.state.hoveredResource) > -1) &&
-            <div style={styles.actionContainer}>
-              <div style={styles.actionLabel}>scale</div>
-              <IconButton
-                onTouchTap={this.handleScale}
-                style={styles.actionButton}
-                hoveredStyle={styles.actionHoverStyle}
-                iconStyle={styles.actionIcon}
-                >
-                <IconScale/>
-              </IconButton>
-            </div>
-          }
-          
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>edit</div>
-            <IconButton
-              onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconEdit/>
-            </IconButton>
-          </div>
-
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>delete</div>
-            <IconButton
-              onTouchTap={()=>{ this.handleDelete(this.state.hoveredResources)} }
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconDelete/>
-            </IconButton>
-          </div>
-
-        </Popover>
-        }
         <Link to="/workloads/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
