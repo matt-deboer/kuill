@@ -1,5 +1,6 @@
-import { invalidateSession } from './session'
+import { invalidateSession, updatePermissionsForKind } from './session'
 import { routerActions } from 'react-router-redux'
+import { requestSwagger } from './apimodels'
 import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
@@ -216,8 +217,9 @@ async function doRequest(dispatch, getState, request) {
   }
   dispatch({ type: types.START_FETCHING })
   let { fetchBackoff } = getState().access
-  await sleep(fetchBackoff).then(request)
+  let result = await sleep(fetchBackoff).then(request)
   dispatch({ type: types.DONE_FETCHING })
+  return result
 }
 
 /**
@@ -225,9 +227,13 @@ async function doRequest(dispatch, getState, request) {
  */
 export function requestResources() {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
-        await fetchResources(dispatch, getState)
-      })
+    if (!getState().apimodels.swagger) {
+      let swagger = await requestSwagger()(dispatch, getState)
+    }
+
+    doRequest(dispatch, getState, async () => {
+      await fetchResources(dispatch, getState)
+    })
   }
 }
 
@@ -299,12 +305,18 @@ async function fetchResources(dispatch, getState) {
   
   if (shouldFetchResources(getState)) {
 
-    let urls = Object.entries(KubeKinds.access).map(entry => `/proxy/${entry[1].base}/${entry[1].plural}`)
-    let requests = urls.map(url => fetch(url, defaultFetchParams
+    let urls = Object.entries(KubeKinds.access).map(([kind, api]) => 
+      [kind, `/proxy/${api.base}/${api.plural}`])
+    let requests = urls.map(([kind, url]) => fetch(url, defaultFetchParams
       ).then(resp => {
           if (!resp.ok) {
             if (resp.status === 401) {
               dispatch(invalidateSession())
+            } else if (resp.status === 403) {
+              dispatch(updatePermissionsForKind(kind, {
+                namespaced: true
+              }))
+              return fetchResourcesByNamespace(dispatch, getState, kind)
             }
             return resp
           } else {
@@ -314,11 +326,52 @@ async function fetchResources(dispatch, getState) {
     ))
 
     let results = await Promise.all(requests)
-    let resources = {}
 
-    for (var i=0, len=results.length; i < len; ++i) {
-      var result = results[i]
+    parseResults(dispatch, getState, results)
+  }
+}
 
+async function fetchResourcesByNamespace(dispatch, getState, kind) {
+  let namespaces = getState().cluster.namespaces
+  let kubeKind = KubeKinds.access[kind]
+  let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
+  let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
+    ).then(resp => {
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          dispatch(invalidateSession())
+        } else if (resp.status === 404) {
+          dispatch(updatePermissionsForKind(kind, {
+            disabled: true,
+          }))
+        } else if (resp.status !== 403) {
+          dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
+            'Try Again', () => { dispatch(requestResources()) } ))
+        }
+        return resp
+      } else {
+        let allowedNamespaces = {}
+        allowedNamespaces[ns] = true
+        dispatch(updatePermissionsForKind(kind, {
+          namespaces: allowedNamespaces,
+        }))
+        return resp.json()
+      }
+    }
+  ))
+  return Promise.all(requests)
+}
+
+function parseResults(dispatch, getState, results) {
+  
+  let resources = {}
+  
+  while (results.length) {
+    let result = results.shift()
+    
+    if (result.constructor === Array) {
+      results.push(...result)
+    } else {
       if ('items' in result) {
         let kind = result.kind.replace(/List$/,'')
         var items = result.items
@@ -330,28 +383,48 @@ async function fetchResources(dispatch, getState) {
             resources[resource.key] = resource
           }
         }
-      } else {
-        let url = urls[i]
-        let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+      } else if ('status' in result && result.status !== 403) {
+        let msg = `result for ${result.url} returned error code ${result.status}: "${result.message}"`
         console.error(msg)
       }
     }
-
-    dispatch(replaceAll(resources))
-    dispatch(watchEvents(resources))
-    watchResources(dispatch, getState)
   }
+
+  dispatch(replaceAll(resources))
+  dispatch(watchEvents(resources))
+  watchResources(dispatch, getState)
 }
 
 function watchResources(dispatch, getState, resourceVersion) {
   
+    let accessEvaluator = getState().session.accessEvaluator
     let watches = getState().access.watches || {}
+    var watchableNamespaces, kubeKind
+
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.access) {
-        let watch = watches[kind]
-        if (!!watch && watch.closed()) {
-          watch.destroy()
+        kubeKind = KubeKinds.access[kind]
+        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
+
+        if (watchableNamespaces.length > 0) {
+          let watch = watches[kind]
+          if (!!watch && watch.closed()) {
+            watch.destroy()
+            watches[kind] = new ResourceKindWatcher({
+              kind: kind,
+              dispatch: dispatch,
+              resourceVersion: resourceVersion,
+              resourceGroup: 'access',
+            })
+          }
+        }
+      }
+    } else {
+      for (let kind in KubeKinds.access) {
+        kubeKind = KubeKinds.access[kind]
+        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
+        if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({
             kind: kind,
             dispatch: dispatch,
@@ -359,15 +432,6 @@ function watchResources(dispatch, getState, resourceVersion) {
             resourceGroup: 'access',
           })
         }
-      }
-    } else {
-      for (let kind in KubeKinds.access) {
-        watches[kind] = new ResourceKindWatcher({
-            kind: kind,
-            dispatch: dispatch,
-            resourceVersion: resourceVersion,
-            resourceGroup: 'access',
-          })
       }
     }
     dispatch({
