@@ -32,6 +32,8 @@ items:
   - apiGroups: [""]
     resources: ["nodes/proxy"]
     verbs: ["*"]
+  - nonResourceUrls: ["/swagger.json"]
+    verbs: ["get"]
 
 - kind: RoleBinding
   apiVersion: rbac.authorization.k8s.io/v1alpha1
@@ -41,9 +43,26 @@ items:
   subjects:
     - kind: ServiceAccount
       name: kuill
+    - kind: User
+      name: auth-proxy
   roleRef:
     kind: Role
     name: kuill-serviceaccount
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1alpha1
+  metadata:
+    name: kuill-discovery
+    namespace: kube-system
+  subjects:
+    - kind: ServiceAccount
+      name: kuill
+    - kind: User
+      name: auth-proxy
+  roleRef:
+    kind: ClusterRole
+    name: system:discovery
     apiGroup: "rbac.authorization.k8s.io"
 
 - kind: Deployment
