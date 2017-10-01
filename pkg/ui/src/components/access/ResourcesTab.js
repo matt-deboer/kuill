@@ -1,8 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import IconButton from 'material-ui/IconButton'
-import { blueA400, grey200, grey300, grey500, red900, white } from 'material-ui/styles/colors'
+import { blueA400, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../../state/actions/access'
@@ -13,11 +12,9 @@ import * as moment from 'moment'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import Popover from 'material-ui/Popover'
 
 import { arraysEqual } from '../../comparators'
 import { resourceStatus as resourceStatusIcons } from '../icons'
@@ -98,20 +95,6 @@ const styles = {
   miniButton: {
     margin: 10,
   },
-  popover: {
-    marginTop: 8,
-    marginLeft: 15,
-    marginRight: 0,
-    paddingLeft: 15,
-    paddingRight: 15,
-    paddingTop: 6,
-    paddingBottom: 6,
-    backgroundColor: '#BBB',
-    border: '1px solid #000',
-    borderRadius: '3px',
-    boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
-    display: 'flex',
-  },
   wrapper: {
     padding: 15,
     margin: 0,
@@ -120,40 +103,6 @@ const styles = {
   },
   statusIcon: {
     marginLeft: 10,
-  },
-  actionContainer: {
-    position: 'relative',
-    display: 'inline-block',
-    float: 'left',
-  },
-  actionLabel: {
-    position: 'absolute',
-    bottom: 0,
-    textAlign: 'center',
-    width: '100%',
-    color: white,
-    fontSize: 10,
-    zIndex: 100,
-    pointerEvents: 'none',
-  },
-  actionButton: {
-    backgroundColor: 'transparent',
-    marginTop: 4,
-    marginBottom: 4,
-    color: grey200,
-    fontSize: 18,
-    fontWeight: 600,
-  },
-  actionButtonLabel: {
-    textTransform: 'none',
-    color: grey300,
-  },
-  actionIcon: {
-    color: white,
-    marginTop: -4,
-  },
-  actionHoverStyle: {
-    backgroundColor: '#999',
   },
 }
 

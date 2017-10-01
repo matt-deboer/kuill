@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import IconButton from 'material-ui/IconButton'
 import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
@@ -13,15 +12,9 @@ import * as moment from 'moment'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
-import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
-import IconScale from 'material-ui/svg-icons/communication/import-export'
 import IconSuspend from 'material-ui/svg-icons/content/block'
-
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import Popover from 'material-ui/Popover'
 import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
@@ -514,7 +507,6 @@ class WorkloadsPage extends React.Component {
 
   render() {
     let { props } = this
-    let accessEvaluator = props.accessEvaluator
 
     return (
       <Paper style={styles.paper} className={'workloads-page'}>

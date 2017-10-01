@@ -1,5 +1,4 @@
 import Kinds from '../kube-kinds'
-import { invalidateSession, updatePermissionsForKind } from '../state/actions/session'
 import { defaultFetchParams } from './request-utils'
 
 export default class AccessEvaluator {
@@ -24,6 +23,13 @@ export default class AccessEvaluator {
     perm[ns] = 'forbidden'
   }
 
+  /**
+   * Returns an object where keys are the supported UI actions,
+   * and values are 'true' when the action is permitted.
+   * 
+   * @param {object} resource
+   * @param {string} resourceGroup
+   */
   getObjectAccess = async (resource, resourceGroup) => {
     return this.getObjectPermissions(resource, resourceGroup)
       .then(permissions => {
@@ -130,95 +136,6 @@ export default class AccessEvaluator {
       let forbidden = perms.list[namespace]
       return !forbidden
     }
-  }
-
-  /**
-   * Returns true if the current user is allowed to edit the specified
-   * resource (and the resource supports the edit action).
-   * 
-   * @param {*} swagger 
-   * @param {*} kubeKind 
-   * @param {*} namespace 
-   * @param {*} name 
-   */
-  async canEdit(kind, resourceGroup, namespace, name) {
-    this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
-
-    let path = `/${kubeKind.base}/namespaces/{namespace}/${kubeKind.plural}/{name}`
-    let api = this.swagger && this.swagger.paths[path]
-    if (api && 'put' in api) {
-      let permissions = this.permissionsByKind[kind]
-      if (permissions && permissions.verbs && 'put' in permissions.verbs) {
-        return permissions.verbs.put
-      } else {
-        let allowed = await accessReview(kubeKind.plural, 'put', namespace)
-        this.dispatch(updatePermissionsForKind(kind, {
-          verbs: {
-            put: allowed,
-          },
-        }))
-        return allowed
-      }
-    }
-    return false
-  }
-
-  /**
-   * Returns true if the current user is allowed to delete the specified
-   * resource (and the resource supports the delete action).
-   * 
-   * @param {*} swagger 
-   * @param {*} kubeKind 
-   * @param {*} namespace 
-   * @param {*} name 
-   */
-  canDelete(kind, resourceGroup, namespace, name) {
-    this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
-
-  }
-
-  /**
-   * Returns true if the current user is allowed to scale the specified
-   * resource (and the resource supports changing it's replicas count)
-   * 
-   * @param {*} swager 
-   * @param {*} kubeKind 
-   * @param {*} namespace 
-   * @param {*} name 
-   */
-  canScale(kind, resourceGroup, namespace, name) {
-    this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
-  }
-
-  /**
-   * Returns true if the current user is allowed to exec into the specified
-   * resource (and the resource supports exec)
-   * 
-   * @param {*} swager 
-   * @param {*} kubeKind 
-   * @param {*} namespace 
-   * @param {*} name 
-   */
-  canExec(kind, resourceGroup, namespace, name) {
-    this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
-  }
-
-  /**
-   * Returns true if the current user is allowed to exec into the specified
-   * resource (and the resource supports exec)
-   * 
-   * @param {*} swager 
-   * @param {*} kubeKind 
-   * @param {*} namespace 
-   * @param {*} name 
-   */
-  canViewLogs(kind, resourceGroup, namespace, name) {
-    this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
   }
 }
 

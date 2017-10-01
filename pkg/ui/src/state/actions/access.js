@@ -228,7 +228,7 @@ async function doRequest(dispatch, getState, request) {
 export function requestResources() {
   return async function (dispatch, getState) {
     if (!getState().apimodels.swagger) {
-      let swagger = await requestSwagger()(dispatch, getState)
+      await requestSwagger()(dispatch, getState)
     }
 
     doRequest(dispatch, getState, async () => {
@@ -399,12 +399,11 @@ function watchResources(dispatch, getState, resourceVersion) {
   
     let accessEvaluator = getState().session.accessEvaluator
     let watches = getState().access.watches || {}
-    var watchableNamespaces, kubeKind
+    var watchableNamespaces
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.access) {
-        kubeKind = KubeKinds.access[kind]
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
 
         if (watchableNamespaces.length > 0) {
@@ -422,7 +421,6 @@ function watchResources(dispatch, getState, resourceVersion) {
       }
     } else {
       for (let kind in KubeKinds.access) {
-        kubeKind = KubeKinds.access[kind]
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
         if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({

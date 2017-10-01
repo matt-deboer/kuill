@@ -255,7 +255,7 @@ export function applyResourceChanges(namespace, kind, name, contents) {
 export function requestResources(force) {
   return async function (dispatch, getState) {
     if (!getState().apimodels.swagger) {
-      let swagger = await requestSwagger()(dispatch, getState)
+      await requestSwagger()(dispatch, getState)
     } 
     
     doRequest(dispatch, getState, 'fetchResources', async () => {
@@ -448,12 +448,11 @@ function watchResources(dispatch, getState) {
     let watches = getState().workloads.watches || {}
     let maxResourceVersionByKind = getState().workloads.maxResourceVersionByKind
     
-    var watchableNamespaces, kubeKind
+    var watchableNamespaces
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.workloads) {
-        kubeKind = KubeKinds.workloads[kind]
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
         if (watchableNamespaces.length > 0) {
           let watch = watches[kind]
@@ -471,7 +470,6 @@ function watchResources(dispatch, getState) {
       }
     } else {
       for (let kind in KubeKinds.workloads) {
-        kubeKind = KubeKinds.workloads[kind]
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
         if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({

@@ -227,7 +227,7 @@ async function doFetch(dispatch, getState, request) {
 export function requestResources() {
   return async function (dispatch, getState) {
     if (!getState().apimodels.swagger) {
-      let swagger = await requestSwagger()(dispatch, getState)
+      await requestSwagger()(dispatch, getState)
     }
 
     doFetch(dispatch, getState, async () => {
@@ -269,7 +269,6 @@ function shouldFetchResources(getState) {
 async function fetchResources(dispatch, getState) {
   
   if (shouldFetchResources(getState)) {
-    let apiDefinitions = getState().apimodels.swagger
     let urls = Object.entries(KubeKinds.cluster).map(([kind, api]) => 
       [kind, `/proxy/${api.base}/${api.plural}`, api])
     let requests = urls.map(([kind, url, kubeKind]) => fetch(url, defaultFetchParams
@@ -391,13 +390,12 @@ function watchResources(dispatch, getState, resourceVersion) {
   
   let accessEvaluator = getState().session.accessEvaluator
   let watches = getState().cluster.watches || {}
-  var kubeKind, watchableNamespaces
+  var watchableNamespaces
 
   if (!objectEmpty(watches)) {
     // Update/reset any existing watches
     for (let kind in KubeKinds.cluster) {
       let watch = watches[kind]
-      kubeKind = KubeKinds.cluster[kind]
       watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
       if (!!watch && watch.closed() && watchableNamespaces.length > 0) {
         watch.destroy()
@@ -412,7 +410,6 @@ function watchResources(dispatch, getState, resourceVersion) {
     }
   } else {
     for (let kind in KubeKinds.cluster) {
-      kubeKind = KubeKinds.cluster[kind]
       watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
       if (watchableNamespaces.length > 0) {
         watches[kind] = new ResourceKindWatcher({
