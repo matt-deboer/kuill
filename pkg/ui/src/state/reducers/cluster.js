@@ -49,6 +49,7 @@ export default (state = initialState, action) => {
   switch (action.type) {
     
     case session.INVALIDATE:
+      doCleanup(state)
       return initialState
 
     case LOCATION_CHANGE:
@@ -98,6 +99,14 @@ export default (state = initialState, action) => {
 
     default:
       return state
+  }
+}
+
+function doCleanup(state) {
+  if (state.watches) {
+    for (let w in state.watches) {
+      state.watches[w].destroy()
+    }
   }
 }
 
