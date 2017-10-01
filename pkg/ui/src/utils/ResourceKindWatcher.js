@@ -24,33 +24,52 @@ export default class ResourceKindWatcher {
 
   initialize = () => {
     let { props } = this
+    this.namespaces = props.namespaces || []
+    this.swagger = props.swagger
     let dispatch = this.dispatch = props.dispatch
     let kind = this.kind = Kinds[props.resourceGroup][props.kind]
     let resourceVersion = props.resourceVersion || 0
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
-    
-    let url = `${scheme}://${loc.host}/proxy`
-    url += `/${kind.base}/watch/${this.kind.plural}`
-    url += `?watch=true&resourceVersion=${resourceVersion}`
-    
-    this.socket = new WebSocket(url)
-    this.socket.onerror = function (e) {
-      console.error(`ResourceKindWatcher(${kind.plural})`, e)
-      if (this.tries < 3) {
-        ++this.tries
-        window.setTimeout(this.reset.bind(this), 2000)
-      } else {
-        dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
-          'Try Again', this.initialize ))
-      }
+    this.onEvent = this.onEvent.bind(this)
+
+    this.urls = []
+    for (let ns of this.namespaces) {
+      this.urls.push(this.websocketUrl(scheme, loc.host, this.kind, resourceVersion, ns))
     }
-    this.socket.onmessage = this.onEvent.bind(this)
+
+    this.sockets = []
+    for (let url of this.urls) {
+      let socket = new WebSocket(url)
+      socket.onerror = function (e) {
+        // console.error(`ResourceKindWatcher(${kind.plural})`, e)
+        // if (this.tries < 3) {
+        //   ++this.tries
+        //   // window.setTimeout(this.reset.bind(this), 3000)
+        // } else {
+        dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`))
+        // }
+      }
+      socket.onmessage = this.onEvent
+      this.sockets.push(socket)
+    }
+
     console.log(`ResourceKindWatcher<${this.kind.plural}> created`)
     this.throttled = {}
     this.lastPurge = Date.now()
     this.events = {}
     this.interval = window.setInterval(this.processEvents.bind(this), props.interval || aggregationInterval)
+  }
+
+  websocketUrl(scheme, host, kubeKind, resourceVersion, ns) {
+    let url = `${scheme}://${host}/proxy`
+    url += `/${kubeKind.base}/watch/`
+    if (!!ns && ns !== '*') {
+      url += `namespaces/${ns}/`
+    }
+    url += `${kubeKind.plural}`
+    url += `?watch=true&resourceVersion=${resourceVersion}`
+    return url
   }
 
   processEvents = () => {
