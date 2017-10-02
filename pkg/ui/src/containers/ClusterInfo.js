@@ -188,7 +188,6 @@ class ClusterInfo extends React.Component {
 
   render() {
 
-    let { resource } = this.state
     let { logs, events } = this
 
     return (<div>

@@ -219,15 +219,9 @@ class ResourceInfoPage extends React.Component {
     this.props.scaleResource(this.props.resource, 0)
   }
 
-  componentWillReceiveProps = (nextProps) => {
-    let { props } = this
-    if ((props.activeTab === 'logs' && !props.enableLogsTab)
-      || (props.activeTab === 'term' && !props.enableTerminalTab)) {
-
-      props.selectView('config')
-    }
-
-  }
+  // componentWillReceiveProps = (nextProps) => {
+  //   let { props } = this
+  // }
 
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
@@ -235,7 +229,7 @@ class ResourceInfoPage extends React.Component {
 
   render() {
 
-    let { resourceGroup, resource, logs, activeTab, enableLogsTab, enableTerminalTab } = this.props
+    let { resourceGroup, resource, logs, activeTab } = this.props
     let { resourceAccess } = this.state
 
     let tabs = []

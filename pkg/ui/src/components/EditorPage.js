@@ -102,7 +102,6 @@ class EditorPage extends React.Component {
 
   getResourceAccess = (props) => {
     if (props.resource && props.resourceGroup) {
-      let that = this
       props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
         this.setState({
           resourceAccess: access,
