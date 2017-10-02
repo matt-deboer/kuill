@@ -37,6 +37,7 @@ export default class AccessEvaluator {
         let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas)) || -1
 
         return {
+          get: permissions.get,
           edit: permissions.put,
           delete: permissions.delete,
           logs: permissions.logs && replicas > 0,
@@ -57,7 +58,8 @@ export default class AccessEvaluator {
         this.permissions[`${resource.kind}/${resource.metadata.namespace}/${resource.metadata.name}`] || {}
     let permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
 
-    if ('put' in permissions && 
+    if ('get' in permissions && 
+        'put' in permissions && 
         'delete' in permissions &&
         'logs' in permissions &&
         'exec' in permissions) {
@@ -69,7 +71,7 @@ export default class AccessEvaluator {
       let allowed = result.status.allowed
       let attrs = result.spec.resourceAttributes
       if (allowed) {
-        let action = attrs.subresource || attrs.verb
+        let action = (attrs.subresource || attrs.verb).replace('log', 'logs')
         if (!('namespace' in attrs)) {
           clusterPerms[action] = true
         } else if (!('name' in attrs)) {
@@ -80,7 +82,23 @@ export default class AccessEvaluator {
       }
     }
 
-    return {...clusterPerms, ...namespacePerms, ...objectPerms}
+    permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
+    if (!('get' in permissions)) {
+      objectPerms.get = permissions.get = false
+    }
+    if (!('put' in permissions)) {
+      objectPerms.put = permissions.put = false
+    }
+    if (!('delete' in permissions)) {
+      objectPerms.delete = permissions.delete = false
+    }
+    if (!('logs' in permissions)) {
+      objectPerms.logs = permissions.logs = false
+    }
+    if (!('exec' in permissions)) {
+      objectPerms.exec = permissions.exec = false
+    }
+    return permissions
   }
 
   /**
@@ -141,36 +159,41 @@ export default class AccessEvaluator {
 
 async function resolveResourcePermissions(resource, permissions, kubeKind) {
   let requests = []
+  if (!('get' in permissions)) {
+    requests.push(accessReview(kubeKind, 'get'))
+    requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace))
+    requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace, resource.metadata.name))
+  }
   if (!('edit' in permissions)) {
-    requests.push(accessReview(kubeKind.plural, 'put'))
-    requests.push(accessReview(kubeKind.plural, 'put', resource.metadata.namespace))
-    requests.push(accessReview(kubeKind.plural, 'put', resource.metadata.namespace, resource.metadata.name))
+    requests.push(accessReview(kubeKind, 'put'))
+    requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace))
+    requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace, resource.metadata.name))
   }
   if (!('delete' in permissions)) {
-    requests.push(accessReview(kubeKind.plural, 'delete'))
-    requests.push(accessReview(kubeKind.plural, 'delete', 
+    requests.push(accessReview(kubeKind, 'delete'))
+    requests.push(accessReview(kubeKind, 'delete', 
       resource.metadata.namespace))
-    requests.push(accessReview(kubeKind.plural, 'delete', 
+    requests.push(accessReview(kubeKind, 'delete', 
       resource.metadata.namespace, resource.metadata.name))
   }
   if (!('logs' in permissions)) {
-    requests.push(accessReview('pods', 'get', '', '', 'logs'))
-    requests.push(accessReview(kubeKind.plural, 'get', 
-      resource.metadata.namespace, '', 'logs'))
-    requests.push(accessReview(kubeKind.plural, 'get', 
-      resource.metadata.namespace, resource.metadata.name, 'logs'))
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', '', '', 'log'))
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+      resource.metadata.namespace, '', 'log'))
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+      resource.metadata.namespace, resource.metadata.name, 'log'))
   }
   if (!('exec' in permissions)) {
-    requests.push(accessReview('pods', 'get', '', '', 'exec'))
-    requests.push(accessReview('pods', 'get', 
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', '', '', 'exec'))
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
       resource.metadata.namespace, '', 'exec'))
-    requests.push(accessReview('pods', 'get', 
+    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
       resource.metadata.namespace, resource.metadata.name, 'exec'))
   }
   return Promise.all(requests)
 }
 
-async function accessReview(path, verb, namespace='', name='', subresource='') {
+async function accessReview(kubeKind, verb, namespace='', name='', subresource='') {
   
   let body = {
     kind: 'SelfSubjectAccessReview',
@@ -180,11 +203,15 @@ async function accessReview(path, verb, namespace='', name='', subresource='') {
   if (namespace === '~') {
     namespace = ''
   }
+  let group = ''
+  if (kubeKind.base.startsWith('apis/')) {
+    group = kubeKind.base.split('/')[1]
+  }
   body.spec.resourceAttributes = {
-    group: '*',
+    group: group,
     namespace: namespace,
     name: name,
-    resource: path,
+    resource: kubeKind.plural,
     subresource: subresource,
     verb: verb,
     version: '*',
