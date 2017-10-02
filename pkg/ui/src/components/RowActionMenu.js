@@ -4,22 +4,24 @@ import React from 'react'
 import { grey200, grey300, white } from 'material-ui/styles/colors'
 import IconButton from 'material-ui/IconButton'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
-import IconShell from 'material-ui/svg-icons/hardware/computer'
+import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
+import IconView from 'material-ui/svg-icons/image/crop-free'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconScale from 'material-ui/svg-icons/communication/import-export'
 import IconSuspend from 'material-ui/svg-icons/content/block'
 import { connect } from 'react-redux'
 import Popover from 'material-ui/Popover'
 
-const orderedActions = ['logs', 'exec', 'suspend', 'scale', 'edit', 'delete' ]
+const orderedActions = ['logs', 'exec', 'suspend', 'scale', 'edit', 'get', 'delete']
 
 const actionIcons = {
   logs: <IconLogs/>,
-  exec: <IconShell/>,
+  exec: <IconTerminal/>,
   suspend: <IconSuspend/>, 
   scale: <IconScale/>, 
   edit: <IconEdit/>, 
+  get: <IconView/>,
   delete: <IconDelete/>,
 }
 
@@ -37,7 +39,7 @@ class RowActionMenu extends React.PureComponent {
     const styles = {
       popover: {
         marginTop: 8,
-        marginLeft: 15,
+        marginLeft: 70,
         marginRight: 0,
         paddingLeft: 15,
         paddingRight: 15,
@@ -95,11 +97,30 @@ class RowActionMenu extends React.PureComponent {
     let actions = []
     for (let action of orderedActions) {
       if (access[action]) {
+        
+        let text = action
+        let handler = handlers[action]
+        if (action === 'get') {
+          if (access['edit']) {
+            continue
+          } else {
+            text = 'yaml'
+            handler = handlers.edit
+          }
+        }
+        
+        let closeAndHandle = () => {
+          handlers.close && handlers.close()
+          handler()
+        }
+
         actions.push(
           <div style={styles.actionContainer} key={action}>
-            <div style={styles.actionLabel}>{action}</div>
+            <div style={styles.actionLabel}>{text}</div>
             <IconButton
-              onTouchTap={handlers[action]}
+              id={`row-action--${action}`}
+              className={`row-action ${action}`}
+              onTouchTap={closeAndHandle}
               style={styles.actionButton}
               hoveredStyle={styles.actionHoverStyle}
               iconStyle={styles.actionIcon}
@@ -119,7 +140,7 @@ class RowActionMenu extends React.PureComponent {
         anchorEl={anchorEl}
         onRequestClose={handlers.close}
         zDepth={0}
-        anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+        anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
         targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
       >
         {actions}
