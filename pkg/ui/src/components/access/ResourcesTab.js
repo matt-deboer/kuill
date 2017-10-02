@@ -399,7 +399,6 @@ class ResourcesTab extends React.Component {
           anchorEl={this.state.actionsAnchor}
           />
 
-        }
         <Link to="/access/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
