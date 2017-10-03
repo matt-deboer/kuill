@@ -38,23 +38,11 @@ export default class ResourceKindWatcher {
       this.urls.push(this.websocketUrl(scheme, loc.host, this.kind, resourceVersion, ns))
     }
 
-    this.sockets = []
+    this.sockets = {}
     for (let url of this.urls) {
-      let socket = new WebSocket(url)
-      socket.onerror = function (e) {
-        // console.error(`ResourceKindWatcher(${kind.plural})`, e)
-        // if (this.tries < 3) {
-        //   ++this.tries
-        //   // window.setTimeout(this.reset.bind(this), 3000)
-        // } else {
-        dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`))
-        // }
-      }
-      socket.onmessage = this.onEvent
-      this.sockets.push(socket)
+      this.initSocket(url)
     }
 
-    console.log(`ResourceKindWatcher<${this.kind.plural}> created`)
     this.throttled = {}
     this.lastPurge = Date.now()
     this.events = {}
@@ -116,6 +104,30 @@ export default class ResourceKindWatcher {
     this.initialize()
   }
 
+  reload = (url) => {
+    let socket = this.sockets[url]
+    if (socket) {
+      socket.close()
+      this.initSocket(url)
+    }
+  }
+
+  initSocket = (url) => {
+    let tries = (this.sockets[url] && this.sockets[url].tries) || 0
+    let socket = new WebSocket(url)
+    socket.tries = tries
+    let that = this
+    socket.onerror = function (e) {
+      if (socket.tries < 3) {
+        ++socket.tries
+        window.setTimeout(that.reload.bind(that, url), 3000)
+      } else {
+        that.dispatch(addError(e,'error',`WebSocket error while creating watch for ${url}`))
+      }
+    }
+    socket.onmessage = this.onEvent
+    this.sockets[url] = socket
+  }
   /**
    * 
    */
