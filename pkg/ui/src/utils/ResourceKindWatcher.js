@@ -26,8 +26,8 @@ export default class ResourceKindWatcher {
     let { props } = this
     this.namespaces = props.namespaces || []
     this.swagger = props.swagger
-    let dispatch = this.dispatch = props.dispatch
-    let kind = this.kind = Kinds[props.resourceGroup][props.kind]
+    this.dispatch = props.dispatch
+    this.kind = Kinds[props.resourceGroup][props.kind]
     let resourceVersion = props.resourceVersion || 0
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
