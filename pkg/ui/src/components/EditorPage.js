@@ -223,7 +223,7 @@ class EditorPage extends React.Component {
           onTouchTap={this.applyChanges.bind(this)}
         />,
       ]
-      mode = 'Editing'
+      mode = 'edit'
     } else {
       actions = [
         <FlatButton
@@ -233,7 +233,7 @@ class EditorPage extends React.Component {
           onTouchTap={props.onEditorCancel}
         />
       ]
-      mode = 'Viewing'
+      mode = 'view'
     }
     
     let title=!!resource &&
@@ -284,7 +284,7 @@ class EditorPage extends React.Component {
         <AceEditor
           mode={"kube_yaml"}
           theme={"kubernetes"}
-          readOnly={(mode === 'Viewing')}
+          readOnly={(mode === 'view')}
           name={"kubernetes-editor"}
           onChange={this.onChange.bind(this)}
           onSelectionChange={this.onSelectionChange.bind(this)}
