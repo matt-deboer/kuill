@@ -25,6 +25,7 @@ import { hostnameLabel } from '../../utils/filter-utils'
 // import Data from '../data'
 import KubeKinds from '../../kube-kinds'
 import FilterBox from '../FilterBox'
+import EmptyListPage from '../EmptyListPage'
 import './NodesTab.css'
 
 import Perf from 'react-addons-perf'
@@ -448,10 +449,6 @@ class NodesTab extends React.Component {
     }
   }
 
-// selectedIds={this.selectedIds}
-// onRowSelection={this.handleRowSelection.bind(this)}
-// multiSelectable={true}
-
   render() {
     let { props } = this
 
@@ -459,31 +456,52 @@ class NodesTab extends React.Component {
       <Paper style={styles.paper}>
         <NodeHeatmap nodes={this.nodes} nodeMetrics={props.nodeMetrics} resourceRevision={props.resourceRevision}/>
         
-        <FilterBox
+        {this.rows.length === 0 &&
+          <EmptyListPage style={{
+            top: 0,
+            left: 'auto',
+            marginTop: 15,
+            paddingTop: 5,
+            height: 'calc(100vh - 353px)',
+            width: 'calc(100vw - 80px)',
+            position: 'relative',
+          }}
+          imageStyle={{
+            height: 325,
+            backgroundSize: '300px',
+          }}
+          />
+        }
+
+        {this.rows.length > 0 &&
+          <FilterBox
           addFilter={props.addFilter} 
           removeFilter={props.removeFilter}
           filterNames={props.filterNames}
           possibleFilters={props.possibleFilters}
           />
+        }
 
-        <FilterTable
-          className={'nodes'}
-          columns={this.columns}
-          data={this.rows}
-          height={'calc(100vh - 480px)'}
-          displayRowCheckbox={false}
-          onCellClick={this.handleCellClick.bind(this)}
-          hoveredRow={this.state.hoveredRow}
-          onRenderCell={this.renderCell}
-          getCellValue={this.getCellValue}
-          stripedRows={false}
-          iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
-          iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
-          width={'calc(100vw - 50px)'}
-          revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
-          wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
-          headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: 'white'}}
-          />
+        {this.rows.length > 0 &&
+          <FilterTable
+            className={'nodes'}
+            columns={this.columns}
+            data={this.rows}
+            height={'calc(100vh - 480px)'}
+            displayRowCheckbox={false}
+            onCellClick={this.handleCellClick.bind(this)}
+            hoveredRow={this.state.hoveredRow}
+            onRenderCell={this.renderCell}
+            getCellValue={this.getCellValue}
+            stripedRows={false}
+            iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
+            iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
+            width={'calc(100vw - 50px)'}
+            revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
+            wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
+            headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: 'white'}}
+            />
+        }
 
         {this.state.hoveredResource &&
         <Popover
