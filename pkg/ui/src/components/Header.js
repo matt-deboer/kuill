@@ -1,13 +1,13 @@
 import React from 'react'
 import AppBar from 'material-ui/AppBar'
-import {Toolbar, ToolbarGroup, ToolbarSeparator} from 'material-ui/Toolbar'
-import {grey200, grey300, grey800, blueA200} from 'material-ui/styles/colors'
-import {typography} from 'material-ui/styles'
-import {Link} from 'react-router-dom'
+import { Toolbar, ToolbarGroup, ToolbarSeparator } from 'material-ui/Toolbar'
+import { grey200, grey300, grey800, blueA200 } from 'material-ui/styles/colors'
+import { typography } from 'material-ui/styles'
+import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { clearErrors } from '../state/actions/errors'
+import { clearErrors, clearLatestError } from '../state/actions/errors'
 import { invalidateSession } from '../state/actions/session'
 import Avatar from 'react-avatar'
 import Badge from 'material-ui/Badge'
@@ -47,6 +47,9 @@ const mapDispatchToProps = function(dispatch) {
     invalidateSession: function() {
       dispatch(invalidateSession())
     },
+    clearLatestError: function() {
+      dispatch(clearLatestError())
+    },
   }
 }
 
@@ -73,6 +76,7 @@ class Header extends React.Component {
     this.setState({
       latestErrorOpen: false,
     })
+    this.props.clearLatestError()
   }
 
   handleOpen = () => {

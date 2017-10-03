@@ -15,7 +15,8 @@ export default (state = initialState, action) => {
           action.message, action.retryText, action.retryAction)    
     case types.CLEAR_ERRORS:
       return doClearErrors(state, action.errors)
-
+    case types.CLEAR_LATEST:
+      return {...state, latestError: null}
     default:
       return state;
   }
