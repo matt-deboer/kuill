@@ -10,19 +10,22 @@ ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 status=$(minikube status)
 
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
+  echo "Launching minikube cluster..."
   ${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
 fi
 
 kubectl config use-context minikube
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
+echo "Kube apiserver is at ${apiserver}"
 
-
+echo "Pulling certificates for use by kuill..."
 ${SCRIPT_DIR}/get-certs.sh
 
 if [ "${CI}" != "true" ]; then
   PORT=${KUILL_FRONTEND_PORT} make -s -C ${ROOT} start-ui &
 fi
 
+echo "Launching kuill..."
 ${ROOT}/bin/kuill \
   --port ${KUILL_PORT} \
   --verbose \
