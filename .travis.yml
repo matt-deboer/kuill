@@ -10,8 +10,10 @@ addons:
   apt:
     packages:
     - upx-ucl
+    - libvirt-dev
     - libvirt-bin
     - qemu-kvm
+    - procps
 
 cache:
   directories:

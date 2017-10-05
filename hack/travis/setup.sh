@@ -13,5 +13,7 @@ curl -Lo docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kv
 chmod +x docker-machine-driver-kvm && sudo mv docker-machine-driver-kvm /usr/local/bin/
 
 # add current user to the libvirtd group and update the session
+echo "Running as $(whoami)"
 sudo usermod -a -G libvirtd $(whoami)
+echo "Updating session..."
 newgrp libvirtd
