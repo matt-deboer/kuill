@@ -9,8 +9,11 @@ curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/miniku
 chmod +x minikube && sudo mv minikube /usr/local/bin/
 
 # install docker-machine-driver-kvm
-curl -Lo docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu14.04
-chmod +x docker-machine-driver-kvm && sudo mv docker-machine-driver-kvm /usr/local/bin/
+# curl -Lo docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu14.04
+# chmod +x docker-machine-driver-kvm && sudo mv docker-machine-driver-kvm /usr/local/bin/
 
 # add current user to the libvirtd group
-sudo usermod -a -G libvirtd $(whoami)
+# sudo usermod -a -G libvirtd $(whoami)
+
+# trigger udevadm to make kvm available ?
+# sudo udevadm trigger

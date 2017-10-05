@@ -31,8 +31,9 @@ install:
 script:
 - make release
 - upx bin/kuill
-- export MINIKUBE_OPTIONS="--vm-driver kvm"
-- sudo -E su $USER -c "cd $(pwd) && make acceptance"
+- export MINIKUBE_OPTIONS="--vm-driver none"
+- make acceptance
+# - sudo -E su $USER -c "cd $(pwd) && make acceptance"
 - make docker
 
 after_deploy:

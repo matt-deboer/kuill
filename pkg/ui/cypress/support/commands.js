@@ -9,8 +9,8 @@
 // ***********************************************
 
 Cypress.Commands.add("login", (username, password) => {
-  cy.visit('/')
-  cy.get('.title').should('have.text', 'Authentication Required')
+  cy.visit(Cypress.env('BASE_URL') || 'http://localhost:3000')
+  cy.get('.login .title > div').should('have.text', 'Authentication Required')
   cy.get('#username').type(username)
   cy.get('#password').type(password)
   cy.get('#login').click()

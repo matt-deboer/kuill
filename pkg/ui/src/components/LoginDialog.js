@@ -64,7 +64,7 @@ export default function LoginDialog(props) {
     let credsLink = ''
     if (props.credsLink) {
       credsLink = (
-      <div>
+      <div className={'login-dialog'}>
         {props.loginLinks.length > 0 && <div style={{paddingTop: 20, paddingBottom: 20}}>or</div>}
         
         <Paper style={{padding: 10, marginTop: 10, overflow: 'hidden'}}>
