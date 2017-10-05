@@ -12,6 +12,7 @@
     "font-awesome": "4.7.0",
     "history": "^4.5.1",
     "js-yaml": "^3.8.4",
+    "json-stream": "^1.0.0",
     "longest-common-subsequence": "^1.0.4",
     "material-ui": "^0.18.0",
     "material-ui-chip-input": "^0.14.0",
@@ -78,7 +79,8 @@
     "eject": "react-scripts eject",
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "proxy": {
     "/auth": {

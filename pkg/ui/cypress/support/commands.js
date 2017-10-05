@@ -8,19 +8,13 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-import url from 'url'
-
-const BASE_URL = url.format({
-  protocol : process.env.PROTOCOL || 'http',
-  hostname : process.env.HOST || 'localhost',
-  port     : process.env.PORT || 3000
-})
-
 Cypress.Commands.add("login", (username, password) => {
-  cy.visit(BASE_URL)
-  cy.get('#username').type('admin')
-  cy.get('#password').type('password')
+  cy.visit('/')
+  cy.get('.title').should('have.text', 'Authentication Required')
+  cy.get('#username').type(username)
+  cy.get('#password').type(password)
   cy.get('#login').click()
-  cy.get('.overview .namespace-panel > .title').should('contain.text', 'Allocated Resource Usage')
+  cy.get('.overview .namespace-panel > .title', {timeout: 5000})
+    .should('contain.text', 'Allocated Resource Usage')
 })
 

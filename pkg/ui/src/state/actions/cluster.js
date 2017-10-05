@@ -10,8 +10,9 @@ import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor, reconcileEvents } from './events'
-import { defaultFetchParams, sleep } from '../../utils/request-utils'
+import { defaultFetchParams } from '../../utils/request-utils'
 import { addError } from './errors'
+import { doRequest } from './requests'
 import yaml from 'js-yaml'
 
 export var types = {}
@@ -39,12 +40,10 @@ for (let type of [
 export const defaultFilterNames = 'namespace:default'
 
 
-export function replaceAll(resources, maxResourceVersion, error) {
+export function replaceAll(resources) {
   return {
     type: types.REPLACE_ALL,
     resources: resources,
-    maxResourceVersion: maxResourceVersion,
-    error: error,
   }
 }
 
@@ -57,16 +56,19 @@ export function filterAll() {
 export function putResource(newResource) {
   return function(dispatch, getState) {
     
-    dispatch({
-      type: types.PUT_RESOURCE,
-      resource: newResource,
-    })
+    let { maxResourceVersionByKind } = getState().cluster
+    if (newResource.metadata.resourceVersion > maxResourceVersionByKind[newResource.kind] || 0) {
+      dispatch({
+        type: types.PUT_RESOURCE,
+        resource: newResource,
+      })
 
-    let { resource, resources } = getState().cluster
-    if (sameResource(newResource, resource)
-    || isResourceOwnedBy(resources, newResource, resource)
-    || isResourceOwnedBy(resources, resource, newResource)) {
-      dispatch(selectEventsFor(resources, resource))
+      let { resource, resources } = getState().cluster
+      if (sameResource(newResource, resource)
+      || isResourceOwnedBy(resources, newResource, resource)
+      || isResourceOwnedBy(resources, resource, newResource)) {
+        dispatch(selectEventsFor(resources, resource))
+      }
     }
   }
 }
@@ -124,7 +126,7 @@ export function removeFilter(filter, index) {
  */
 export function requestNamespaces() {
   return async function (dispatch, getState) {
-    doFetch(dispatch, getState, async () => {
+    doRequest(dispatch, getState, 'fetchNamespaces', async () => {
       await fetchNamespaces(dispatch, getState)
     })
   }
@@ -197,28 +199,10 @@ export function setFilterNames(filterNames) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'updateResourceContents', async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
   }
-}
-
-/**
- * Wraps any fetch request with proper setting of the `isFetching`
- * guards, and applies any fetchBackoff value.
- * 
- * @param {*} dispatch 
- * @param {*} getState 
- * @param {*} request 
- */
-async function doFetch(dispatch, getState, request) {
-  if (getState().cluster.isFetching) {
-    console.warn(`doFetch called while already fetching...`)
-  }
-  dispatch({ type: types.START_FETCHING })
-  let { fetchBackoff } = getState().cluster
-  await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING })
 }
 
 /**
@@ -230,7 +214,7 @@ export function requestResources() {
       await requestSwagger()(dispatch, getState)
     }
 
-    doFetch(dispatch, getState, async () => {
+    doRequest(dispatch, getState, 'fetchResources', async () => {
       await fetchResources(dispatch, getState)
     })
   }
@@ -244,7 +228,7 @@ export function requestResources() {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResource', async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
       })
   }
@@ -390,6 +374,8 @@ function watchResources(dispatch, getState, resourceVersion) {
   
   let accessEvaluator = getState().session.accessEvaluator
   let watches = getState().cluster.watches || {}
+  let maxResourceVersionByKind = getState().cluster.maxResourceVersionByKind
+
   var watchableNamespaces
 
   if (!objectEmpty(watches)) {
@@ -402,7 +388,7 @@ function watchResources(dispatch, getState, resourceVersion) {
         watches[kind] = new ResourceKindWatcher({
           kind: kind,
           dispatch: dispatch,
-          resourceVersion: resourceVersion,
+          resourceVersion: maxResourceVersionByKind[kind] || 0,
           resourceGroup: 'cluster',
           namespaces: watchableNamespaces,
         })
@@ -415,7 +401,7 @@ function watchResources(dispatch, getState, resourceVersion) {
         watches[kind] = new ResourceKindWatcher({
             kind: kind,
             dispatch: dispatch,
-            resourceVersion: resourceVersion,
+            resourceVersion: maxResourceVersionByKind[kind] || 0,
             resourceGroup: 'cluster',
             namespaces: watchableNamespaces,
           })
@@ -576,7 +562,7 @@ export function clearEditor() {
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResourceContents', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }

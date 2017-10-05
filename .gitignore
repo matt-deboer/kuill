@@ -11,3 +11,4 @@ node_modules/
 Dockerfile.test
 /pkg/server/ui.go
 certs/
+/pkg/ui/cypress/videos/

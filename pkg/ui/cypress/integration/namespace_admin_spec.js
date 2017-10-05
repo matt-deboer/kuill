@@ -2,21 +2,19 @@
 
 context('Namespace Admin', function(){
   beforeEach(function(){
-    cy.login('admin', 'password')
+    cy.login('nsadmin', 'nsadmin')
   })
 
-  it('', function() {
+  it('should only see resources in 2 namespaces', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
-
-    cy.get('.filter').find('svg').click()
     
     let namespaces = {}
     cy.get('table.filter-table.workloads > tbody')
       .children()
       .children(':nth-child(4)')
-      .should('satisfy', function(td) {
-        return td.textContent === 'kube-system' || td.textContent === 'app-group-1'
+      .each(function(td) {
+        expect(td.context.innerText).to.match(/kube-system|app-group-1/)
       })
   })
 })

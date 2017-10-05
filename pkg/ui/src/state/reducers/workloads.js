@@ -69,21 +69,12 @@ export default (state = initialState, action) => {
 
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
-    
-    // case types.START_FETCHING:
-    //   return {...state, isFetching: true}
-
-    // case types.DONE_FETCHING:
-    //   return {...state, 
-    //     isFetching: false,
-    //     fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
-    //   }
 
     case types.DISABLE_KIND:
       return doDisableKind(state, action.kind)
 
     case types.REPLACE_ALL:
-      return doReceiveResources(state, action.resources, action.maxResourceVersion, action.error)
+      return doReceiveResources(state, action.resources)
 
     case types.FILTER_ALL:
       return doFilterAll(state, state.resources)
