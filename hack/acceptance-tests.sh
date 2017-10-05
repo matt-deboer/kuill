@@ -11,6 +11,10 @@ CI=true KUILL_PORT=${KUILL_PORT} ${MINIKUBE_SUDO} ${SCRIPT_DIR}/minikube-dev.sh 
 KUILL_PID=$!
 echo "KUILL pid: ${KUILL_PID}"
 
+echo "Waiting for minikube to be available..."
+apiserver=$(${MINIKUBE_SUDO} kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
+while ! curl -skL --fail "${apiserver}/apis"; do sleep 2; done
+
 ${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/aceptance-tests/manifests/
 
 # Execute tests
