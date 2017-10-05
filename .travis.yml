@@ -10,6 +10,8 @@ addons:
   apt:
     packages:
     - upx-ucl
+    - libvirt-bin
+    - qemu-kvm
 
 cache:
   directories:
@@ -26,7 +28,7 @@ install:
 script:
 - make release
 - upx bin/kuill
-- make acceptance
+- MINIKUBE_OPTIONS="--vm-driver kvm" make acceptance
 - make docker
 
 after_deploy:

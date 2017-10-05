@@ -1,6 +1,7 @@
 #!/bin/sh
+MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 
-minikube start \
+minikube start ${MINIKUBE_OPTIONS} \
   --kubernetes-version v1.7.5 \
   --extra-config apiserver.Authorization.Mode=RBAC \
   --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
