@@ -31,7 +31,7 @@ script:
 - make release
 - upx bin/kuill
 - export MINIKUBE_OPTIONS="--vm-driver kvm"
-- sudo sudo -E -u travis -g travis -g libvirtd -i 'make acceptance'
+- sudo -E su $USER -c "cd $(pwd) && make acceptance"
 - make docker
 
 after_deploy:
