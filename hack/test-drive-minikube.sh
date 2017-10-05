@@ -23,7 +23,7 @@ kubectl create clusterrolebinding kube-system-admin --clusterrole=cluster-admin 
 mkdir -p ~/.minikube/certs/auth-proxy && rm -rf ~/.minikube/certs/auth-proxy/*
 
 echo "Copying minikube certs from vm..."
-if [[ "$(minikube config get vm-driver)" == "none" ]]; then
+if [ "$(minikube config get vm-driver)" == "none" ]; then
   sudo cat /var/lib/localkube/certs/ca.key > ~/.minikube/certs/auth-proxy/ca.key
   sudo cat /var/lib/localkube/certs/ca.crt > ~/.minikube/certs/auth-proxy/ca.crt
 else
