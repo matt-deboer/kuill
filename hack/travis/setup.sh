@@ -12,8 +12,5 @@ chmod +x minikube && sudo mv minikube /usr/local/bin/
 curl -Lo docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu14.04
 chmod +x docker-machine-driver-kvm && sudo mv docker-machine-driver-kvm /usr/local/bin/
 
-# add current user to the libvirtd group and update the session
-echo "Running as $(whoami)"
+# add current user to the libvirtd group
 sudo usermod -a -G libvirtd $(whoami)
-echo "Updating session..."
-newgrp libvirtd
