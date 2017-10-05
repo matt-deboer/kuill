@@ -1,8 +1,9 @@
 #!/bin/sh
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
+MINIKUBE_SUDO=${MINIKUBE_SUDO:-}
 
 echo "Starting minikube..."
-minikube start ${MINIKUBE_OPTIONS} \
+${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
   --kubernetes-version v1.7.5 \
   --extra-config apiserver.Authorization.Mode=RBAC \
   --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
