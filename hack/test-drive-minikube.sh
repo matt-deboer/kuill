@@ -1,9 +1,8 @@
 #!/bin/sh
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
-MINIKUBE_SUDO=${MINIKUBE_SUDO:-}
 
 echo "Starting minikube..."
-${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
+minikube start ${MINIKUBE_OPTIONS} \
   --kubernetes-version v1.7.5 \
   --extra-config apiserver.Authorization.Mode=RBAC \
   --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
@@ -11,6 +10,7 @@ ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
   --extra-config apiserver.Authentication.RequestHeader.UsernameHeaders=X-Remote-User \
   --extra-config apiserver.Authentication.RequestHeader.GroupHeaders=X-Remote-Group \
   --extra-config apiserver.Authentication.RequestHeader.ExtraHeaderPrefixes=X-Remote-Extra-
+
 
 echo "Waiting for minikube apiserver..."
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
