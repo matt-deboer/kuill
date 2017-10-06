@@ -20,9 +20,13 @@ while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 
 ${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/aceptance-tests/manifests/
 
+export KUILL_URL="https://localhost:${KUILL_PORT}"
+echo "Waiting for kuill to be available at ${KUILL_URL}..."
+while ! curl -skL --fail "${KUILL_URL}/"; do sleep 2; done
+
 # Execute tests
 pushd ${SCRIPT_DIR}/../pkg/ui > /dev/null
-CYPRESS_baseUrl="https://localhost:${KUILL_PORT}" npm run cypress:run
+CYPRESS_baseUrl="${KUILL_URL}" npm run cypress:run
 TEST_RESULTS=$?
 popd > /dev/null
 
