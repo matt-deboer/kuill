@@ -28,8 +28,6 @@ fi
 echo "Launching kuill..."
 ${ROOT}/bin/kuill \
   --port ${KUILL_PORT} \
-  --verbose \
-  --trace-requests \
   --server-cert ${ROOT}/certs/server-cert.pem \
   --server-key ${ROOT}/certs/server-key.pem \
   --password-file hack/test-users.tsv \
