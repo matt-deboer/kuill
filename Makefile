@@ -62,7 +62,7 @@ acceptance:
 	hack/acceptance-tests.sh
 
 acceptance-dev:
-	cd pkg/ui && npm run cypress:open
+	cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open
 
 start-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
 	cd pkg/ui && npm start
