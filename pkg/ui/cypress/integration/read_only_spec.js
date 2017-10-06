@@ -10,8 +10,8 @@ context('Readonly User', function(){
     cy.get('.workloads-page')
 
     cy.get('table.filter-table.workloads > tbody')
-      .children(':nth-child(1)')
-      .children(':nth-child(8)')
+      .children('tr:nth-child(1)')
+      .children('td:nth-child(8)')
       .click()
     
     cy.get('.actions-popover')
@@ -25,8 +25,8 @@ context('Readonly User', function(){
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
     cy.get('table.filter-table.workloads > tbody')
-      .children(':nth-child(1)')
-      .children(':nth-child(3)')
+      .children('tr:nth-child(1)')
+      .children('td:nth-child(3)')
       .click()
     
     cy.get('#resource-info-action').click()
