@@ -132,6 +132,8 @@ export default class FilterBox extends React.PureComponent {
             backgroundColor={isFocused ? blueA100 : null}
             onTouchTap={handleClick}
             onRequestDelete={handleRequestDelete}
+            className={'filter'}
+            id={`filter-${value}`}
           >
           {labelText}
           </Chip>

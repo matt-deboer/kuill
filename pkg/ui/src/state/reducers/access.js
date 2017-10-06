@@ -5,6 +5,7 @@ import { LOCATION_CHANGE } from 'react-router-redux'
 import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { arraysEqual } from '../../comparators'
 import { removeReadOnlyFields } from '../../utils/request-utils'
+import { types as session } from '../actions/session'
 
 const initialState = {
   // the filter names in string form
@@ -44,6 +45,10 @@ export default (state = initialState, action) => {
   
   switch (action.type) {
     
+    case session.INVALIDATE:
+      doCleanup(state)
+      return initialState
+
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
     
@@ -91,6 +96,14 @@ export default (state = initialState, action) => {
 
     default:
       return state
+  }
+}
+
+function doCleanup(state) {
+  if (state.watches) {
+    for (let w in state.watches) {
+      state.watches[w].destroy()
+    }
   }
 }
 

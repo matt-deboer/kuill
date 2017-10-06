@@ -9,7 +9,6 @@ const throttles = {
 const throttlePurgeInterval = 2 * 60 * 1000
 const aggregationInterval = 1000
 
-
 export default class ResourceKindWatcher {
 
   constructor(props) {
@@ -24,33 +23,40 @@ export default class ResourceKindWatcher {
 
   initialize = () => {
     let { props } = this
-    let dispatch = this.dispatch = props.dispatch
-    let kind = this.kind = Kinds[props.resourceGroup][props.kind]
+    this.namespaces = props.namespaces || []
+    this.swagger = props.swagger
+    this.dispatch = props.dispatch
+    this.kind = Kinds[props.resourceGroup][props.kind]
     let resourceVersion = props.resourceVersion || 0
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
-    
-    let url = `${scheme}://${loc.host}/proxy`
-    url += `/${kind.base}/watch/${this.kind.plural}`
-    url += `?watch=true&resourceVersion=${resourceVersion}`
-    
-    this.socket = new WebSocket(url)
-    this.socket.onerror = function (e) {
-      console.error(`ResourceKindWatcher(${kind.plural})`, e)
-      if (this.tries < 3) {
-        ++this.tries
-        window.setTimeout(this.reset.bind(this), 2000)
-      } else {
-        dispatch(addError(e,'error',`WebSocket error occurred while creating watch for ${kind.plural}`,
-          'Try Again', () => { this.initialize() }))
-      }
+    this.onEvent = this.onEvent.bind(this)
+
+    this.urls = []
+    for (let ns of this.namespaces) {
+      this.urls.push(this.websocketUrl(scheme, loc.host, this.kind, resourceVersion, ns))
     }
-    this.socket.onmessage = this.onEvent.bind(this)
-    console.log(`ResourceKindWatcher<${this.kind.plural}> created`)
+
+    this.sockets = {}
+    for (let url of this.urls) {
+      this.initSocket(url)
+    }
+
     this.throttled = {}
     this.lastPurge = Date.now()
     this.events = {}
     this.interval = window.setInterval(this.processEvents.bind(this), props.interval || aggregationInterval)
+  }
+
+  websocketUrl(scheme, host, kubeKind, resourceVersion, ns) {
+    let url = `${scheme}://${host}/proxy`
+    url += `/${kubeKind.base}/`
+    if (!!ns && ns !== '*') {
+      url += `namespaces/${ns}/`
+    }
+    url += `${kubeKind.plural}`
+    url += `?watch=true&resourceVersion=${resourceVersion}`
+    return url
   }
 
   processEvents = () => {
@@ -97,6 +103,34 @@ export default class ResourceKindWatcher {
     this.initialize()
   }
 
+  reload = (url) => {
+    let socket = this.sockets[url]
+    if (socket) {
+      socket.close()
+      if (socket.constructor === WebSocket) {
+        this.initSocket(url)
+      } else {
+        this.fallback(url)
+      }
+    }
+  }
+
+  initSocket = (url) => {
+    let tries = (this.sockets[url] && this.sockets[url].tries) || 0
+    let socket = new WebSocket(url)
+    socket.tries = tries
+    let that = this
+    socket.onerror = function (e) {
+      if (socket.tries < 3) {
+        ++socket.tries
+        window.setTimeout(that.reload.bind(that, url), 3000)
+      } else {
+        that.fallback(url)
+      }
+    }
+    socket.onmessage = this.onEvent
+    this.sockets[url] = socket
+  }
   /**
    * 
    */
@@ -129,5 +163,28 @@ export default class ResourceKindWatcher {
       this.lastPurge = now
     }
   }
-  
+
+  fallback = (url) => {
+    let socket = this.sockets[url]
+    let tries = 0
+    if (socket) {
+      socket.close()
+      if (socket.constructor === EventSource) {
+        tries = socket.tries
+      }
+    }
+    let that = this
+    let stream = new EventSource(`${this.baseUrl}?watch=true&resourceVersion=${this.resourceVersion}`)
+    stream.tries = tries
+    stream.onerror = function (e) {
+      if (stream.tries < 3) {
+        ++stream.tries
+        window.setTimeout(that.reload.bind(that, url), 2000)
+      } else {
+        that.dispatch(addError(e,'error',`Error occurred in watch for ${url}`))
+      }
+    }
+    stream.onmessage = this.onEvent
+    this.sockets[url] = stream
+  }
 }

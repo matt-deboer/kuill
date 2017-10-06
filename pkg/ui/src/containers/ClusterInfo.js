@@ -188,7 +188,6 @@ class ClusterInfo extends React.Component {
 
   render() {
 
-    let { resource } = this.state
     let { logs, events } = this
 
     return (<div>
@@ -200,12 +199,6 @@ class ClusterInfo extends React.Component {
         resource={this.state.resource}
         resourceGroup={'cluster'}
         contents={this.state.editor.contents}
-        title={!!resource &&
-          <div>
-            <span style={{fontStyle: 'italic', paddingRight: 10}}>Editing:</span>
-            <span style={{fontWeight: 600}}>{`${resource.metadata.namespace}/${resource.kind}/${resource.metadata.name}`}</span>
-          </div>
-        }
         />
 
       {!!this.state.resource &&

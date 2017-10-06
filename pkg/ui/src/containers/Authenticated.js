@@ -67,6 +67,7 @@ class Authenticated extends React.Component {
           loginLinks.push(loginMethod)
         }
       }
+      loginLinks.sort((a,b)=> a.id.localeCompare(b.id))
       that.setState({credsLink: credsLink, loginLinks: loginLinks})
     })
 

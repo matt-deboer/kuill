@@ -27,6 +27,8 @@ const langTools = ace.acequire('ace/ext/language_tools')
 const mapStateToProps = function(store) {
   return {
     swagger: store.apimodels.swagger,
+    latestError: store.errors.latestError,
+    accessEvaluator: store.session.accessEvaluator,
   }
 }
 
@@ -49,6 +51,18 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 const styles = {
   dialogOverlay: {
     background: 'rgba(0,0,0,0.5)'
+  },
+  latestError: {
+    color: 'white',
+    position: 'absolute',
+    width: '50%',
+    background: '#960000',
+    zIndex: 1,
+    bottom: 110,
+    right: 40,
+    fontSize: 14,
+    padding: 10,
+    borderRadius: 2,
   }
 }
 
@@ -76,6 +90,7 @@ class EditorPage extends React.Component {
     this.state = {
       errors: []
     }
+    this.getResourceAccess(props)
   }
 
   componentDidMount = () => {
@@ -83,6 +98,16 @@ class EditorPage extends React.Component {
       this.props.activateEditor()
     }
     this.contents = this.props.contents
+  }
+
+  getResourceAccess = (props) => {
+    if (props.resource && props.resourceGroup) {
+      props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
+        this.setState({
+          resourceAccess: access,
+        })
+      })
+    }
   }
 
   setContents = (contents) => {
@@ -105,6 +130,9 @@ class EditorPage extends React.Component {
     
     if (!this.contents) {
       this.contents = props.contents
+    }
+    if (!this.state.resourceAccess) {
+      this.getResourceAccess(props)
     }
     this.displayErrors()
   }
@@ -176,21 +204,44 @@ class EditorPage extends React.Component {
 
   render() {
     let { props } = this
+    let { resource } = props
     let additionalActions = props.additionalActions || []
-    const actions = [
-      ...additionalActions,
-      <FlatButton
-        label="Cancel"
-        labelStyle={{color: 'rgb(220,220,220)'}}
-        hoverColor={grey500}
-        onTouchTap={props.onEditorCancel}
-      />,
-      <RaisedButton
-        label="Apply"
-        primary={true}
-        onTouchTap={this.applyChanges.bind(this)}
-      />,
-    ]
+    let actions
+    let mode
+    if (this.state.resourceAccess && this.state.resourceAccess.edit) {
+      actions = [
+        ...additionalActions,
+        <FlatButton
+          label="Cancel"
+          labelStyle={{color: 'rgb(220,220,220)'}}
+          hoverColor={grey500}
+          onTouchTap={props.onEditorCancel}
+        />,
+        <RaisedButton
+          label="Apply"
+          primary={true}
+          onTouchTap={this.applyChanges.bind(this)}
+        />,
+      ]
+      mode = 'edit'
+    } else {
+      actions = [
+        <FlatButton
+          label="Dismiss"
+          labelStyle={{color: 'rgb(220,220,220)'}}
+          hoverColor={grey500}
+          onTouchTap={props.onEditorCancel}
+        />
+      ]
+      mode = 'view'
+    }
+    
+    let title=!!resource &&
+      (<div>
+        <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>{mode}:</span>
+        <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
+      </div>
+      )
 
     let errorsByRow = {}
     for (let e of this.state.errors) {
@@ -206,14 +257,23 @@ class EditorPage extends React.Component {
         </div>)
     }  
 
+    let latestError = null
+    if (this.props.latestError) {
+      latestError = (
+        <div className={'latest-error'} style={styles.latestError}>
+          {this.props.latestError.message}
+        </div>
+      )
+    }
+
     return (
       <Dialog
         className={'editor-dialog'}
         contentClassName={'editor-dialog-content'}
         actions={actions}
-        title={props.title}
+        title={title}
         titleStyle={props.titleStyle || {}}
-        modal={true}
+        modal={false}
         overlayStyle={styles.dialogOverlay}
         open={props.open}
         contentStyle={{width: '90%', maxWidth: 'none', }}
@@ -224,6 +284,7 @@ class EditorPage extends React.Component {
         <AceEditor
           mode={"kube_yaml"}
           theme={"kubernetes"}
+          readOnly={(mode === 'view')}
           name={"kubernetes-editor"}
           onChange={this.onChange.bind(this)}
           onSelectionChange={this.onSelectionChange.bind(this)}
@@ -243,6 +304,8 @@ class EditorPage extends React.Component {
             }
           }}
         />
+
+        {latestError}
 
       </Dialog>
     )

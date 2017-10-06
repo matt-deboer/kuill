@@ -1,13 +1,11 @@
 import React from 'react'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
 import {blueA100, blueA400, grey600} from 'material-ui/styles/colors'
-// import KubeKinds from '../../kube-kinds'
 import ResourceDetails from './ResourceDetails'
 import sizeMe from 'react-sizeme'
 import AnnotationsPanel from './AnnotationsPanel'
 import DataPanel from './DataPanel'
 import BasicDetailsPanel from './BasicDetailsPanel'
-// import PodTemplatePanel from './PodTemplatePanel'
 import PodDetailsPanel from './PodDetailsPanel'
 import ContainerPanel from './ContainerPanel'
 import PermissionsPane from './PermissionsPane'
@@ -34,7 +32,6 @@ const styles = {
   cardHeaderTitle: {
     color: 'rgba(0,0,0,0.4)',
     fontWeight: 600,
-    // fontStyle: 'italic',
     fontSize: '18px',
   }
 }

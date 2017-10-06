@@ -23,8 +23,6 @@ pkg/ui/build:
 
 release-ui: pkg/ui/build
 	@go get github.com/jteeuwen/go-bindata/...
-	# @go get github.com/elazarl/go-bindata-assetfs/...
-
 	go-bindata -o pkg/server/ui.go -prefix "pkg/ui/build" pkg/ui/build/...
 
 release: clean release-ui
@@ -59,6 +57,12 @@ dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules
 
 minidev: build pkg/ui/node_modules
 	hack/minikube-dev.sh
+
+acceptance:
+	hack/acceptance-tests.sh
+
+acceptance-dev:
+	cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open
 
 start-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
 	cd pkg/ui && npm start

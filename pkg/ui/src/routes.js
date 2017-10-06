@@ -42,7 +42,7 @@ const routes = [
   },
   { 
     path: '/workloads',
-    menuPath: '/workloads?filters=namespace%3Adefault',
+    menuPath: '/workloads',
     name: 'Workloads',
     component: Workloads,
     icon: <Apps/>,

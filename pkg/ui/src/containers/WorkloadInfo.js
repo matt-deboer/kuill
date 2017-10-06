@@ -228,7 +228,6 @@ class ResourceInfo extends React.Component {
 
   render() {
 
-    let { resource } = this.state
     let { logs, events, props } = this
 
     let resourceInfoPage = null
@@ -246,8 +245,6 @@ class ResourceInfo extends React.Component {
           resource={this.state.resource}
           logs={logs}
           events={events}
-          enableLogsTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
-          enableTerminalTab={this.props.logPodContainers && this.props.logPodContainers.length > 0}
           onLogsActivated={this.onLogsActivated.bind(this)}
           activeTab={(this.props.location.search || 'config').replace('?view=','')}
           />
@@ -264,12 +261,6 @@ class ResourceInfo extends React.Component {
           onEditorCancel={this.onEditorCancel}
           resource={this.state.resource}
           contents={this.state.editor.contents}
-          title={!!resource &&
-            <div>
-              <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>Editing:</span>
-              <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
-            </div>
-          }
           />
 
         {resourceInfoPage}

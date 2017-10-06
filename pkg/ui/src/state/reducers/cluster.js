@@ -6,6 +6,7 @@ import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource } from '../../utils/resource-utils'
 import { applyFiltersToResource, splitFilter, zoneLabel, regionLabel, instanceTypeLabel, roleLabel, hostnameLabel } from '../../utils/filter-utils'
 import { removeReadOnlyFields } from '../../utils/request-utils'
+import { types as session } from '../actions/session'
 
 const initialState = {
   // the filter names in string form
@@ -33,33 +34,30 @@ const initialState = {
   namespaceMetrics: {},
   quotasByNamespace: {},
   // the maximum resourceVersion value seen across all resource fetches
-  // this allows us to set watches more efficiently; 
+  // by kind--this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
   // as the fetches for different resource kinds occur independently
+  maxResourceVersionByKind: {},
   maxResourceVersion: 0,
   // a value used internally to handle fast notification of when the
   // resources have changed in a way such that they should be re-rendered
   resourceRevision: 0,
+  namespaces: [],
 }
 
 export default (state = initialState, action) => {
   
   switch (action.type) {
     
+    case session.INVALIDATE:
+      doCleanup(state)
+      return initialState
+
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
-    
-    case types.START_FETCHING:
-      return {...state, isFetching: true}
-
-    case types.DONE_FETCHING:
-      return {...state, 
-        isFetching: false,
-        fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
-      }
 
     case types.REPLACE_ALL:
-      return doReceiveResources(state, action.resources, action.maxResourceVersion, action.error)
+      return doReceiveResources(state, action.resources)
 
     case types.FILTER_ALL:
       return doFilterAll(state, state.resources)
@@ -88,8 +86,19 @@ export default (state = initialState, action) => {
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
 
+    case types.PUT_NAMESPACES:
+      return {...state, namespaces: action.namespaces}
+
     default:
       return state
+  }
+}
+
+function doCleanup(state) {
+  if (state.watches) {
+    for (let w in state.watches) {
+      state.watches[w].destroy()
+    }
   }
 }
 
@@ -186,7 +195,10 @@ function doUpdateResource(state, resource) {
     // TODO: this should be a deep copy of quotas by namespace...
     updateResourceQuotas(resource, state.quotasByNamespace)
   }
-  return doFilterResource(state, resource)
+  let newState = {...state}
+  updateMaxResourceVersion(newState, resource)
+  ++newState.resourceRevision
+  return doFilterResource(newState, resource)
 }
 
 function doFilterResource(state, resource) {
@@ -255,15 +267,6 @@ function doSelectResource(state, namespace, kind, name) {
   }
 }
 
-function decrementBackoff(backoff) {
-  return Math.max(Math.floor(backoff / 4), 0)
-}
-
-function incrementBackoff(backoff) {
-  return Math.max(backoff * 2, 1000)
-}
-
-
 function doReceiveResources(state, resources) {
   let newState = {...state, 
       possibleFilters: [], 
@@ -286,7 +289,7 @@ function doReceiveResources(state, resources) {
     updatePossibleFilters(possible, resource)
     applyFiltersToResource(newState.filters, resource)
     registerOwned(newState.resources, resource)
-    newState.maxResourceVersion = Math.max(newState.maxResourceVersion, resource.metadata.resourceVersion)
+    updateMaxResourceVersion(newState, resource)
     resource.statusSummary = statusForResource(resource)
     if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
       newState.problemResources[resource.key] = resource
@@ -311,8 +314,18 @@ function doReceiveResources(state, resources) {
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
   }
-
+  ++newState.resourceRevision
   return newState
+}
+
+function updateMaxResourceVersion(state, resource) {
+  let rv = resource.metadata.resourceVersion
+  if (typeof rv !== 'number') {
+    rv = parseInt(""+rv, 10)
+  }
+  state.maxResourceVersionByKind[resource.kind] = 
+    Math.max(state.maxResourceVersionByKind[resource.kind] || 0, rv)
+  state.maxResourceVersion = Math.max(state.maxResourceVersion, rv)
 }
 
 function defaultQuota() {

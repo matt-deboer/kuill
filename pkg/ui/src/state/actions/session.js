@@ -1,3 +1,10 @@
+// import { addError } from './errors'
+// import { doRequest } from './requests'
+// import { defaultFetchParams } from '../../utils/request-utils'
+import { requestNamespaces } from './cluster'
+import { requestSwagger } from './apimodels'
+import AccessEvaluator from '../../utils/AccessEvaluator'
+
 export var types = {}
 for (let type of [
   'INITIALIZE',
@@ -5,6 +12,7 @@ for (let type of [
   'INVALIDATE',
   'REPLACE_LOGIN_METHODS',
   'FETCHING',
+  'PUT_PERMISSIONS',
 ]) {
   types[type] = `session.${type}`
 }
@@ -18,10 +26,20 @@ export function fetching(isFetching) {
 
 // authenticate 
 export function initializeSession(user, authMethod) {
-  return {
-    type: types.INITIALIZE,
-    user: user,
-    authMethod: authMethod,
+  return async function (dispatch, getState) {
+    
+    dispatch(requestSwagger())
+    dispatch(requestNamespaces())
+
+    dispatch({
+      type: types.INITIALIZE,
+      user: user,
+      authMethod: authMethod,
+      accessEvaluator: new AccessEvaluator({
+        dispatch: dispatch,
+        getState: getState,
+      })
+    })
   }
 }
 
@@ -43,5 +61,18 @@ export function replaceLoginMethods(loginMethods) {
   return {
     type: types.REPLACE_LOGIN_METHODS,
     loginMethods: loginMethods,
+  }
+}
+
+/**
+ * 
+ * @param {*} kind 
+ * @param {*} permissions 
+ */
+export function updatePermissionsForKind(kind, permissions) {
+  return {
+    type: types.PUT_PERMISSIONS,
+    kind: kind,
+    permissions: permissions,
   }
 }

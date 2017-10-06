@@ -16,12 +16,6 @@ import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEvents from 'material-ui/svg-icons/action/event'
-import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
-import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
-import IconDelete from 'material-ui/svg-icons/action/delete'
-import IconScale from 'material-ui/svg-icons/communication/import-export'
-import IconSuspend from 'material-ui/svg-icons/content/block'
-
 import FilterChip from './FilterChip'
 
 import { withRouter } from 'react-router-dom'
@@ -29,11 +23,6 @@ import { withRouter } from 'react-router-dom'
 import {Tabs, Tab} from 'material-ui/Tabs'
 
 import LoadingSpinner from './LoadingSpinner'
-
-import RaisedButton from 'material-ui/RaisedButton'
-import Popover from 'material-ui/Popover'
-import Menu from 'material-ui/Menu'
-import MenuItem from 'material-ui/MenuItem'
 import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 
@@ -41,6 +30,8 @@ import { resourceStatus as resourceStatusIcons } from './icons'
 
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
+import ResourceInfoActionsMenu from './ResourceInfoActionsMenu'
+
 import './ResourceInfoPage.css'
 
 import Loadable from 'react-loadable'
@@ -60,6 +51,7 @@ const mapStateToProps = function(store) {
   return {
     // filterNames: store.workloads.filterNames,
     pods: store.workloads.pods,
+    accessEvaluator: store.session.accessEvaluator,
   }
 }
 
@@ -125,7 +117,15 @@ class ResourceInfoPage extends React.Component {
       editing: false,
     }
 
-    this.kubeKind = !!props.resource && KubeKinds[props.resourceGroup][props.resource.kind]
+    if (props.resource) {
+      this.kubeKind = KubeKinds[props.resourceGroup][props.resource.kind]
+      let that = this
+      this.props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
+        that.setState({
+          resourceAccess: access,
+        })
+      })
+    }
     for (let fn of ['handleScale','handleSuspend','handleDelete']) {
       this[fn] = this[fn].bind(this)
     }
@@ -219,58 +219,52 @@ class ResourceInfoPage extends React.Component {
     this.props.scaleResource(this.props.resource, 0)
   }
 
-  componentWillReceiveProps = (nextProps) => {
-    let { props } = this
-    if ((props.activeTab === 'logs' && !props.enableLogsTab)
-      || (props.activeTab === 'term' && !props.enableTerminalTab)) {
-
-      props.selectView('config')
-    }
-
-  }
-
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
   }
 
   render() {
 
-    let { resourceGroup, resource, logs, activeTab, enableLogsTab, enableTerminalTab } = this.props
+    let { resourceGroup, resource, logs, activeTab } = this.props
+    let { resourceAccess } = this.state
 
-    let tabs = [
-      {
+    let tabs = []
+    if (!!resource) {
+    
+      tabs.push({
         name: 'config',
         component: ConfigurationPane,
         icon: <IconConfiguration/>,
         props: {resource: resource, resourceGroup: resourceGroup},
-      }
-    ]
-    
-    if (resource.kind === 'ServiceAccount') {
-      tabs.push({
-        name: 'permissions',
-        component: PermissionsPane,
-        icon: <IconPermissions/>,
-        props: {serviceAccount: resource, resources: this.props.resources},
       })
+    
+      if (resource.kind === 'ServiceAccount') {
+        tabs.push({
+          name: 'permissions',
+          component: PermissionsPane,
+          icon: <IconPermissions/>,
+          props: {serviceAccount: resource, resources: this.props.resources},
+        })
+      }
+
+      if (resource.spec && resource.spec.template) {
+        tabs.push({
+          name: 'pod template',
+          component: PodTemplatePane,
+          icon: <IconPodTemplate/>,
+          props: {resource: resource},
+        })
+      }
     }
 
-    if (resource.spec && resource.spec.template) {
-      tabs.push({
-        name: 'pod template',
-        component: PodTemplatePane,
-        icon: <IconPodTemplate/>,
-        props: {resource: resource},
-      })
-    }
-    
+    // TODO: this may also require a separate permissions check
     tabs.push({
       name: 'events',
       component: EventViewer,
       icon: <IconEvents/>,
     })
 
-    if (enableLogsTab) {
+    if (resourceAccess && resourceAccess.logs) {
       tabs.push({
         name: 'logs',
         component: AsyncLogViewer,
@@ -278,7 +272,8 @@ class ResourceInfoPage extends React.Component {
         props: {logs: logs},
       })
     }
-    if (enableTerminalTab) {
+
+    if (resourceAccess && resourceAccess.exec) {
       tabs.push({
         name: 'terminal',
         component: AsyncTerminalViewer,
@@ -328,53 +323,19 @@ class ResourceInfoPage extends React.Component {
             style={styles.cardHeader}
           >
             
-            <RaisedButton
-              label="Actions"
-              labelPosition="before"
-              onTouchTap={this.handleActionsTouchTap}
-              icon={<IconExpand/>}
-              style={{position: 'absolute', right: 20, top: 20}}
-              primary={true}
+          <ResourceInfoActionsMenu
+            access={this.state.resourceAccess}
+            handlers={{
+              scale: this.handleScale,
+              edit: () => {
+                this.props.selectView('edit')
+                this.setState({actionsOpen: false})
+              },
+              suspend: this.handleSuspend,
+              delete: this.handleDelete,
+            }}
             />
-            <Popover
-              open={this.state.actionsOpen}
-              anchorEl={this.state.actionsAnchor}
-              onRequestClose={this.handleActionsRequestClose}
-              anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
-              targetOrigin={{horizontal: 'right', vertical: 'top'}}
-            >
-              <Menu desktop={true}>
-                {(this.props.resource.spec && this.props.resource.spec.replicas > -1) &&
-                  <MenuItem primaryText="Scale"
-                    leftIcon={<IconScale/>}
-                    onTouchTap={this.handleScale}
-                    />
-                }
-                
-                {(!('editable' in this.kubeKind) || !!this.kubeKind.editable) &&
-                  <MenuItem primaryText="Edit" 
-                    onTouchTap={() => {
-                      this.props.selectView('edit')
-                      this.setState({actionsOpen: false})
-                    }}
-                    leftIcon={<IconEdit/>}
-                    />
-                }
-                
-                {(this.props.resource.spec && this.props.resource.spec.replicas > 0) &&
-                  <MenuItem primaryText="Suspend"
-                    leftIcon={<IconSuspend/>}
-                    onTouchTap={this.handleSuspend}
-                    />
-                }
 
-                <MenuItem primaryText="Delete" 
-                  leftIcon={<IconDelete/>}
-                  onTouchTap={this.handleDelete}
-                  />
-
-              </Menu>
-            </Popover>
             <div style={{top: 85, left: 32, position: 'absolute'}}>{resourceStatusIcons[resource.statusSummary]}</div>
 
           </CardHeader>

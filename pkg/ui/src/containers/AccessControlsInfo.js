@@ -183,7 +183,6 @@ class ClusterInfo extends React.Component {
 
   render() {
 
-    let { resource } = this.state
     let { events, props } = this
 
     return (<div>
@@ -195,12 +194,6 @@ class ClusterInfo extends React.Component {
         onEditorCancel={this.onEditorCancel}
         resource={this.state.resource}
         contents={this.state.editor.contents}
-        title={!!resource &&
-          <div>
-          <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>Editing:</span>
-          <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
-          </div>
-        }
         />
 
       {!!this.state.resource &&

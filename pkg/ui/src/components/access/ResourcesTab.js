@@ -1,8 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import IconButton from 'material-ui/IconButton'
-import { blueA400, grey200, grey300, grey500, red900, white } from 'material-ui/styles/colors'
+import { blueA400, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../../state/actions/access'
@@ -13,11 +12,9 @@ import * as moment from 'moment'
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
-import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
 import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
-import Popover from 'material-ui/Popover'
 
 import { arraysEqual } from '../../comparators'
 import { resourceStatus as resourceStatusIcons } from '../icons'
@@ -25,6 +22,7 @@ import { resourceStatus as resourceStatusIcons } from '../icons'
 import FilterBox from '../FilterBox'
 import ConfirmationDialog from '../ConfirmationDialog'
 import FilteredResourceCountsPanel from '../FilteredResourceCountsPanel'
+import RowActionMenu from '../RowActionMenu'
 
 import Perf from 'react-addons-perf'
 
@@ -34,6 +32,7 @@ const mapStateToProps = function(store) {
     filterNames: store.access.filterNames,
     possibleFilters: store.access.possibleFilters,
     resources: store.access.resources,
+    accessEvaluator: store.session.accessEvaluator,
   };
 }
 
@@ -96,20 +95,6 @@ const styles = {
   miniButton: {
     margin: 10,
   },
-  popover: {
-    marginTop: 8,
-    marginLeft: 15,
-    marginRight: 0,
-    paddingLeft: 15,
-    paddingRight: 15,
-    paddingTop: 6,
-    paddingBottom: 6,
-    backgroundColor: '#BBB',
-    border: '1px solid #000',
-    borderRadius: '3px',
-    boxShadow: 'rgba(0, 0, 0, 0.16) 0px 3px 10px, rgba(0, 0, 0, 0.23) 0px 3px 10px',
-    display: 'flex',
-  },
   wrapper: {
     padding: 15,
     margin: 0,
@@ -118,40 +103,6 @@ const styles = {
   },
   statusIcon: {
     marginLeft: 10,
-  },
-  actionContainer: {
-    position: 'relative',
-    display: 'inline-block',
-    float: 'left',
-  },
-  actionLabel: {
-    position: 'absolute',
-    bottom: 0,
-    textAlign: 'center',
-    width: '100%',
-    color: white,
-    fontSize: 10,
-    zIndex: 100,
-    pointerEvents: 'none',
-  },
-  actionButton: {
-    backgroundColor: 'transparent',
-    marginTop: 4,
-    marginBottom: 4,
-    color: grey200,
-    fontSize: 18,
-    fontWeight: 600,
-  },
-  actionButtonLabel: {
-    textTransform: 'none',
-    color: grey300,
-  },
-  actionIcon: {
-    color: white,
-    marginTop: -4,
-  },
-  actionHoverStyle: {
-    backgroundColor: '#999',
   },
 }
 
@@ -273,11 +224,15 @@ class ResourcesTab extends React.Component {
     this.actionsClicked = false
     if (col.id === 'actions') {
       let trs = document.getElementsByClassName('access filter-table')[1].children[0].children
-      this.setState({
-        actionsOpen: true,
-        actionsAnchor: trs[rowId].children[colId+1],
-        hoveredRow: rowId,
-        hoveredResource: resource,
+      let that = this
+      this.props.accessEvaluator.getObjectAccess(resource, 'access').then((access) => {
+        that.setState({
+          actionsOpen: true,
+          actionsAnchor: trs[rowId].children[colId+1],
+          hoveredRow: rowId,
+          hoveredResource: resource,
+          hoveredResourceAccess: access,
+        })
       })
       this.actionsClicked = true
       return false
@@ -433,44 +388,17 @@ class ResourcesTab extends React.Component {
           headerStyle={{backgroundColor: 'rgba(28,84,178,0.8)', color: 'white'}}
           />
 
-        {this.state.hoveredResource &&
-        <Popover
-          className="actions-popover"
-          style={styles.popover}
-          open={this.state.actionsOpen}
+        <RowActionMenu
+          open={!!this.state.hoveredResource}
+          handlers={{
+            edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
+            delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+            close: this.handleActionsRequestClose,
+          }}
+          access={this.state.hoveredResourceAccess}
           anchorEl={this.state.actionsAnchor}
-          onRequestClose={this.handleActionsRequestClose}
-          zDepth={0}
-          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-        >
-          
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>edit</div>
-            <IconButton
-              onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconEdit/>
-            </IconButton>
-          </div>
+          />
 
-          <div style={styles.actionContainer}>
-            <div style={styles.actionLabel}>delete</div>
-            <IconButton
-              onTouchTap={()=>{ this.handleDelete(this.state.hoveredResources)} }
-              style={styles.actionButton}
-              hoveredStyle={styles.actionHoverStyle}
-              iconStyle={styles.actionIcon}
-              >
-              <IconDelete/>
-            </IconButton>
-          </div>
-
-        </Popover>
-        }
         <Link to="/access/new" >
           <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />

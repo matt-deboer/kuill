@@ -1,7 +1,8 @@
-import { invalidateSession } from './session'
+import { invalidateSession, updatePermissionsForKind } from './session'
 import { selectLogsFor } from './logs'
 import { selectTerminalFor } from './terminal'
 import { requestMetrics } from './metrics'
+import { requestSwagger } from './apimodels'
 import { routerActions } from 'react-router-redux'
 import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
@@ -9,7 +10,9 @@ import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor, reconcileEvents } from './events'
-import { defaultFetchParams, sleep } from '../../utils/request-utils'
+import { defaultFetchParams } from '../../utils/request-utils'
+import { addError } from './errors'
+import { doRequest } from './requests'
 import yaml from 'js-yaml'
 
 export var types = {}
@@ -26,6 +29,7 @@ for (let type of [
   'START_FETCHING',
   'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
+  'PUT_NAMESPACES',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
@@ -36,12 +40,10 @@ for (let type of [
 export const defaultFilterNames = 'namespace:default'
 
 
-export function replaceAll(resources, maxResourceVersion, error) {
+export function replaceAll(resources) {
   return {
     type: types.REPLACE_ALL,
     resources: resources,
-    maxResourceVersion: maxResourceVersion,
-    error: error,
   }
 }
 
@@ -54,16 +56,19 @@ export function filterAll() {
 export function putResource(newResource) {
   return function(dispatch, getState) {
     
-    dispatch({
-      type: types.PUT_RESOURCE,
-      resource: newResource,
-    })
+    let { maxResourceVersionByKind } = getState().cluster
+    if (newResource.metadata.resourceVersion > maxResourceVersionByKind[newResource.kind] || 0) {
+      dispatch({
+        type: types.PUT_RESOURCE,
+        resource: newResource,
+      })
 
-    let { resource, resources } = getState().cluster
-    if (sameResource(newResource, resource)
-    || isResourceOwnedBy(resources, newResource, resource)
-    || isResourceOwnedBy(resources, resource, newResource)) {
-      dispatch(selectEventsFor(resources, resource))
+      let { resource, resources } = getState().cluster
+      if (sameResource(newResource, resource)
+      || isResourceOwnedBy(resources, newResource, resource)
+      || isResourceOwnedBy(resources, resource, newResource)) {
+        dispatch(selectEventsFor(resources, resource))
+      }
     }
   }
 }
@@ -113,6 +118,17 @@ export function removeFilter(filter, index) {
       index: index,
     })
     return updateFilterUrl(dispatch, getState)
+  }
+}
+
+/**
+ * 
+ */
+export function requestNamespaces() {
+  return async function (dispatch, getState) {
+    doRequest(dispatch, getState, 'fetchNamespaces', async () => {
+      await fetchNamespaces(dispatch, getState)
+    })
   }
 }
 
@@ -183,28 +199,10 @@ export function setFilterNames(filterNames) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'updateResourceContents', async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
   }
-}
-
-/**
- * Wraps any fetch request with proper setting of the `isFetching`
- * guards, and applies any fetchBackoff value.
- * 
- * @param {*} dispatch 
- * @param {*} getState 
- * @param {*} request 
- */
-async function doFetch(dispatch, getState, request) {
-  if (getState().cluster.isFetching) {
-    console.warn(`doFetch called while already fetching...`)
-  }
-  dispatch({ type: types.START_FETCHING })
-  let { fetchBackoff } = getState().cluster
-  await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING })
 }
 
 /**
@@ -212,9 +210,13 @@ async function doFetch(dispatch, getState, request) {
  */
 export function requestResources() {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
-        await fetchResources(dispatch, getState)
-      })
+    if (!getState().apimodels.swagger) {
+      await requestSwagger()(dispatch, getState)
+    }
+
+    doRequest(dispatch, getState, 'fetchResources', async () => {
+      await fetchResources(dispatch, getState)
+    })
   }
 }
 
@@ -226,7 +228,7 @@ export function requestResources() {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResource', async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
       })
   }
@@ -251,13 +253,23 @@ function shouldFetchResources(getState) {
 async function fetchResources(dispatch, getState) {
   
   if (shouldFetchResources(getState)) {
-
-    let urls = Object.entries(KubeKinds.cluster).map(entry => `/proxy/${entry[1].base}/${entry[1].plural}`)
-    let requests = urls.map(url => fetch(url, defaultFetchParams
+    let urls = Object.entries(KubeKinds.cluster).map(([kind, api]) => 
+      [kind, `/proxy/${api.base}/${api.plural}`, api])
+    let requests = urls.map(([kind, url, kubeKind]) => fetch(url, defaultFetchParams
       ).then(resp => {
           if (!resp.ok) {
             if (resp.status === 401) {
               dispatch(invalidateSession())
+            } else if (resp.status === 403) {
+              let accessEvaluator = getState().session.accessEvaluator
+              
+              dispatch(updatePermissionsForKind(kind, {
+                namespaced: true
+              }))
+
+              if (accessEvaluator.isNamespaced(kind, 'cluster')) {
+                fetchResourcesByNamespace(dispatch, getState, kind)
+              }
             }
             return resp
           } else {
@@ -267,68 +279,139 @@ async function fetchResources(dispatch, getState) {
     ))
 
     let results = await Promise.all(requests)
-    let resources = {}
 
-    for (var i=0, len=results.length; i < len; ++i) {
-      var result = results[i]
+    parseResults(dispatch, getState, results, urls)
+  }
+}
 
-      if ('items' in result) {
-        let kind = result.kind.replace(/List$/,'')
-        var items = result.items
-        if (!!items) {
-          for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
-            var resource = items[j]
-            resource.kind = kind
-            resource.key = keyForResource(resource)
-            resources[resource.key] = resource
-          }
+async function fetchResourcesByNamespace(dispatch, getState, kind) {
+  let namespaces = getState().cluster.namespaces
+  let kubeKind = KubeKinds.cluster[kind]
+  let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`])
+  let requests = urls.map(([kind,url,],index) => fetch(url, defaultFetchParams
+    ).then(resp => {
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          dispatch(invalidateSession())
+        } else if (resp.status !== 403) {
+          dispatch(updatePermissionsForKind(kind, {
+            disabled: true
+          }))
+          dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
+            'Try Again', () => { dispatch(requestResources()) } ))
         }
+        return resp
       } else {
-        let url = urls[i]
-        let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
-        console.error(msg)
+        return resp.json()
       }
     }
+  ))
+  let results = await Promise.all(requests)
+  
+  parseResults(dispatch, getState, results, urls)
+}
 
-    dispatch(replaceAll(resources))
-    dispatch(reconcileEvents(resources))
-    dispatch(watchEvents(resources))
-    dispatch(requestMetrics(resources))
-    watchResources(dispatch, getState)
+function parseResults(dispatch, getState, results, urls) {
+  
+  let resources = {}
+
+  for (var i=0, len=results.length; i < len; ++i) {
+    var result = results[i]
+
+    if ('items' in result) {
+      let kind = result.kind.replace(/List$/,'')
+      var items = result.items
+      if (!!items) {
+        for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
+          var resource = items[j]
+          resource.kind = kind
+          resource.key = keyForResource(resource)
+          resources[resource.key] = resource
+        }
+      }
+    } else if (result.code !== 403) {
+      let url = urls[i][1]
+      let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+      console.error(msg)
+    }
+  }
+
+  dispatch(replaceAll(resources))
+  dispatch(reconcileEvents(resources))
+  dispatch(watchEvents(resources))
+  dispatch(requestMetrics(resources))
+  watchResources(dispatch, getState)
+}
+
+
+async function fetchNamespaces(dispatch, getState) {
+  
+  let url = '/namespaces'
+  let result = await fetch(url, defaultFetchParams
+  ).then(resp => {
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        dispatch(invalidateSession())
+      }
+      return resp
+    } else {
+      return resp.json()
+    }
+  })
+
+  if ('namespaces' in result) {
+    dispatch({
+      type: types.PUT_NAMESPACES,
+      namespaces: result.namespaces,
+    })
+  } else {
+    let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+    console.error(msg)
   }
 }
 
 function watchResources(dispatch, getState, resourceVersion) {
   
-    let watches = getState().cluster.watches || {}
-    if (!objectEmpty(watches)) {
-      // Update/reset any existing watches
-      for (let kind in KubeKinds.cluster) {
-        let watch = watches[kind]
-        if (!!watch && watch.closed()) {
-          watch.destroy()
-          watches[kind] = new ResourceKindWatcher({
-            kind: kind,
-            dispatch: dispatch,
-            resourceVersion: resourceVersion,
-            resourceGroup: 'cluster',
-          })
-        }
+  let accessEvaluator = getState().session.accessEvaluator
+  let watches = getState().cluster.watches || {}
+  let maxResourceVersionByKind = getState().cluster.maxResourceVersionByKind
+
+  var watchableNamespaces
+
+  if (!objectEmpty(watches)) {
+    // Update/reset any existing watches
+    for (let kind in KubeKinds.cluster) {
+      let watch = watches[kind]
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
+      if (!!watch && watch.closed() && watchableNamespaces.length > 0) {
+        watch.destroy()
+        watches[kind] = new ResourceKindWatcher({
+          kind: kind,
+          dispatch: dispatch,
+          resourceVersion: maxResourceVersionByKind[kind] || 0,
+          resourceGroup: 'cluster',
+          namespaces: watchableNamespaces,
+        })
       }
-    } else {
-      for (let kind in KubeKinds.cluster) {
+    }
+  } else {
+    for (let kind in KubeKinds.cluster) {
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
+      if (watchableNamespaces.length > 0) {
         watches[kind] = new ResourceKindWatcher({
             kind: kind,
             dispatch: dispatch,
-            resourceVersion: resourceVersion,
+            resourceVersion: maxResourceVersionByKind[kind] || 0,
             resourceGroup: 'cluster',
+            namespaces: watchableNamespaces,
           })
       }
     }
-    dispatch({
-      type: types.SET_WATCHES,
-      watches: watches,
-    })
+  }
+  dispatch({
+    type: types.SET_WATCHES,
+    watches: watches,
+  })
 }
 
 
@@ -479,7 +562,7 @@ export function clearEditor() {
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doFetch(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResourceContents', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }

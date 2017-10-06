@@ -1,0 +1,30 @@
+kind: List
+apiVersion: v1
+items:
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kube-system-admin
+    namespace: kube-system
+  subjects:
+    - kind: User
+      name: nsadmin
+    
+  roleRef:
+    kind: ClusterRole
+    name: cluster-admin
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: app-group-1-admin
+    namespace: app-group-1
+  subjects:
+    - kind: User
+      name: nsadmin
+    
+  roleRef:
+    kind: ClusterRole
+    name: cluster-admin
+    apiGroup: "rbac.authorization.k8s.io"

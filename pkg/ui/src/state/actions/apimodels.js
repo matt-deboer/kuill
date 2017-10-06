@@ -14,8 +14,8 @@ for (let type of [
 
 export function requestSwagger() {
   return async function (dispatch, getState) {
-    doRequest(dispatch, getState, 'fetchResources', async () => {
-      await fetchSwagger(dispatch, getState)
+    return doRequest(dispatch, getState, 'fetchSwagger', async () => {
+      return await fetchSwagger(dispatch, getState)
     })
   }
 }
@@ -24,9 +24,9 @@ export function requestSwagger() {
  */
 export function requestModels() {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'fetchResources', async () => {
-        await fetchModels(dispatch, getState)
-      })
+    doRequest(dispatch, getState, 'fetchResources', async () => {
+      await fetchModels(dispatch, getState)
+    })
   }
 }
 
@@ -111,4 +111,5 @@ async function fetchSwagger(dispatch, getState) {
     let msg = `result for ${url} returned error code ${swagger.code}: "${swagger.message}"`
     console.error(msg)
   }
+  return swagger
 }

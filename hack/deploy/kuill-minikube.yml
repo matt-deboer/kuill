@@ -14,9 +14,26 @@ items:
     name: kuill-serviceaccount
     namespace: kube-system
   rules:
+  # ability to list namespaces is required in order
+  # to drive self-subject-access-reviews for users
+  # who are not authorized to all namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list"]
+  # the following permissions are used to provide
+  # metrics details (requested from the master 
+  # via nodes/proxy -> status)
   - apiGroups: [""]
     resources: ["nodes"]
-    verbs: ["get", "list", "watch"]
+    verbs: [list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["proxy"]
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["*"]
+  - nonResourceUrls: ["/swagger.json"]
+    verbs: ["get"]
 
 - kind: RoleBinding
   apiVersion: rbac.authorization.k8s.io/v1alpha1
@@ -26,9 +43,26 @@ items:
   subjects:
     - kind: ServiceAccount
       name: kuill
+    - kind: User
+      name: auth-proxy
   roleRef:
     kind: Role
     name: kuill-serviceaccount
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1alpha1
+  metadata:
+    name: kuill-discovery
+    namespace: kube-system
+  subjects:
+    - kind: ServiceAccount
+      name: kuill
+    - kind: User
+      name: auth-proxy
+  roleRef:
+    kind: ClusterRole
+    name: system:discovery
     apiGroup: "rbac.authorization.k8s.io"
 
 - kind: Deployment

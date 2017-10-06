@@ -2,6 +2,7 @@ export var types = {}
 for (let type of [
   'ADD_ERROR',
   'CLEAR_ERRORS',
+  'CLEAR_LATEST',
 ]) {
   types[type] = `errors.${type}`
 }
@@ -31,6 +32,12 @@ export function addError(error, severity, message, retryText, retryAction) {
       retryText: retryText,
       retryAction: action,
     })
+  }
+}
+
+export function clearLatestError() {
+  return {
+    type: types.CLEAR_LATEST,
   }
 }
 
