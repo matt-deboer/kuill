@@ -219,10 +219,6 @@ class ResourceInfoPage extends React.Component {
     this.props.scaleResource(this.props.resource, 0)
   }
 
-  // componentWillReceiveProps = (nextProps) => {
-  //   let { props } = this
-  // }
-
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
   }

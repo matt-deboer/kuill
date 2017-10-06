@@ -118,7 +118,7 @@ class RowActionMenu extends React.PureComponent {
           <div style={styles.actionContainer} key={action}>
             <div style={styles.actionLabel}>{text}</div>
             <IconButton
-              id={`row-action--${action}`}
+              id={`row-action:${action}`}
               className={`row-action ${action}`}
               onTouchTap={closeAndHandle}
               style={styles.actionButton}
