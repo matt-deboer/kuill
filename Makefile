@@ -58,6 +58,9 @@ dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules
 minidev: build pkg/ui/node_modules
 	hack/minikube-dev.sh
 
+currentdev: build pkg/ui/node_modules
+	hack/current-context-dev.sh
+
 acceptance:
 	hack/acceptance-tests.sh
 
