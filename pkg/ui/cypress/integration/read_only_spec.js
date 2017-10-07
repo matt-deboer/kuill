@@ -31,7 +31,8 @@ context('Readonly User', function(){
     
     cy.get('#resource-info-action').click()
     cy.get('#resource-info-action-items')
-      .children('.resource-info-action.menu-item')
+      .children()
+      .get('.resource-info-action.menu-item')
       .each(function(span) {
         expect(span.context.id).to.equal('resource-info-action:get')
       })
