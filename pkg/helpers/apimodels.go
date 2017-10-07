@@ -12,17 +12,18 @@ import (
 // ServeApiModels provides swagger information for kuill
 func ServeApiModels(kubeconfig string) error {
 
-	client, _, err := NewKubeClient(kubeconfig)
+	client, bearerToken, err := NewKubeClient(kubeconfig)
 	if err != nil {
 		return err
 	}
-	s := &swaggerLister{client}
+	s := &swaggerLister{client, string(bearerToken)}
 	http.HandleFunc("/proxy/swagger.json", s.serveSwagger)
 	return nil
 }
 
 type swaggerLister struct {
-	client *k8s.Client
+	client      *k8s.Client
+	bearerToken string
 }
 
 func (s *swaggerLister) serveSwagger(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +32,9 @@ func (s *swaggerLister) serveSwagger(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("Failed to create request for swagger.json: %v", err)
 	} else {
+		if len(s.bearerToken) > 0 {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.bearerToken))
+		}
 		resp, err := s.client.Client.Do(req)
 		if err == nil {
 			if resp != nil {
