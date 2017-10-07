@@ -32,7 +32,7 @@ items:
   - apiGroups: [""]
     resources: ["nodes/proxy"]
     verbs: ["*"]
-  - nonResourceUrls: ["/swagger.json"]
+  - nonResourceURLs: ["/swagger.json"]
     verbs: ["get"]
 
 - kind: RoleBinding
