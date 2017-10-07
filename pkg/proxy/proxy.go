@@ -13,6 +13,7 @@ import (
 
 	"net/http/httputil"
 
+	"github.com/gorilla/websocket"
 	"github.com/matt-deboer/kuill/pkg/auth"
 	log "github.com/sirupsen/logrus"
 )
@@ -25,8 +26,10 @@ type KubeAPIProxy struct {
 	groupHeader         string
 	extraHeadersPrefix  string
 	kubernetesURL       *url.URL
+	websocketScheme     string
 	proxyBasePath       string
 	reverseProxy        *httputil.ReverseProxy
+	websocketProxy      *WebsocketProxy
 	traceRequests       bool
 	authenticatedGroups []string
 }
@@ -61,9 +64,6 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		Transport: &http.Transport{TLSClientConfig: tlsConfig},
 	}
 
-	if !strings.HasSuffix(proxyBasePath, "/") {
-		proxyBasePath += "/"
-	}
 	if !strings.HasPrefix(proxyBasePath, "/") {
 		proxyBasePath = "/" + proxyBasePath
 	}
@@ -71,6 +71,37 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	kubeURL, err := url.Parse(kubernetesURL)
 	if err != nil {
 		return nil, err
+	}
+
+	wsURL, _ := url.Parse(kubernetesURL)
+	if wsURL.Scheme == "https" {
+		wsURL.Scheme = "wss"
+	} else {
+		wsURL.Scheme = "ws"
+	}
+
+	wsp := NewWebsocketProxy(wsURL)
+	wsp.Dialer = &websocket.Dialer{
+		TLSClientConfig: tlsConfig,
+	}
+	wsp.Upgrader = &websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+	wsp.Director = func(incoming *http.Request, out http.Header) {
+		out.Set(usernameHeader, incoming.Header.Get(usernameHeader))
+		if traceRequests {
+			log.Debugf("Director: adding header %s: %s", usernameHeader, incoming.Header.Get(usernameHeader))
+		}
+		out.Set(groupHeader, incoming.Header.Get(groupHeader))
+		if traceRequests {
+			log.Debugf("Director: adding header %s: %s", groupHeader, incoming.Header.Get(groupHeader))
+		}
+		out.Set("Origin", kubernetesURL)
+		if traceRequests {
+			log.Debugf("Director: adding header %s: %s", "Origin", kubernetesURL)
+		}
 	}
 
 	log.Infof("Enabled kubernetes api proxy for %s", kubeURL)
@@ -83,6 +114,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		extraHeadersPrefix:  extraHeadersPrefix,
 		proxyBasePath:       proxyBasePath,
 		reverseProxy:        httputil.NewSingleHostReverseProxy(kubeURL),
+		websocketProxy:      wsp,
 		traceRequests:       traceRequests,
 		authenticatedGroups: authenticatedGroups,
 	}
@@ -101,19 +133,30 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	return kp, nil
 }
 
-const authContextKey = "kuill.authContext"
+type AuthContextKey string
+
+var authContextKey AuthContextKey = "kuill.authContext"
 
 // ProxyRequest proxies the request
 func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, authContext auth.Context) {
-	p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
+
+	if strings.HasPrefix(r.URL.Scheme, "ws") || strings.ToLower(r.Header.Get("Connection")) == "upgrade" {
+		r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
+		r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
+		r.Header.Del("Origin")
+		p.traceRequest(r, authContext)
+		p.addAuthHeaders(r, authContext)
+		p.websocketProxy.ServeHTTP(w, r)
+	} else {
+		p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
+	}
 }
 
 func (p *KubeAPIProxy) filterRequest(r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, "/proxy", "", 1)
-	r.URL.RawPath = strings.Replace(r.URL.RawPath, "/proxy", "", 1)
+	r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
+	r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
 	r.URL.Scheme = p.kubernetesURL.Scheme
 	r.URL.Host = p.kubernetesURL.Host
-
 	if _, ok := r.Header["User-Agent"]; !ok {
 		// explicitly disable User-Agent so it's not set to default value
 		r.Header.Set("User-Agent", "")

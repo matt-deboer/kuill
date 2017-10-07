@@ -174,7 +174,8 @@ export default class ResourceKindWatcher {
       }
     }
     let that = this
-    let stream = new EventSource(`${this.baseUrl}?watch=true&resourceVersion=${this.resourceVersion}`)
+    let esUrl = url.replace(/ws(s)?/, "http$1")
+    let stream = new EventSource(esUrl)
     stream.tries = tries
     stream.onerror = function (e) {
       if (stream.tries < 3) {
