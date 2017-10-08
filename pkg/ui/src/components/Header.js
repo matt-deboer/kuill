@@ -106,10 +106,12 @@ class Header extends React.Component {
         return resp.text()
       }
     }).then(version => {
-      let parts = version.split(/-|\+/)
-      version = parts.slice(0,2).join('-')
-      if (parts.length > 2) {
-        version += '+'
+      if (version) {
+        let parts = version.split(/-|\+/)
+        version = parts.slice(0,2).join('-')
+        if (parts.length > 2) {
+          version += '+'
+        }
       }
       return version
     })
