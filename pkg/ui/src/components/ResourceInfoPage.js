@@ -246,8 +246,6 @@ class ResourceInfoPage extends React.Component {
           icon: <IconPermissions/>,
           props: {serviceAccount: resource, resources: this.props.resources},
         })
-      } else if (activeTab === 'permissions') {
-        activeTab = null
       }
 
       if (resource.spec && resource.spec.template) {
@@ -257,8 +255,6 @@ class ResourceInfoPage extends React.Component {
           icon: <IconPodTemplate/>,
           props: {resource: resource},
         })
-      } else if (activeTab === 'pod-template') {
-        activeTab = null
       }
     }
 
@@ -276,8 +272,6 @@ class ResourceInfoPage extends React.Component {
         icon: <IconLogs/>,
         props: {logs: logs},
       })
-    } else if (activeTab === 'logs') {
-      activeTab = null
     }
 
     if (resourceAccess && resourceAccess.exec) {
@@ -287,16 +281,14 @@ class ResourceInfoPage extends React.Component {
         icon: <IconTerminal/>,
         props: {logs: logs},
       })
-    } else if (activeTab === 'terminal') {
-      activeTab = null
     }
 
-    if (!activeTab) {
+    if (activeTab === 'edit') {
+      activeTab = tabs[0].name
+    } else if (tabs.filter((t)=>t.name === activeTab).length === 0) {
       this.props.selectView(tabs[0].name)
       return null
-    } else if (activeTab === 'edit') {
-      activeTab = tabs[0].name
-    }
+    } else 
 
     return (
       <div>
