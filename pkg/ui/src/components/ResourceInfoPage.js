@@ -96,9 +96,9 @@ sizeMe({ monitorHeight: true, monitorWidth: true }) (
 class ResourceInfoPage extends React.Component {
 
   static propTypes = {
-    editResource: PropTypes.function,
-    removeResource: PropTypes.function,
-    scaleResource: PropTypes.function,
+    editResource: PropTypes.func,
+    removeResource: PropTypes.func,
+    scaleResource: PropTypes.func,
   }
 
   static defaultProps = {
@@ -229,7 +229,7 @@ class ResourceInfoPage extends React.Component {
     let { resourceAccess } = this.state
 
     let tabs = []
-    let activeTab = this.props.activeTab
+    let targetTab = this.props.activeTab
     if (!!resource) {
     
       tabs.push({
@@ -283,13 +283,15 @@ class ResourceInfoPage extends React.Component {
       })
     }
 
-    if (activeTab === 'edit') {
-      activeTab = tabs[0].name
-    } else if (tabs.filter((t)=>t.name === activeTab).length === 0) {
-      this.props.selectView(tabs[0].name)
-      return null
-    } else 
-
+    let activeTab = tabs[0].name
+    if (tabs.find((t) => t.name === targetTab)) {
+      activeTab = targetTab
+    }
+   
+    if (resourceAccess && activeTab !== targetTab) {
+      this.props.selectView(activeTab)
+    }
+   
     return (
       <div>
         <LoadingSpinner hidden={!this.props.resource}/>
