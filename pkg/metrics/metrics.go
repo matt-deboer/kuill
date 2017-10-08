@@ -206,6 +206,18 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node) *Summary {
 		log.Errorf("Failed to parse allocatable.memory; %v", err)
 	}
 
+	if summary.Node.CPU == nil {
+		summary.Node.CPU = &CPUStats{}
+	}
+
+	if summary.Node.Memory == nil {
+		summary.Node.Memory = &MemoryStats{}
+	}
+
+	if summary.Node.Fs == nil {
+		summary.Node.Fs = &FsStats{}
+	}
+
 	return &Summary{
 		CPU: newSummaryStat(
 			summary.Node.CPU.UsageNanoCores/1000000,
