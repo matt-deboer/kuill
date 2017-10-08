@@ -105,7 +105,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class ResourceInfo extends React.Component {
+class WorkloadInfo extends React.Component {
 
   constructor(props) {
     super(props);
