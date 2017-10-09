@@ -91,8 +91,8 @@ class ConfigurationPane extends React.Component {
               <CardText>
                 <div className="row" style={{marginLeft: 0, marginRight: 0, marginBottom: 10}}>
                   {resource.spec.containers.map(container => {
-                    return <div className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
-                      <ContainerPanel key={container.name} container={container} namespace={resource.metadata.namespace}/>
+                    return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
+                      <ContainerPanel container={container} namespace={resource.metadata.namespace}/>
                     </div>
                   })}
                 </div>
