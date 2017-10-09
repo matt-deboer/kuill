@@ -289,12 +289,14 @@ class ResourceInfoPage extends React.Component {
     }
 
     let activeTab = tabs[0].name
-    if (tabs.find((t) => t.name === targetTab)) {
-      activeTab = targetTab
-    }
-   
-    if (resourceAccess && activeTab !== targetTab) {
-      this.props.selectView(activeTab)
+    if (targetTab !== 'edit') {
+      if (tabs.find((t) => t.name === targetTab)) {
+        activeTab = targetTab
+      }
+    
+      if (resourceAccess && activeTab !== targetTab) {
+        this.props.selectView(activeTab)
+      }
     }
    
     return (
