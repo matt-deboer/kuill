@@ -40,8 +40,8 @@ export default class AccessEvaluator {
           get: permissions.get,
           edit: permissions.put,
           delete: permissions.delete,
-          logs: permissions.logs && replicas > 0,
-          exec: permissions.exec && replicas > 0,
+          logs: permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
+          exec: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
           scale: permissions.put && replicas >= 0,
           suspend: permissions.put && replicas > 0,
         }
