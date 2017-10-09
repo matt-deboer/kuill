@@ -64,8 +64,11 @@ export default class FilterTable extends React.PureComponent {
 
   constructor(props) {
     super(props)
-    this.state = this.propsToState(props)
+    this.defaultSort = this.defaultSort.bind(this)
+    this.propsToState = this.propsToState.bind(this)
+
     this.comparators = this.buildComparators(props.columns, props.idColumn, props.getCellValue)
+    this.state = this.propsToState(props)
   }
 
   propsToState = (props) => {

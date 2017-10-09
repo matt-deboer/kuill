@@ -487,6 +487,8 @@ class NodesTab extends React.Component {
             className={'nodes'}
             columns={this.columns}
             data={this.rows}
+            initialOrderBy={'status'}
+            initialOrder={'desc'}
             height={'calc(100vh - 480px)'}
             displayRowCheckbox={false}
             onCellClick={this.handleCellClick.bind(this)}
