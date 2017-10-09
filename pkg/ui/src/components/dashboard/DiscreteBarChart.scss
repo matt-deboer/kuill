@@ -3,9 +3,14 @@ path.domain {
   fill: none;
 }
 
+.discrete-barchart {
+  // max-width: 350px;
+  margin-left: 22px;
+  margin-right: 22px;
+  overflow-x: auto;
+}
+
 g.group {
-  // fill-opacity: 0.5;
-  // stroke-opacity: 0.7;
   fill-opacity: 0.8;
   stroke-opacity: 0.8;
   pointer-events: none;
@@ -23,13 +28,10 @@ g.group {
     rect:not(.hover) {
       fill-opacity: 1;
       stroke-opacity: 1;
-      // stroke: rgba(180,180,180,0.6) !important;
     }
   }
 
   &:hover {
-    // fill-opacity: 1;
-    // stroke-opacity: 1;
     cursor: pointer;
   }
 }

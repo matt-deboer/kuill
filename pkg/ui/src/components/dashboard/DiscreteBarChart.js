@@ -133,6 +133,7 @@ export default class DiscreteBarChart extends React.PureComponent {
     
 
     let el = ReactFauxDOM.createElement('div')
+    el.setAttribute('class', 'discrete-barchart')
 
     if (!(max > 0)) {
       return el.toReact()
@@ -161,10 +162,9 @@ export default class DiscreteBarChart extends React.PureComponent {
       colors.push(color(i))
     }
 
-    var margin = {top: 10, right: 0, bottom: 70, left: 0};
-
-    var width = 340 - margin.left - margin.right,
-        height = 150 - margin.top - margin.bottom - 1;
+    var margin = {top: 10, right: 0, bottom: 70, left: 0}
+    var width = (Math.max(300, 55* data.length)) - margin.left - margin.right
+    var height = 150 - margin.top - margin.bottom - 1;
 
     var svg = d3.select(el)
       .append('svg')
@@ -190,22 +190,9 @@ export default class DiscreteBarChart extends React.PureComponent {
       .domain([0,20])
       .range([height, 0])
 
-    // Define and draw axes
-    // var yAxis = d3.svg.axis()
-    //   .scale(y)
-    //   .orient('left')
-    //   .ticks(5)
-    //   .tickSize(-width, 0, 0)
-    //   .tickFormat( function(d) { return d } )
-
     var xAxis = d3.svg.axis()
       .scale(x)
       .orient('bottom')
-      // .tickFormat(d3.time.format('%Y'));
-
-    // svg.append('g')
-    //   .attr('class', 'y axis')
-    //   .call(yAxis)
 
       // Prep the tooltip bits, initial display is hidden
     var tooltip = svg.append('g')
@@ -276,7 +263,7 @@ export default class DiscreteBarChart extends React.PureComponent {
       .style('fill', function(d,) { return colors[d.dy] })
       .style('stroke', function(d) { return colors[d.dy] })
       .attr('class', function(d) { return `dy_${d.dy} y0_${d.y0} y_${d.y}` })
-      .attr('x', function(d) { return x(d.x) + 5; })
+      .attr('x', function(d) { return x(d.x) + 5 })
       .attr('y', function(d) { return y(d.dy + d.y + (d.dy)) + y(-1) })
       .attr('height', function(d) { return y(d.dy + d.y0) - y(d.dy + d.y0 + d.y) })
       .attr('width', function() {
@@ -299,13 +286,13 @@ export default class DiscreteBarChart extends React.PureComponent {
       .enter()
       .append('rect')
       .attr('class', 'highlight')
-      .attr('x', function(d) { return x(d.x) + 15 })
-      .attr('y', function(d) { return 0 + 5})
+      .attr('x', function(d) { return x(d.x) + (x.rangeBand() / 2) - 10 })
+      .attr('y', function(d) { return 5})
       .attr('rx', 5)
       .attr('ry', 5)
-      .attr('width', x.rangeBand() - 30)
+      .attr('width', 20)
       .attr('height', function(d) {
-        return y(buckets) + y(-7.5)/*y(d.dy)*/
+        return y(buckets) + y(-7.5)
       })
 
 
@@ -315,36 +302,11 @@ export default class DiscreteBarChart extends React.PureComponent {
       .call(xAxis)
       .attr('font-size', '12px')
 
-    // if (data.length > 3) {
     let rotation = 90
     svg.selectAll('g.x.axis g.tick text')
       .attr('transform', `rotate(-${rotation}, 25, 40)`)
       .style('text-anchor', 'left')
-      
-    // }
-  // Draw legend
-  // var legend = svg.selectAll('.legend')
-  //   .data(colors)
-  //   .enter().append('g')
-  //   .attr('class', 'legend')
-  //   .attr('transform', function(d, i) { return 'translate(30,' + i * 11 + ')'; })
-  
-  // legend.append('rect')
-  //   .attr('x', width - 10)
-  //   .attr('width', 12)
-  //   .attr('height', 10)
-  //   .style('fill', function(d, i) {return colors.slice().reverse()[i];});
-  
-  // legend.append('text')
-  //   .attr('x', width + 5)
-  //   .attr('y', 9)
-  //   .attr('dy', '.35em')
-  //   .style('text-anchor', 'start')
-  //   .attr('font-size', '10px')
-  //   .text(function(d, i) { 
-  //     return `<= ${max - ((increment * i)+min)}%`
-  //   });
-      
+
     return el.toReact()
   }
 
