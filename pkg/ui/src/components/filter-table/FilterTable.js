@@ -215,32 +215,34 @@ export default class FilterTable extends React.PureComponent {
         })
 
     return (
-      <Table 
-        style={{...props.style}}
-        wrapperStyle={{...props.wrapperStyle}}
-        headerStyle={{...props.headerStyle, width: props.width}}
-        bodyStyle={{...props.bodyStyle, width: props.width}}
-        className={className('filter-table', props.className)}
-        fixedHeader={props.fixedHeader}
-        height={props.height}
-        multiSelectable={props.multiSelectable}
-        onRowSelection={this.handleRowSelection.bind(this)}
-        onCellClick={this.handleCellClick}
-        >
-        <TableHeader displaySelectAll={props.displaySelectAll && props.displayRowCheckbox} adjustForCheckbox={props.adjustForCheckbox && props.displayRowCheckbox} style={{...props.headerStyle, width: 'inherit'}}>
-          <TableRow>{headerColumns}</TableRow>
-        </TableHeader>
-        <TableBody 
-          displayRowCheckbox={props.displayRowCheckbox}
-          showRowHover={props.showRowHover}
-          stripedRows={!!props.stripedRows}
-          ref={(tableBody) => { this.tableBody = tableBody }}
-          style={{width: 'inherit'}}
-          deselectOnClickaway={props.deselectOnClickaway}
+      <div className={'filter-table-root'}>
+        <Table 
+          style={{...props.style}}
+          wrapperStyle={{...props.wrapperStyle}}
+          headerStyle={{...props.headerStyle, width: props.width}}
+          bodyStyle={{...props.bodyStyle, width: props.width}}
+          className={className('filter-table', props.className)}
+          fixedHeader={props.fixedHeader}
+          height={props.height}
+          multiSelectable={props.multiSelectable}
+          onRowSelection={this.handleRowSelection.bind(this)}
+          onCellClick={this.handleCellClick}
           >
-          {dataRows}
-        </TableBody>
-      </Table>
+          <TableHeader displaySelectAll={props.displaySelectAll && props.displayRowCheckbox} adjustForCheckbox={props.adjustForCheckbox && props.displayRowCheckbox} style={{...props.headerStyle, width: 'inherit'}}>
+            <TableRow>{headerColumns}</TableRow>
+          </TableHeader>
+          <TableBody 
+            displayRowCheckbox={props.displayRowCheckbox}
+            showRowHover={props.showRowHover}
+            stripedRows={!!props.stripedRows}
+            ref={(tableBody) => { this.tableBody = tableBody }}
+            style={{width: 'inherit'}}
+            deselectOnClickaway={props.deselectOnClickaway}
+            >
+            {dataRows}
+          </TableBody>
+        </Table>
+      </div>
     )
   }
 
