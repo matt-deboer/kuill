@@ -122,7 +122,7 @@ class NodeHeatmap extends React.PureComponent {
           if (!metricsForNode) {
             item.classes.push('error')
           } else {
-            if (n.statusSummary != 'ok') {
+            if (n.statusSummary !== 'ok') {
               item.classes.push('error')
             }
             for (let m in utilization) {
