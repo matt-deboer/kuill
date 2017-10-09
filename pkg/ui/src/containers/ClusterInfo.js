@@ -67,6 +67,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         hash: location.hash,
       }))
     },
+    dispatch: dispatch,
   }
 }
 
@@ -106,6 +107,7 @@ class ClusterInfo extends React.Component {
             namespace: this.state.resource.metadata.namespace,
             pod: pod,
             container: cnt,
+            dispatch: props.dispatch,
           })
         }
       }

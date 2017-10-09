@@ -1,4 +1,5 @@
 import { TextDecoder } from 'text-encoding-utf-8'
+import { addError } from '../state/actions/errors'
 
 // const escape = parseInt('033', 8);
 const colorCodes = [153,215,230,147,14,10,11,159,255].map(val => `\x1B[38;5;${val}m`)
@@ -35,23 +36,51 @@ export default class LogFollower {
 
   constructor(props) {
 
+    this.props = props
     this.firstLine = true
     this.maxLines = props.maxLines || 1500
     this.logs = props.logs
+    this.dispatch = props.dispatch
     this.logColor = props.logs.nextColor()
     let { pod, namespace, container } = props
-    // this.logPrefix = `${props.logs.nextColor()}${pod}/${container} | `
+
     this.logPrefix = `${props.logs.nextColor()}`
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
-    this.socket = new WebSocket(`${scheme}://${loc.host}/proxy/api/v1/namespaces/${namespace}/pods/${pod}/log?follow=true&container=${container}&tailLines=${this.maxLines}`)
-    this.socket.onerror = function (e) {
-      console.log(e)
+    
+    this.url = `${scheme}://${loc.host}/proxy/api/v1/namespaces/${namespace}/pods/${pod}/log?follow=true&container=${container}&tailLines=${this.maxLines}`
+    this.initSocket(this.url)
+  }
+
+  initSocket = (url) => {
+    let tries = (this.socket && this.socket.tries) || 0
+    let socket = new WebSocket(url)
+    socket.binaryType = 'arraybuffer'
+    socket.tries = tries
+    let that = this
+    socket.onerror = function (e) {
+      if (socket.readyState !== WebSocket.OPEN) {
+        if (socket.tries < 3) {
+          ++socket.tries
+          window.setTimeout(that.reload.bind(that, url), 2000)
+        } else {
+          socket.tries = 0
+          that.dispatch(addError(e,'error',`Error occurred following logs for: ${url}`,
+            'Retry', that.reload.bind(that,url)))
+          that.destroy()
+        }
+      }
     }
-    this.socket.binaryType = 'arraybuffer'
-    this.socket.onmessage = this.onEvent.bind(this)
-    this.props = props
-    console.log(`LogFollower for ${this.props.pod}/${this.props.container} created`)
+    socket.onmessage = this.onEvent
+    this.socket = socket
+  }
+
+  reload = (url) => {
+    let socket = this.socket
+    if (socket) {
+      socket.close()
+      this.initSocket(url)
+    }
   }
 
   onEvent = (event) => {
@@ -75,6 +104,5 @@ export default class LogFollower {
       this.socket = null
       this.logs = null
     }
-    console.log(`LogFollower for ${this.props.pod}/${this.props.container} destroyed`)
   }
 }
