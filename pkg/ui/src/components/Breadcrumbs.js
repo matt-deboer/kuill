@@ -42,7 +42,7 @@ export default class Breadcrumbs extends React.Component {
       separator: {
         fill: grey500,
         verticalAlign: 'middle',
-        marginRight: 5,
+        marginRight: 0,
       }
     }
 
@@ -58,7 +58,7 @@ export default class Breadcrumbs extends React.Component {
           renderedCrumbs.push(<Link key={renderedCrumbs.length} to={crumb.link} style={styles.link}>{crumb.value}</Link>)
           renderedCrumbs.push(<IconChevronRight key={renderedCrumbs.length} style={styles.separator}/>)
         } else {
-          renderedCrumbs.push(<div key={renderedCrumbs.length} style={{display: 'inline-block'}}>{crumb.value}</div>)
+          renderedCrumbs.push(<div className={'last'} key={renderedCrumbs.length} style={{display: 'inline-block'}}>{crumb.value}</div>)
         }
       }
     } else {

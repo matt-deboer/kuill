@@ -1,9 +1,17 @@
 .breadcrumbs {
   display: 'inline-block';
   font-size: 15px !important;
+
+  .last {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 580px);
+    vertical-align: middle;
+  }
+
 }
 
-@media screen and (max-width: 865px) {
+@media screen and (max-width: 925px) {
   .last-breadcrumb-prefix {
     display: none !important;
   }

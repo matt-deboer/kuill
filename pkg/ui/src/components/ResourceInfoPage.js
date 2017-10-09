@@ -87,6 +87,11 @@ const styles = {
     fontWeight: 600,
     paddingLeft: 10,
     color: 'rgba(240,240,240,1)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: 'calc(100vw - 320px)',
+    verticalAlign: 'middle',
+    whiteSpace: 'nowrap',
   }
 }
 
