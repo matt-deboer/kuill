@@ -33,7 +33,6 @@
     "react-router": "^4.0.0",
     "react-router-dom": "^4.1.1",
     "react-router-redux": "^5.0.0-alpha.6",
-    "react-scripts": "1.0.13",
     "react-sizeme": "^2.3.2",
     "react-tap-event-plugin": "2.0.1",
     "react-transition-group": "^1.2.0",
@@ -58,10 +57,10 @@
     "cypress": "^0.20.1",
     "jest-cli": "^21.0.1",
     "nightmare": "^2.10.0",
-    "node-sass-chokidar": "0.0.1",
+    "node-sass-chokidar": "0.0.3",
     "npm-run-all": "^4.0.2",
     "react-addons-perf": "^15.4.2",
-    "react-scripts": "1.0.10",
+    "react-scripts": "1.0.14",
     "why-did-you-update": "0.0.8"
   },
   "scripts": {
@@ -84,8 +83,7 @@
   "proxy": {
     "/auth": {
       "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "secure": false
     },
     "/namespaces": {
       "target": "https://localhost:8888",
