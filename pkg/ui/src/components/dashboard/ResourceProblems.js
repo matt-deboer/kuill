@@ -72,6 +72,26 @@ class ResourceProblems extends React.PureComponent {
       })
       if (selectedEvents.length > 0) {
         problemsByCluster.push({resource: resource, events: selectedEvents})
+      } else {
+        if (resource.status && resource.status.conditions.constructor === Array) {
+          resource.status.conditions.forEach((cond) => {
+            if (cond.type === 'Ready' && cond.status !== 'True') {
+              // simulate an event to mark unready status
+              problemsByCluster.push({resource: resource, events: [
+                {
+                  object: {
+                    type: cond.reason,
+                    metadata: {
+                      uid: resource.metadata.uid,
+                    },
+                    message: cond.message,
+                    lastTimestamp: cond.lastTransitionTime,
+                  },
+                },
+              ]})
+            }
+          })
+        }
       }
     }
     let problems = {}
