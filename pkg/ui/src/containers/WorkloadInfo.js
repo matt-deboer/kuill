@@ -8,7 +8,7 @@ import ResourceInfoPage from '../components/ResourceInfoPage'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResource, sameResourceVersion } from '../utils/resource-utils'
+import { sameResourceVersion, resourceMatchesParams } from '../utils/resource-utils'
 import { linkForResourceKind } from '../routes'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
@@ -155,20 +155,12 @@ class WorkloadInfo extends React.Component {
   }
 
   ensureResource = (props) => {
-    let { namespace, kind, name } = props.match.params
-    if (!!props.user && !props.isFetching && 
-        (!props.resource || (props.location.search === '?view=edit' && !props.editor.contents)
-          || !sameResource(props.resource, {kind: kind, metadata: {namespace: namespace, name: name}})
-        ) &&
-        (!props.resourceNotFound)
-        ) {
-      
-      let { params } = props.match
-      if (props.location.search === '?view=edit') {
-        props.editResource(params.namespace, params.kind,params.name)
-      } else {
-        props.requestResource(params.namespace, params.kind,params.name)
-      }
+    let editing = (props.location.search === '?view=edit')
+    let { params } = props.match
+    if (editing && !props.editor.contents) {
+      props.editResource(params.namespace, params.kind, params.name)
+    } else if (!resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+      props.requestResource(params.namespace, params.kind, params.name)
     }
   }
 

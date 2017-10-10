@@ -7,7 +7,7 @@ import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResource } from '../utils/resource-utils'
+import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
 
@@ -20,7 +20,6 @@ const AsyncEditorPage = Loadable({
 const mapStateToProps = function(store) {
   return { 
     resource: store.cluster.resource,
-    isFetching: store.cluster.isFetching,
     user: store.session.user,
     editor: store.cluster.editor,
     logPodContainers: store.logs.podContainers,
@@ -121,17 +120,12 @@ class ClusterInfo extends React.Component {
   }
 
   ensureResource = (props) => {
-    let { namespace, kind, name } = props.match.params
-    if (!props.isFetching && 
-        (!props.resource || (props.location.search === '?view=edit' && !props.editor.contents)
-          || !sameResource(props.resource, {kind: kind, metadata: {namespace: namespace, name: name}})
-        )) {
-      let { params } = props.match
-      if (props.location.search === '?view=edit') {
-        props.editResource(params.namespace, params.kind,params.name)
-      } else {
-        props.requestResource(params.namespace, params.kind,params.name)
-      }
+    let editing = (props.location.search === '?view=edit')
+    let { params } = props.match
+    if (editing && !props.editor.contents) {
+      props.editResource(params.namespace, params.kind, params.name)
+    } else if (!resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+      props.requestResource(params.namespace, params.kind, params.name)
     }
   }
 
