@@ -6,7 +6,7 @@ import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { sameResource } from '../utils/resource-utils'
+import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
@@ -22,7 +22,6 @@ const mapStateToProps = function(store) {
   return { 
     resource: store.access.resource,
     resources: store.access.resources,
-    isFetching: store.access.isFetching,
     user: store.session.user,
     editor: store.access.editor,
     events: store.events.selectedEvents,
@@ -109,32 +108,24 @@ class ClusterInfo extends React.Component {
     this.state = {
       resource: props.resource,
       editor: props.editor,
-      logPodContainers: props.logPodContainers,
     }
     this.events = []
     this.ensureResource(props)
   }
 
   ensureResource = (props) => {
-    let { namespace, kind, name } = props.match.params
-    if (!!props.user && !props.isFetching && 
-      (!props.resource || (props.location.search === '?view=edit' && !props.editor.contents)
-        || !sameResource(props.resource, {kind: kind, metadata: {namespace: namespace, name: name}})
-      ) &&
-      (!props.resourceNotFound)
-      ) {
-    
-      let { params } = props.match
-      if (props.location.search === '?view=edit') {
-        props.editResource(params.namespace, params.kind,params.name)
-      } else {
-        props.requestResource(params.namespace, params.kind,params.name)
-      }
+    // TODO: refactor this!
+    let editing = (props.location.search === '?view=edit')
+    let { params } = props.match
+    if (editing && !props.editor.contents) {
+      props.editResource(params.namespace, params.kind, params.name)
+    } else if (!resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+      props.requestResource(params.namespace, params.kind, params.name)
     }
   }
 
   componentWillReceiveProps = (props) => {
-    
+    // this.ensureResource(this.props)
     if (!sameResource(this.state.resource,props.resource)
       || (props.editor.contents !== this.props.editor.contents)
       || (props.resource && this.state.resource )
@@ -157,12 +148,8 @@ class ClusterInfo extends React.Component {
     return shouldUpdate
   }
 
-  // componentDidMount = () => {
-  //   this.ensureResource(this.props)
-  // }
-
   componentDidUpdate = () => {
-    this.ensureResource(this.props)
+    // this.ensureResource(this.props)
   }
 
   componentWillUnmount = () => {

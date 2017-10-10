@@ -217,13 +217,13 @@ class PermissionsPane extends React.Component {
           {rules.map((rule, ruleIndex) =>
             <TableRow key={`${ruleIndex}`} displayBorder={true} style={{height: 28}}>
               <TableRowColumn style={styles.verbs}>
-              {rule.verbs.map(v=><div>{v}</div>)}
+              {rule.verbs.map(v=><div key={v} >{v}</div>)}
               </TableRowColumn>
               <TableRowColumn style={styles.resources}>
-                {rule.resources.map(r=><div>{r}</div>)}
+                {rule.resources.map(r=><div key={r}>{r}</div>)}
               </TableRowColumn>
               <TableRowColumn style={styles.namespaces}>
-                {rule.namespaces && rule.namespaces.map(ns=><div>{ns}</div>)}
+                {rule.namespaces && rule.namespaces.map(ns=><div key={ns}>{ns}</div>)}
               </TableRowColumn>
             </TableRow>
           )}
@@ -233,27 +233,30 @@ class PermissionsPane extends React.Component {
   }
 
   renderPermissions = (permission, height) => {
+    let key = ((permission.binding && permission.binding.name) || 
+               (permission.role && permission.role.name) ||
+               'empty')
     return (
-      <div style={styles.wrapper}>
+      <div key={key} style={styles.wrapper}>
         {(permission.binding || permission.role) &&
         <div style={styles.binding}>
           {permission.binding &&
-          [<span style={styles.bindingLabel}>binding:</span>,
-          <FilterChip prefix={permission.binding.kind} 
+          [<span key={'binding-label'} style={styles.bindingLabel}>binding:</span>,
+          <FilterChip key={'binding'} prefix={permission.binding.kind} 
             suffix={(permission.binding.namespace ? permission.binding.namespace + '/' : '') + permission.binding.name } 
             onTouchTap={this.props.viewResource.bind(this, permission.binding, 'config')}
             />
           ]}
           {permission.role && 
-          [<span style={styles.bindingLabel}>role:</span>,
-          <FilterChip prefix={permission.role.kind} 
+          [<span key={'role-label'} style={styles.bindingLabel}>role:</span>,
+          <FilterChip key={'role'} prefix={permission.role.kind} 
             suffix={(permission.role.namespace ? permission.role.namespace + '/' : '') + permission.role.name } 
             onTouchTap={this.props.viewResource.bind(this, permission.role, 'config')}
             />
           ]}
           {permission.subjects && 
-          [<span style={styles.bindingLabel}>subjects:</span>,
-           ...permission.subjects.map(s=><FilterChip prefix={s.kind} 
+          [<span key={'subjects-label'} style={styles.bindingLabel}>subjects:</span>,
+           ...permission.subjects.map(s=><FilterChip key={`${s.kind}/${s.namespace}/${s.name}`} prefix={s.kind} 
             suffix={(s.namespace ? s.namespace + '/' : '') + s.name } 
             onTouchTap={this.props.viewPermissions.bind(this, s)}
             />)

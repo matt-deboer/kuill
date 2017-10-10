@@ -51,15 +51,6 @@ export default (state = initialState, action) => {
 
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
-    
-    case types.START_FETCHING:
-      return {...state, isFetching: true}
-
-    case types.DONE_FETCHING:
-      return {...state, 
-        isFetching: false,
-        fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
-      }
 
     case types.REPLACE_ALL:
       return doReceiveResources(state, action.resources, action.maxResourceVersion, action.error)
@@ -262,14 +253,6 @@ function doSelectResource(state, namespace, kind, name) {
     resource: resource, 
     pods: pods, 
   }
-}
-
-function decrementBackoff(backoff) {
-  return Math.max(Math.floor(backoff / 4), 0)
-}
-
-function incrementBackoff(backoff) {
-  return Math.max(backoff * 2, 1000)
 }
 
 

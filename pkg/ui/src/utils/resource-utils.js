@@ -19,6 +19,22 @@ export function sameResource(res1, res2) {
 }
 
 /**
+ * Returns true if the resource provided and the
+ * query parameter specification both represent the same
+ * kubernetes object.
+ * 
+ * @param {*} resource 
+ * @param {*} params 
+ */
+export function resourceMatchesParams(resource, params) {
+    return (!!resource === !!params) 
+    && (!resource
+        || (resource.kind === params.kind
+            && (resource.metadata.namespace || '~') === (params.namespace || '~')
+            && resource.metadata.name === params.name))
+}
+
+/**
  * Returns true if the 2 resource references are the same version of 
  * the same resource.
  * 

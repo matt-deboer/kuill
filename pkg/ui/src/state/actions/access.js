@@ -9,7 +9,8 @@ import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor } from './events'
 import { linkForResource } from '../../routes'
 import { addError } from './errors'
-import { defaultFetchParams, sleep, createPost, createPatch } from '../../utils/request-utils'
+import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
+import { doRequest } from './requests'
 
 export var types = {}
 for (let type of [
@@ -22,8 +23,6 @@ for (let type of [
   'REMOVE_FILTER',
   'SET_FILTER_NAMES',
   'EDIT_RESOURCE',
-  'START_FETCHING',
-  'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
@@ -118,7 +117,7 @@ export function removeFilter(filter, index) {
 export function createResource(contents) {
   return async function (dispatch, getState) {
       let resource = null
-      await doRequest(dispatch, getState, async () => {
+      await doRequest(dispatch, getState, 'createResourceFromContents', async () => {
         resource = await createResourceFromContents(dispatch, getState, contents)
       })
       if (!!resource) {
@@ -197,29 +196,10 @@ export function setFilterNames(filterNames) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'updateResourceContents', async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
   }
-}
-
-/**
- * Wraps any fetch request with proper setting of the `isFetching`
- * guards, and applies any fetchBackoff value.
- * 
- * @param {*} dispatch 
- * @param {*} getState 
- * @param {*} request 
- */
-async function doRequest(dispatch, getState, request) {
-  if (getState().access.isFetching) {
-    console.warn(`doRequest called while already fetching...`)
-  }
-  dispatch({ type: types.START_FETCHING })
-  let { fetchBackoff } = getState().access
-  let result = await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING })
-  return result
 }
 
 /**
@@ -231,7 +211,7 @@ export function requestResources() {
       await requestSwagger()(dispatch, getState)
     }
 
-    doRequest(dispatch, getState, async () => {
+    doRequest(dispatch, getState, 'fetchResources', async () => {
       await fetchResources(dispatch, getState)
     })
   }
@@ -245,7 +225,7 @@ export function requestResources() {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResource', async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
       })
   }
@@ -522,7 +502,7 @@ export function clearEditor() {
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, async () => {
+      doRequest(dispatch, getState, 'fetchResourceContents', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }

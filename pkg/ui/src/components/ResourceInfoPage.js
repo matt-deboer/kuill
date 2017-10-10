@@ -27,7 +27,6 @@ import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
-
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
 import ResourceInfoActionsMenu from './ResourceInfoActionsMenu'
@@ -49,7 +48,6 @@ const AsyncLogViewer = Loadable({
 
 const mapStateToProps = function(store) {
   return {
-    // filterNames: store.workloads.filterNames,
     pods: store.workloads.pods,
     accessEvaluator: store.session.accessEvaluator,
   }
@@ -224,6 +222,17 @@ class ResourceInfoPage extends React.Component {
     this.props.scaleResource(this.props.resource, 0)
   }
 
+  componentWillReceiveProps = (nextProps, nextState) => {
+    this.setState({resourceAccess: null})
+    this.kubeKind = KubeKinds[nextProps.resourceGroup][nextProps.resource.kind]
+    let that = this
+    this.props.accessEvaluator.getObjectAccess(nextProps.resource, nextProps.resourceGroup).then((access) => {
+      that.setState({
+        resourceAccess: access,
+      })
+    })
+  }
+
   componentDidUpdate = () => {
     this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
   }
@@ -295,7 +304,7 @@ class ResourceInfoPage extends React.Component {
       }
     
       if (resourceAccess && activeTab !== targetTab) {
-        this.props.selectView(activeTab)
+        return null
       }
     }
    
