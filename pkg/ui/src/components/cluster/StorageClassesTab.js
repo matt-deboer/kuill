@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { white } from 'material-ui/styles/colors'
-import * as moment from 'moment'
+import { toHumanizedAge } from '../../converters'
 import ClusterResourceTab from './ClusterResourceTab'
 
 const styles = {
@@ -61,7 +61,7 @@ export default class StorageClassesTab extends React.Component {
         },
         render: function(r) {
           let age = Date.now() - Date.parse(r.metadata.creationTimestamp)
-          return moment.duration(age).humanize()
+          return toHumanizedAge(age)
         }
       },
     ]

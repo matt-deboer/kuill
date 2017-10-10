@@ -7,7 +7,7 @@ import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
-import * as moment from 'moment'
+import { toHumanizedAge } from './converters'
 
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'
@@ -87,7 +87,7 @@ export default class StorageClassesTab extends React.Component {
         },
         render: function(r) {
           let age = Date.now() - Date.parse(r.metadata.creationTimestamp)
-          return moment.duration(age).humanize()
+          return toHumanizedAge(age)
         }
       },
     ]

@@ -1,4 +1,5 @@
-import * as moment from 'moment'
+// import * as moment from 'moment'
+import humanizeDuration from 'humanize-duration'
 
 /**
  * 
@@ -58,7 +59,8 @@ export function fixUnits(number, units) {
 
 export function toHumanizedAge(timestamp) {
   let age = Date.now() - Date.parse(timestamp)
-  let humanized = moment.duration(age).humanize()
+  // let humanized = moment.duration(age).humanize()
+  let humanized = humanizeDuration(age, {largest: 1})
   return humanized.replace("a few ", "")
 }
 

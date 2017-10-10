@@ -6,7 +6,7 @@ import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../state/actions/access'
 import FilterTable from './filter-table/FilterTable'
-import * as moment from 'moment'
+import { toHumanizedAge } from './converters'
 
 import ChipInput from 'material-ui-chip-input'
 import Chip from 'material-ui/Chip'

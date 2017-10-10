@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
-import * as moment from 'moment'
+import { toHumanizedAge } from '../../converters'
 
 import { withRouter } from 'react-router-dom'
 import { linkForResource } from '../../routes'
@@ -397,7 +397,7 @@ class NodesTab extends React.Component {
       //   return <IconMore color={'rgba(0,0,0,0.4)'} hoverColor={'rgba(0,0,0,0.87)'} data-rh="Actions..."/>
       case 'age':
         let age = Date.now() - Date.parse(row.metadata.creationTimestamp)
-        return moment.duration(age).humanize()
+        return toHumanizedAge(age)
       case 'status':
         return resourceStatusIcons[row.statusSummary]
       default:
