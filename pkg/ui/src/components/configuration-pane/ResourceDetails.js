@@ -32,8 +32,10 @@ let kinds = {
   StatefulSet: {
     getData: ({status, spec, metadata}) => {
       return [
+        ['Selector', `${spec.selector.matchLabels ? Object.entries(spec.selector.matchLabels).map(e=>e[0]+'='+e[1]).join(', '): ''}`],
         ['Replicas',`${status.replicas || 0} current, ${spec.replicas || 0} desired`],
         ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
+        ['Update Strategy', spec.updateStrategy.type],
       ]
     },
   },
