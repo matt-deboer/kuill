@@ -57,8 +57,13 @@ export function fixUnits(number, units) {
 }
 
 
-export function toHumanizedAge(timestamp) {
-  let age = Date.now() - Date.parse(timestamp)
+export function toHumanizedAge(timestampOrAge) {
+  let age
+  if (typeof timestampOrAge === 'string') {
+    age = Date.now() - Date.parse(timestampOrAge)
+  } else {
+    age = timestampOrAge
+  }
   // let humanized = moment.duration(age).humanize()
   let humanized = humanizeDuration(age, {largest: 1})
   return humanized.replace("a few ", "")
