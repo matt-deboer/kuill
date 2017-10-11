@@ -109,17 +109,19 @@ class NamespaceBarChart extends React.PureComponent {
       }
     }
 
-    items[this.state.selectBy].sort((a,b)=> {
-      let aSelected = (a.name in this.props.selectedNamespaces)
-      let bSelected = (b.name in this.props.selectedNamespaces)
-      if (aSelected && !bSelected) {
-        return -1
-      } else if (!aSelected && bSelected) {
-        return 1
-      } else {
-        return a.name.localeCompare(b.name)
-      }
-    })
+    if (items[this.state.selectBy]) {
+      items[this.state.selectBy].sort((a,b)=> {
+        let aSelected = (a.name in this.props.selectedNamespaces)
+        let bSelected = (b.name in this.props.selectedNamespaces)
+        if (aSelected && !bSelected) {
+          return -1
+        } else if (!aSelected && bSelected) {
+          return 1
+        } else {
+          return a.name.localeCompare(b.name)
+        }
+      })
+    }
 
     return (
       <div style={{...styles.wrapper, ...props.style}} className="row namespace-panel">
