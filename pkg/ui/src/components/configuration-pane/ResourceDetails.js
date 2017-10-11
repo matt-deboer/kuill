@@ -188,6 +188,14 @@ let kinds = {
       return data
     },
   },
+  ThirdPartyResource: {
+    getData: (resource) => {
+      return [
+        ['Description', resource.description],
+        ['Versions', resource.versions.map(v=>v.name).join(', ')],
+      ]
+    }
+  },
   ServiceAccount: {
     getData: (resource) => {
       return [

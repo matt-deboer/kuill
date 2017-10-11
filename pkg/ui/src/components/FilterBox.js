@@ -35,11 +35,11 @@ export default class FilterBox extends React.PureComponent {
     /**
      * function(name) called when a filter is added
      */
-    addFilter: PropTypes.function,
+    addFilter: PropTypes.func,
     /**
      * function(name, index) called when a filter is removed
      */
-    removeFilter: PropTypes.function,
+    removeFilter: PropTypes.func,
   }
 
   static defaultProps = {

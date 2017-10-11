@@ -6,10 +6,15 @@ import NodesTab from './NodesTab'
 import { withRouter } from 'react-router-dom' 
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
+<<<<<<< HEAD
 import PersistentVolumesTab from './PersistentVolumesTab'
+=======
+>>>>>>> initial tpr support
 import StorageClassesTab from './StorageClassesTab'
 import ResourceQuotasTab from './ResourceQuotasTab'
 import NamespacesTab from './NamespacesTab'
+import PersistentVolumesTab from './PersistentVolumesTab'
+import ThirdPartyResourcesTab from './ThirdPartyResourcesTab'
 import queryString from 'query-string'
 import './ClusterPage.css'
 
@@ -64,7 +69,7 @@ class ClusterPage extends React.Component {
     this.tabs.push({
       label: 'Namespaces',
       name: 'namespaces',
-      component: <NamespacesTab kind="Namespace" />,
+      component: <NamespacesTab />,
     })
 
     this.tabs.push({
@@ -82,8 +87,14 @@ class ClusterPage extends React.Component {
     this.tabs.push({
       label: 'Resource Quotas',
       name: 'resourcequotas',
-      component: <ResourceQuotasTab />,
-  })
+      component: <ResourceQuotasTab />
+    })
+
+    this.tabs.push({
+      label: 'Third Party Resources',
+      name: 'thirdpartyresources',
+      component: <ThirdPartyResourcesTab />,
+    })
   }
 
   render() {
@@ -96,6 +107,7 @@ class ClusterPage extends React.Component {
         <Tabs
           style={{background: 'white', height: 'calc(100vh - 112px)', width: 'calc(100vw - 50px)'}}
           tabItemContainerStyle={styles.tabs}
+          tabTemplateStyle={{whiteSpace: 'normal'}}
           contentContainerStyle={{overflow: 'hidden'}}
           inkBarStyle={styles.tabsInkBar}
           value={activeTab}
