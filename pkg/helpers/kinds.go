@@ -122,10 +122,10 @@ func (k *kindLister) update() error {
 						var apiBase string
 						var kindVersion string
 						if version == nil {
-							apiBase = "/api/"
+							apiBase = "api/"
 							kindVersion = "v1"
 						} else {
-							apiBase = "/apis/"
+							apiBase = "apis/"
 							kindVersion = version.GetVersion()
 						}
 						k := &KubeKind{
