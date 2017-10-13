@@ -85,6 +85,11 @@
       "target": "https://localhost:8888",
       "secure": false
     },
+    "/kinds": {
+      "target": "https://localhost:8888",
+      "secure": false,
+      "ws": true
+    },
     "/namespaces": {
       "target": "https://localhost:8888",
       "secure": false,
