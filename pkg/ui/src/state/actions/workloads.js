@@ -410,7 +410,6 @@ async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
 async function fetchThirdPartyResources(dispatch, getState) {
   let kubeKind = KubeKinds.cluster.ThirdPartyResource
   let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
-  let requests = []
 
   return await fetch(tprURL, defaultFetchParams
     ).then(resp => {
