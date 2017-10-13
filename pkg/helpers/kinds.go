@@ -1,9 +1,12 @@
 package helpers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -12,6 +15,7 @@ import (
 
 	"github.com/ericchiang/k8s"
 	"github.com/ericchiang/k8s/api/unversioned"
+	"github.com/ericchiang/k8s/runtime"
 	"github.com/gogo/protobuf/proto"
 	"github.com/prometheus/common/log"
 )
@@ -90,9 +94,22 @@ func (k *kindLister) update() error {
 	if err != nil {
 		return fmt.Errorf("Failed to get api groups; %v", err)
 	}
-	for _, apiGroup := range groupList.GetGroups() {
+	apiGroups := groupList.GetGroups()
+	core := "core"
+	apiGroups = append(apiGroups, &unversioned.APIGroup{
+		Name: &core,
+	})
+
+	for _, apiGroup := range apiGroups {
+		log.Infof("apiGroup: %v", apiGroup)
 		version := apiGroup.GetPreferredVersion()
-		resources, err := d.APIResources(ctx, apiGroup.GetName(), version.GetVersion())
+		var resources *unversioned.APIResourceList
+		var err error
+		if apiGroup.GetName() == "core" {
+			resources, err = k.coreAPIGroup()
+		} else {
+			resources, err = d.APIResources(ctx, apiGroup.GetName(), version.GetVersion())
+		}
 		if err != nil {
 			log.Warnf("Failed to get api resources for group %s; %v", apiGroup.GetName(), err)
 		} else {
@@ -102,12 +119,21 @@ func (k *kindLister) update() error {
 					kind := resource.GetKind()
 					if _, ok := kinds[kind]; !ok {
 						plural := strings.Split(resource.GetName(), "/")[0]
+						var apiBase string
+						var kindVersion string
+						if version == nil {
+							apiBase = "/api/"
+							kindVersion = "v1"
+						} else {
+							apiBase = "/apis/"
+							kindVersion = version.GetVersion()
+						}
 						k := &KubeKind{
-							APIBase:       fmt.Sprintf("/apis/%s", resources.GetGroupVersion()),
+							APIBase:       apiBase + resources.GetGroupVersion(),
 							Plural:        plural,
 							Kind:          kind,
 							Namespaced:    resource.GetNamespaced(),
-							Version:       version.GetVersion(),
+							Version:       kindVersion,
 							Abbreviation:  toAbbreviation(kind),
 							ResourceGroup: resolveResourceGroup(kind, resource.GetNamespaced()),
 							Verbs:         verbs,
@@ -191,4 +217,54 @@ func (k *kindLister) serveKinds(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("No kindList response available")
 		w.WriteHeader(500)
 	}
+}
+
+func (k *kindLister) coreAPIGroup() (*unversioned.APIResourceList, error) {
+
+	r, err := http.NewRequest("GET", fmt.Sprintf(`%s/api/v1`, k.client.Endpoint), nil)
+	if err != nil {
+		return nil, err
+	}
+	r.Header.Set("Accept", "application/vnd.kubernetes.protobuf")
+	re, err := k.client.Client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer re.Body.Close()
+
+	respBody, err := ioutil.ReadAll(re.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body: %v", err)
+	}
+
+	if re.StatusCode/100 != 2 {
+		return nil, fmt.Errorf("Unexpected api response: %s", re.Status)
+	}
+	var resourceList unversioned.APIResourceList
+	err = unmarshalPB(respBody, &resourceList)
+	if err != nil {
+		return nil, err
+	}
+	return &resourceList, nil
+}
+
+var magicBytes = []byte{0x6b, 0x38, 0x73, 0x00}
+
+func unmarshalPB(b []byte, obj interface{}) error {
+	message, ok := obj.(proto.Message)
+	if !ok {
+		return fmt.Errorf("expected obj of type proto.Message, got %T", obj)
+	}
+	if len(b) < len(magicBytes) {
+		return errors.New("payload is not a kubernetes protobuf object")
+	}
+	if !bytes.Equal(b[:len(magicBytes)], magicBytes) {
+		return errors.New("payload is not a kubernetes protobuf object")
+	}
+
+	u := new(runtime.Unknown)
+	if err := u.Unmarshal(b[len(magicBytes):]); err != nil {
+		return fmt.Errorf("unmarshal unknown: %v", err)
+	}
+	return proto.Unmarshal(u.Raw, message)
 }
