@@ -281,6 +281,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		err = helpers.ServeKinds(c.String("kubeconfig"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		helpers.ServeVersion()
 
 		authManager, _ := auth.NewAuthManager()
