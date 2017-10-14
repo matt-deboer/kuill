@@ -30,6 +30,7 @@ import { resourceStatus as resourceStatusIcons } from './icons'
 import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
 import ResourceInfoActionsMenu from './ResourceInfoActionsMenu'
+import { sameResource } from '../utils/resource-utils'
 
 import './ResourceInfoPage.css'
 
@@ -223,14 +224,16 @@ class ResourceInfoPage extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps, nextState) => {
-    this.setState({resourceAccess: null})
-    this.kubeKind = KubeKinds[nextProps.resourceGroup][nextProps.resource.kind]
-    let that = this
-    this.props.accessEvaluator.getObjectAccess(nextProps.resource, nextProps.resourceGroup).then((access) => {
-      that.setState({
-        resourceAccess: access,
+    if (!sameResource(nextProps.resource, this.props.resource)) {
+      this.setState({resourceAccess: null})
+      this.kubeKind = KubeKinds[nextProps.resourceGroup][nextProps.resource.kind]
+      let that = this
+      this.props.accessEvaluator.getObjectAccess(nextProps.resource, nextProps.resourceGroup).then((access) => {
+        that.setState({
+          resourceAccess: access,
+        })
       })
-    })
+    }
   }
 
   componentDidUpdate = () => {
