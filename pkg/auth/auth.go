@@ -159,6 +159,7 @@ func (m *Manager) listLoginMethods(w http.ResponseWriter, r *http.Request) {
 
 type userInfo struct {
 	User           string `json:"user,omitempty"`
+	Groups         string `json:"groups,omitempty"`
 	SessionExpires string `json:"session_expires,omitempty"`
 }
 
@@ -176,6 +177,7 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 	var resp userInfo
 	if session != nil {
 		resp.User = session.User()
+		resp.Groups = session.Groups()
 		resp.SessionExpires = time.Unix(session.Expires(), 0).Format(time.RFC3339)
 	}
 	data, err := json.Marshal(resp)
