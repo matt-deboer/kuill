@@ -5,11 +5,27 @@ import Header from '../components/Header'
 import ThemeDefault from '../theme-default'
 import Authenticated from './Authenticated'
 import { withRouter } from 'react-router-dom'
+import { connect } from 'react-redux'
 import { menu } from '../routes'
+import { requestKinds } from '../state/actions/apimodels'
 import ReactHint from 'react-hint'
 import 'react-hint/css/index.css'
 
-export default withRouter(
+const mapStateToProps = function(store) {
+  return {
+    kinds: store.apimodels.kinds,
+  }
+}
+
+const mapDispatchToProps = function(dispatch, ownProps) {
+  return {
+    requestKinds: function() {
+      dispatch(requestKinds())
+    },
+  }
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
 class App extends React.Component {
 
   static propTypes = {
@@ -22,6 +38,7 @@ class App extends React.Component {
     this.state = {
       navDrawerOpen: true,
     }
+    props.requestKinds()
   }
 
   handleChangeRequestNavDrawer() {
@@ -58,4 +75,4 @@ class App extends React.Component {
       </div>
     )
   }
-})
+}))

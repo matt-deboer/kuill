@@ -21,9 +21,6 @@ import { resourceStatus as resourceStatusIcons } from '../icons'
 import { compareStatuses } from '../../utils/resource-utils'
 import NodeHeatmap from '../dashboard/NodeHeatmap'
 import { hostnameLabel } from '../../utils/filter-utils'
-// import BrowserUsage from './dashboard/BrowserUsage'
-// import Data from '../data'
-import KubeKinds from '../../kube-kinds'
 import FilterBox from '../FilterBox'
 import EmptyListPage from '../EmptyListPage'
 import './NodesTab.css'
@@ -39,6 +36,7 @@ const mapStateToProps = function(store) {
     nodeMetrics: store.metrics.node,
     metricsRevision: store.metrics.revision,
     resources: store.cluster.resources,
+    kinds: store.apimodels.kinds,
   }
 }
 
@@ -518,7 +516,7 @@ class NodesTab extends React.Component {
         >
           {/* can we get a terminal into the kubelet itself? */}
 
-          {KubeKinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
+          {this.props.kinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
             data-rh="Open Terminal...">

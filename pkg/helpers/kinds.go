@@ -45,7 +45,7 @@ type kindLister struct {
 
 type KubeKind struct {
 	Plural        string   `json:"plural"`
-	Kind          string   `json:"kind"`
+	Name          string   `json:"name"`
 	Version       string   `json:"version"`
 	Namespaced    bool     `json:"namespaced"`
 	ShortNames    []string `json:"shortNames,omitempty"`
@@ -131,7 +131,7 @@ func (k *kindLister) update() error {
 						k := &KubeKind{
 							APIBase:       apiBase + resources.GetGroupVersion(),
 							Plural:        plural,
-							Kind:          kind,
+							Name:          kind,
 							Namespaced:    resource.GetNamespaced(),
 							Version:       kindVersion,
 							Abbreviation:  toAbbreviation(kind),

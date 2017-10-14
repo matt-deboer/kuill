@@ -1,7 +1,6 @@
 import { invalidateSession, updatePermissionsForKind } from './session'
 import { routerActions } from 'react-router-redux'
 import { requestSwagger } from './apimodels'
-import KubeKinds from '../../kube-kinds'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
@@ -234,7 +233,8 @@ export function requestResource(namespace, kind, name) {
 async function createResourceFromContents(dispatch, getState, contents) {
   let resource = createPost(contents)
   let { namespace } = resource.metadata
-  let api = KubeKinds.access[resource.kind]
+  let kubeKinds = getState().apimodels.kinds
+  let api = kubeKinds[resource.kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
   let body = JSON.stringify(resource)
 
@@ -285,7 +285,8 @@ async function fetchResources(dispatch, getState) {
   
   if (shouldFetchResources(getState)) {
 
-    let urls = Object.entries(KubeKinds.access).map(([kind, api]) => 
+    let accessKinds = Object.entries(getState().apimodels.kinds).filter(([name, kind])=> kind.resourceGroup === 'access')
+    let urls = accessKinds.map(([kind, api]) => 
       [kind, `/proxy/${api.base}/${api.plural}`])
     let requests = urls.map(([kind, url]) => fetch(url, defaultFetchParams
       ).then(resp => {
@@ -313,7 +314,7 @@ async function fetchResources(dispatch, getState) {
 
 async function fetchResourcesByNamespace(dispatch, getState, kind) {
   let namespaces = getState().cluster.namespaces
-  let kubeKind = KubeKinds.access[kind]
+  let kubeKind = getState().apimodels.kinds[kind]
   let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
   let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
     ).then(resp => {
@@ -378,18 +379,34 @@ function parseResults(dispatch, getState, results) {
 function watchResources(dispatch, getState, resourceVersion) {
   
     let accessEvaluator = getState().session.accessEvaluator
+    let kubeKinds = getState().apimodels.kinds
     let watches = getState().access.watches || {}
     var watchableNamespaces
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
-      for (let kind in KubeKinds.access) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
-
-        if (watchableNamespaces.length > 0) {
-          let watch = watches[kind]
-          if (!!watch && watch.closed()) {
-            watch.destroy()
+      for (let [kind, kubeKind] of Object.entries(KubeKinds)) {
+        if (kubeKind.resourceGroup === 'access' && kubeKind.verbs.includes('watch')) {
+          watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
+          if (watchableNamespaces.length > 0) {
+            let watch = watches[kind]
+            if (!!watch && watch.closed()) {
+              watch.destroy()
+              watches[kind] = new ResourceKindWatcher({
+                kind: kind,
+                dispatch: dispatch,
+                resourceVersion: resourceVersion,
+                resourceGroup: 'access',
+              })
+            }
+          }
+        }
+      }
+    } else {
+      for (let [kind, kubeKind] of Object.entries(KubeKinds)) {
+        if (kubeKind.resourceGroup === 'access' && kubeKind.verbs.includes('watch')) {
+          watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
+          if (watchableNamespaces.length > 0) {
             watches[kind] = new ResourceKindWatcher({
               kind: kind,
               dispatch: dispatch,
@@ -397,18 +414,6 @@ function watchResources(dispatch, getState, resourceVersion) {
               resourceGroup: 'access',
             })
           }
-        }
-      }
-    } else {
-      for (let kind in KubeKinds.access) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
-        if (watchableNamespaces.length > 0) {
-          watches[kind] = new ResourceKindWatcher({
-            kind: kind,
-            dispatch: dispatch,
-            resourceVersion: resourceVersion,
-            resourceGroup: 'access',
-          })
         }
       }
     }
@@ -455,7 +460,7 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
   // the UI are compatible with those applied in the cli
   // @see https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
 
-  let api = KubeKinds.access[kind]
+  let api = getState().apimodels.kinds[kind]
   let url = `/proxy/${api.base}/`
   if (!!namespace && namespace !== '~') {
     url += `namespaces/${namespace}/`
@@ -510,7 +515,7 @@ export function editResource(namespace, kind, name) {
 
 async function fetchResourceContents(dispatch, getState, namespace, kind, name) {
 
-  let api = KubeKinds.access[kind]
+  let api = getState().apimodels.kinds[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
   let resource = getState().access.resource
   let url = `/proxy/${api.base}/`

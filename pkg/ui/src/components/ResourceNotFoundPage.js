@@ -7,13 +7,14 @@ import {Card, CardHeader, CardText} from 'material-ui/Card'
 import FilterChip from './FilterChip'
 import { withRouter } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
-import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import Chip from 'material-ui/Chip'
 
 const mapStateToProps = function(store) {
-  return {}
+  return {
+    kinds: store.apimodels.kinds,
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
@@ -36,7 +37,7 @@ class ResourceNotFoundPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.kubeKind = KubeKinds[props.resourceGroup][props.kind]
+    this.kubeKind = this.props.kinds[props.resourceGroup][props.kind]
   }
 
   render() {

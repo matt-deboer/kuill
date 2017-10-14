@@ -23,7 +23,6 @@ import { withRouter } from 'react-router-dom'
 import {Tabs, Tab} from 'material-ui/Tabs'
 
 import LoadingSpinner from './LoadingSpinner'
-import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
@@ -51,6 +50,7 @@ const mapStateToProps = function(store) {
   return {
     pods: store.workloads.pods,
     accessEvaluator: store.session.accessEvaluator,
+    kinds: store.apimodels.kinds,
   }
 }
 
@@ -123,7 +123,7 @@ class ResourceInfoPage extends React.Component {
     }
 
     if (props.resource) {
-      this.kubeKind = KubeKinds[props.resourceGroup][props.resource.kind]
+      this.kubeKind = this.props.kinds[props.resourceGroup][props.resource.kind]
       let that = this
       this.props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
         that.setState({
@@ -238,7 +238,7 @@ class ResourceInfoPage extends React.Component {
   }
 
   componentDidUpdate = () => {
-    this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
+    this.kubeKind = !!this.props.resource && this.props.kinds[this.props.resourceGroup][this.props.resource.kind]
   }
 
   render() {

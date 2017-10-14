@@ -9,7 +9,6 @@ import Home from 'material-ui/svg-icons/action/home'
 import IconAccessControls from 'material-ui/svg-icons/hardware/security'
 import IconCluster from 'material-ui/svg-icons/maps/layers'
 import Apps from 'material-ui/svg-icons/navigation/apps'
-import KubeKinds from './kube-kinds'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from './components/LoadingComponentStub'
@@ -123,7 +122,7 @@ export default routes
  * @param {*} resource 
  * @param {*} view 
  */
-export function linkForResource(resource, view='config') {
+export function linkForResource(resource, kubeKind, view='config') {
   var ns, name, kind
   if (typeof resource === 'string') {
     [ kind, ns, name ] = resource.split('/')
@@ -132,14 +131,7 @@ export function linkForResource(resource, view='config') {
     name = resource.name || resource.metadata.name
     kind = resource.kind
   }
-  
-  let path = "workloads"
-  for (let group in KubeKinds) {
-    if (kind in KubeKinds[group]) {
-      path = group
-      break
-    }
-  }
+  let path = kubeKind.resourceGroup
   let query = view === '' ? '' : `?view=${view}`
   return `/${path}/${ns}/${kind}/${name}${query}`
 }
@@ -150,25 +142,21 @@ export function linkForResource(resource, view='config') {
  * @param {*} resource 
  * @param {*} view 
  */
-export function linkForResourceKind(kind, selectedNamespaces) {
-  let name = kind
+export function linkForResourceKind(kubeKind, selectedNamespaces) {
+  let name = kubeKind.name
   if (!(name.endsWith('s'))) {
     name += 's'
   } else if (name.endsWith('ss')) {
     name += 'es'
+  } else if (name.endsWith('eus')) {
+    name = name.replace(/us$/, "i")
   }
-  let group = 'workloads'
-  for (let g in KubeKinds) {
-    if (kind in KubeKinds[g]) {
-      group = g
-      break
-    }
-  }
+  let group = kubeKind.resourceGroup
   let linkParams = {}
   if (group === 'cluster') {
     linkParams.view = name.toLowerCase()
   } else {
-    linkParams.filters =[`kind:${kind}`]
+    linkParams.filters =[`kind:${kubeKind.name}`]
     if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
       for (let ns in selectedNamespaces) {
         linkParams.filters.push(`namespace:${ns}`)

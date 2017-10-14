@@ -1,6 +1,4 @@
 // TODO can we build this up from API requests?
-
-
 let kinds = {
   workloads: {
     Deployment: {
