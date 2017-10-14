@@ -124,7 +124,7 @@ class ClusterInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
