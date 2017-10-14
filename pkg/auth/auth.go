@@ -158,9 +158,9 @@ func (m *Manager) listLoginMethods(w http.ResponseWriter, r *http.Request) {
 }
 
 type userInfo struct {
-	User           string `json:"user,omitempty"`
-	Groups         string `json:"groups,omitempty"`
-	SessionExpires string `json:"session_expires,omitempty"`
+	User           string   `json:"user,omitempty"`
+	Groups         []string `json:"groups,omitempty"`
+	SessionExpires string   `json:"session_expires,omitempty"`
 }
 
 func (m *Manager) userInfo(w http.ResponseWriter, r *http.Request) {
