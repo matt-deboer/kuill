@@ -34,7 +34,7 @@ export default class AccessEvaluator {
     return this.getObjectPermissions(resource, resourceGroup)
       .then(permissions => {
         // TODO: what about StatefulSet and DaemonSet?
-        let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas)) || -1
+        let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas || resource.status.numberReady)) || -1
 
         return {
           get: permissions.get,
