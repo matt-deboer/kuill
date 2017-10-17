@@ -73,7 +73,7 @@
     "dev": "npm-run-all -p test-proxy watch-css start-js",
     "build": "npm run build-css && react-scripts build",
     "build-test-proxy": "npm install ./test-proxy",
-    "test": "react-scripts test --env=jsdom",
+    "test": "react-scripts test --env=jsdom", 
     "eject": "react-scripts eject",
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
@@ -93,7 +93,10 @@
     "/proxy": {
       "target": "https://localhost:8888",
       "secure": false,
-      "ws": true
+      "ws": true,
+      "toProxy": true,
+      "changeOrigin": true,
+      "logLevel": "debug"
     },
     "/metrics": {
       "target": "https://localhost:8888",
