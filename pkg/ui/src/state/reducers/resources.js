@@ -501,9 +501,9 @@ function doSetFilterNames(state, filterNames, group) {
   addFilter(newFilters, newFilterNames, ...filterNames)
   
   let newState = {...state}
-  newState.filterNamesByGroup[group] = filterNames
-  newState.filtersByGroup[group] = filters
-  return doFilterAll(newState, newState.resources, group)
+  newState.filterNamesByGroup[group] = newFilterNames
+  newState.filtersByGroup[group] = newFilters
+  return doFilterAll(newState, newState.resourcesByGroup[group], group)
 }
 
 /**
@@ -579,5 +579,5 @@ function doRemoveFilter(state, filterName, index, group) {
   let newState = {...state}
   newState.filterNamesByGroup[group] = filterNames
   newState.filtersByGroup[group] = filters
-  return doFilterAll(newState, newState.resources, group)
+  return doFilterAll(newState, newState.resourcesByGroup[group], group)
 }

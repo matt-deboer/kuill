@@ -128,7 +128,7 @@ export function removeFilter(filter, index, group) {
       index: index,
       group: group,
     })
-    return updateFilterUrl(dispatch, getState)
+    return updateFilterUrl(dispatch, getState, group)
   }
 }
 
@@ -139,9 +139,9 @@ export function removeFilter(filter, index, group) {
  * @param {*} dispatch 
  * @param {*} getState 
  */
-function updateFilterUrl(dispatch, getState) {
+function updateFilterUrl(dispatch, getState, group) {
   let state = getState()
-  let newFilterNames = state.workloads.filterNames.slice(0)
+  let newFilterNames = state.resources.filterNamesByGroup[group].slice(0)
   let currentFilterNames = queryString.parse(state.routing.location.search).filters
   if (currentFilterNames && currentFilterNames.constructor !== Array) {
     currentFilterNames = [currentFilterNames]
@@ -152,10 +152,9 @@ function updateFilterUrl(dispatch, getState) {
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
     let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
-      `?${queryString.stringify({filters: state.workloads.filterNames})}` :
+      `?${queryString.stringify({filters: newFilterNames})}` :
       ''
-    console.log(`updateFilterUrl: pushed new location...`)
-    dispatch(routerActions.push(`/workloads${filterQuery}`))
+    dispatch(routerActions.push(`/${group}${filterQuery}`))
   }
 }
 
@@ -164,8 +163,9 @@ function updateFilterUrl(dispatch, getState) {
  * of filterNames
  * 
  * @param {Array} filterNames 
+ * @param {String} group
  */
-export function setFilterNames(filterNames) {
+export function setFilterNames(filterNames, group) {
   return function(dispatch, getState) {
     if (!filterNames) {
       filterNames = []
@@ -173,7 +173,7 @@ export function setFilterNames(filterNames) {
       filterNames = [filterNames]
     }
     let state = getState()
-    let currentFilterNames = state.workloads.filterNames.slice(0)
+    let currentFilterNames = state.resources.filterNamesByGroup[group].slice(0)
     currentFilterNames.sort()
     let newFilterNames = filterNames.slice(0)
     newFilterNames.sort()
@@ -183,9 +183,10 @@ export function setFilterNames(filterNames) {
       dispatch({
         type: types.SET_FILTER_NAMES,
         filterNames: filterNames,
+        group: group,
       })
     }
-    updateFilterUrl(dispatch, getState)
+    updateFilterUrl(dispatch, getState, group)
   }
 }
 
@@ -204,7 +205,8 @@ export function scaleResource(namespace, kind, name, replicas) {
       await fetchResourceContents(dispatch, getState, namespace, kind, name)
     })
 
-    let { contents } = getState().workloads.editor 
+    let { contents } = getState().resources.editor 
+    let { kubeKinds } = getState().apimodels.kinds
     if (contents) {
       let resource = createPost(contents)
       if (resource.spec && 'replicas' in resource.spec) {
@@ -213,7 +215,8 @@ export function scaleResource(namespace, kind, name, replicas) {
         
         // Provide immediate feedback that the resource is scaling
         resource.statusSummary = 'scaling ' + (prevReplicas > resource.spec.replicas ? 'down' : 'up')
-        dispatch(putResource(resource, false))
+        let group = kubeKinds[resource.kind].resourceGroup
+        dispatch(putResource(resource, false, group))
 
         doRequest(dispatch, getState, 'updateResourceContents', async () => {
           await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
@@ -250,15 +253,15 @@ export function applyResourceChanges(namespace, kind, name, contents) {
 /**
  * @param {Boolean} force
  */
-export function requestResources(force) {
+export function requestResources(group, force) {
   return async function (dispatch, getState) {
     if (!getState().apimodels.swagger) {
       await requestSwagger()(dispatch, getState)
     } 
     
-    doRequest(dispatch, getState, 'fetchResources', async () => {
-        await fetchResources(dispatch, getState, force)
-      })
+    doRequest(dispatch, getState, `fetchResources[${group}]`, async () => {
+      await fetchResources(dispatch, getState, group, force)
+    })
   }
 }
 
@@ -301,11 +304,15 @@ export function createResource(contents) {
 export function removeResource(...resourcesToRemove) {
   return async function (dispatch, getState) {
       
-      let { resources, resource } = getState().workloads
+      let { resourcesByGroup, selectedResource } = getState().resources
+      let { kubeKinds } = getState().apimodels.kinds
+
       let updateSelected = false
       for (let toBeRemoved of resourcesToRemove) {
-        if (isResourceOwnedBy(resources, toBeRemoved, resource)
-        || isResourceOwnedBy(resources, resource, toBeRemoved)) {
+        let kubeKind = kubeKinds[toBeRemoved.kind]
+        let resources = resourcesByGroup[kubeKind.resourceGroup]
+        if (isResourceOwnedBy(resources, toBeRemoved, selectedResource)
+        || isResourceOwnedBy(resources, selectedResource, toBeRemoved)) {
           updateSelected = true
           break
         }
@@ -316,22 +323,25 @@ export function removeResource(...resourcesToRemove) {
       })
 
       if (updateSelected) {
+        let kubeKind = kubeKinds[selectedResource.kind]
+        let resources = resourcesByGroup[kubeKind.resourceGroup]
         dispatch({
           type: types.SELECT_RESOURCE,
-          namespace: resource.metadata.namespace,
-          kind: resource.kind,
-          name: resource.metadata.name,
+          namespace: selectedResource.metadata.namespace,
+          kind: selectedResource.kind,
+          name: selectedResource.metadata.name,
         })
-        let { pods } = getState().workloads
-        selectAllForResource(dispatch, resources, resource, pods)
+        let { pods } = getState().resources
+        selectAllForResource(dispatch, resources, selectedResource, pods)
       }
   }
 }
 
-function shouldFetchResources(getState, force) {
+function shouldFetchResources(getState, group, force) {
   let state = getState()
-  let { resources, lastLoaded } = state.workloads
+  let { resourcesByGroup, lastLoaded } = state.resources
   let { user } = state.session
+  let resources = resourcesByGroup[group]
 
   // TODO: should also check on resources last loaded time
   let shouldRefresh = (!!force && (Date.now() - lastLoaded) > maxReloadInterval)
@@ -342,11 +352,16 @@ function shouldFetchResources(getState, force) {
   return shouldFetch
 }
 
-async function fetchResources(dispatch, getState, force) {
+async function fetchResources(dispatch, getState, group, force) {
   
-  if (shouldFetchResources(getState, force)) {
+  if (shouldFetchResources(getState, group, force)) {
 
-    let urls = Object.entries(KubeKinds.workloads).map(entry => [entry[0], `/proxy/${entry[1].base}/${entry[1].plural}`])
+    let kubeKinds = getState().apimodels.kinds
+
+    let urls = Object.entries(kubeKinds)
+        .filter(([kind, kubeKind]) => kubeKind.resourceGroup === group)
+        .map(([kind, kubeKind]) => [kind, `/proxy/${kubeKind.base}/${kubeKind.plural}`])
+
     let requests = urls.map(([kind,url],index) => fetch(url, defaultFetchParams
       ).then(resp => {
         if (!resp.ok) {
@@ -356,7 +371,7 @@ async function fetchResources(dispatch, getState, force) {
             dispatch(updatePermissionsForKind(kind, {
               namespaced: true
             }))
-            return fetchResourcesByNamespace(dispatch, getState, KubeKinds.workloads[kind], kind)
+            return fetchResourcesByNamespace(dispatch, getState, kubeKinds[kind], kind)
           } else if (resp.status === 404) {
             dispatch(disableResourceKind(kind))
           } else {
@@ -369,7 +384,9 @@ async function fetchResources(dispatch, getState, force) {
         }
       }
     ))
-    requests.push(fetchThirdPartyResources(dispatch, getState))
+    if (group === 'workloads') {
+      requests.push(fetchThirdPartyResources(dispatch, getState))
+    }
 
     let results = await Promise.all(requests)
 
@@ -406,7 +423,7 @@ async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
 }
 
 async function fetchThirdPartyResources(dispatch, getState) {
-  let kubeKind = KubeKinds.cluster.ThirdPartyResource
+  let kubeKind = getState().apimodels.kinds.ThirdPartyResource
   let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
 
   return await fetch(tprURL, defaultFetchParams
