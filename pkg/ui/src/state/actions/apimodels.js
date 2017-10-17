@@ -77,7 +77,7 @@ async function fetchSwagger(dispatch, getState) {
             // dispatch(disableResourceKind(kind))
           } else {
             dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
-              'Try Again', () => { dispatch(requestModels()) } ))
+              'Try Again', () => { dispatch(requestSwagger()) } ))
           }
           return resp
         } else {
