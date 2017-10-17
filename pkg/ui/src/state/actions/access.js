@@ -385,7 +385,7 @@ function watchResources(dispatch, getState, resourceVersion) {
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
-      for (let [kind, kubeKind] of Object.entries(KubeKinds)) {
+      for (let [kind, kubeKind] of Object.entries(kubeKinds)) {
         if (kubeKind.resourceGroup === 'access' && kubeKind.verbs.includes('watch')) {
           watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
           if (watchableNamespaces.length > 0) {
