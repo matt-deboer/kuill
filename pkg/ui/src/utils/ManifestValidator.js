@@ -89,6 +89,10 @@ export default class ManifestValidator {
             let result = await this.validator.validateModel(resource, actualModel)
             if (result.errors && result.errors.length) {
               for (let error of result.errors) {
+                if (error.typeIs === 'number' && error.typeShouldBe === 'string') {
+                  // numbers are acceptable where strings are expected
+                  continue
+                }
                 errors.push({
                   row: getErrorPosition(lines, error) || 0,
                   column: 0,
