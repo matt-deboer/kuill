@@ -573,7 +573,12 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
   let api = KubeKinds.cluster[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
   let resource = getState().cluster.resource
-  await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 
+  let url = `/proxy/${api.base}/`
+  if (namespace && namespace !== '~') {
+    url += `namespaces/${namespace}/`
+  }
+  url += `${api.plural}/${name}`
+  await fetch(url, 
       defaultFetchParams
     ).then(resp => {
       if (!resp.ok) {
