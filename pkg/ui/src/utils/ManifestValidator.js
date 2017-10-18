@@ -22,6 +22,8 @@ export default class ManifestValidator {
   
     let lines = (contents && contents.split(/\n/g)) || []
     let errors = []
+    let resource
+
     if (testVariables && typeof this.detectVariables === 'function') {
       for (let i=0, len=lines.length; i < len; ++i) {
         let line = lines[i]
@@ -36,9 +38,8 @@ export default class ManifestValidator {
         }
       }
     }
-
+    
     if (this.validator) {
-      let resource
       try {
         resource = yaml.safeLoad(contents)
         if (this.resource) {
@@ -118,7 +119,10 @@ export default class ManifestValidator {
         }
       }
     }
-    return errors
+    return {
+      errors: errors,
+      resource: resource
+    }
   }
 
   getHtmlForCannotChange = (ref, value) => {

@@ -313,6 +313,7 @@ class NewResource extends React.Component {
     return (
         <EditorPage 
           open={!!this.props.user}
+          mode={'edit'}
           resourceGroup={this.props.resourceGroup}
           detectVariables={this.detectVariables}
           onChange={this.handleEditorChange}

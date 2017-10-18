@@ -76,6 +76,10 @@ class EditorPage extends React.Component {
      * to change the contents of an already-initialized editor
      */
     contents: PropTypes.string,
+    /**
+     * user-defined title, which can be string or a dom element
+     */
+    title: PropTypes.any,
   }
 
   static defaultProps = {
@@ -88,9 +92,10 @@ class EditorPage extends React.Component {
     this.displayErrors = this.displayErrors.bind(this)
     props.requestSwagger()
     this.state = {
-      errors: []
+      errors: [],
+      resource: props.resource,
     }
-    this.getResourceAccess(props)
+    this.getResourceAccess(this.state.resource, this.props.resourceGroup)
   }
 
   componentDidMount = () => {
@@ -100,9 +105,9 @@ class EditorPage extends React.Component {
     this.contents = this.props.contents
   }
 
-  getResourceAccess = (props) => {
-    if (props.resource && props.resourceGroup) {
-      props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
+  getResourceAccess = (resource, resourceGroup) => {
+    if (resource && resourceGroup) {
+      this.props.accessEvaluator.getObjectAccess(resource, resourceGroup).then((access) => {
         this.setState({
           resourceAccess: access,
         })
@@ -113,6 +118,7 @@ class EditorPage extends React.Component {
   setContents = (contents) => {
     this.contents = contents
     this.editor.setValue(contents)
+    this.validateOnChange()
   }
 
   componentDidUpdate = () => {
@@ -128,18 +134,30 @@ class EditorPage extends React.Component {
       langTools.setCompleters([this.autocompleter])
     }
     
+    if (!this.state.resource && props.resource) {
+      this.setState({resource: props.resource})
+    }
+
     if (!this.contents) {
       this.contents = props.contents
     }
     if (!this.state.resourceAccess) {
-      this.getResourceAccess(props)
+      this.getResourceAccess(this.state.resource, props.resourceGroup)
     }
     this.displayErrors()
   }
 
   validateOnChange = () => {
-    this.validator && this.validator.validate(this.contents).then(errors=> {
-      this.setState({errors: errors})
+    this.validator && this.validator.validate(this.contents).then(result=> {
+      
+      this.setState({
+        errors: result.errors,
+        resource: result.resource,
+      })
+
+      if (!this.state.resourceAccess && !!result.resource) {
+        this.getResourceAccess(result.resource, this.props.resourceGroup)
+      }
     })
   }
 
@@ -193,9 +211,12 @@ class EditorPage extends React.Component {
 
   applyChanges = () => {
     this.validator && this.validator.validate(this.contents, true)
-    .then(errors=> {
-      if (errors.length) {
-        this.setState({errors: errors})
+    .then(result=> {
+      if (result.errors.length) {
+        this.setState({
+          errors: result.errors,
+          resource: result.resource,
+        })
       } else {
         this.props.onEditorApply(this.contents)
       }
@@ -207,7 +228,7 @@ class EditorPage extends React.Component {
     let { resource } = props
     let additionalActions = props.additionalActions || []
     let actions
-    let mode
+    let mode = props.mode
     if (this.state.resourceAccess && this.state.resourceAccess.edit) {
       actions = [
         ...additionalActions,
@@ -223,7 +244,7 @@ class EditorPage extends React.Component {
           onTouchTap={this.applyChanges.bind(this)}
         />,
       ]
-      mode = 'edit'
+      mode = mode || 'edit'
     } else {
       actions = [
         <FlatButton
@@ -233,15 +254,18 @@ class EditorPage extends React.Component {
           onTouchTap={props.onEditorCancel}
         />
       ]
-      mode = 'view'
+      mode = mode || 'view'
     }
     
-    let title=!!resource &&
-      (<div>
-        <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>{mode}:</span>
-        <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
-      </div>
-      )
+    let title = props.title
+    if (!title) {
+      title=!!resource &&
+        (<div>
+          <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>{mode}:</span>
+          <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
+        </div>
+        )
+    }
 
     let errorsByRow = {}
     for (let e of this.state.errors) {
