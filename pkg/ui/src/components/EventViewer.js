@@ -44,6 +44,7 @@ function EventViewer(props) {
     message: {
       height: 28, 
       padding: 4,
+      whiteSpace: 'normal',
     }
   }
 
