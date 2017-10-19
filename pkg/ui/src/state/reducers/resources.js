@@ -10,23 +10,24 @@ import { removeReadOnlyFields } from '../../utils/request-utils'
 
 const initialState = {
   // the filter names in string form
-  filterNamesByGroup: {},
+  filterNames:[],
   // filters are store as a nested set of maps:
   //  map[key] => map[value] => true
   // TODO: consider leveraging the filter mechanism from kubernetes-ui/filters
-  filtersByGroup: {},
+  filters: {},
   // the list of possible filters (strings), used for auto-complete
-  possibleFiltersByGroup: {},
+  possibleFilters: [],
   // the currently selected resource
-  selectedResource: null,
+  resource: null,
+  // the currently requested resource cannot be found
+  resourceNotFound: false,
   // pods that are transitively owned by the currently selected resource
   pods: {},
   // total number of pods seen
   podCount: 0,
   // resources are stored as a nested set of maps:
   //  map[kind] => map[namespace] => map[name] => resource
-  // resources: {},
-  resourcesByGroup: {},
+  resources: {},
   // resources whose `statusSummary` field is in ('error', 'warning', or 'timed out')
   problemResources: {},
   // last time the full set of resources was loaded; we need to
@@ -43,15 +44,19 @@ const initialState = {
   countsByNamespace: {},
   // fetchBackoff: 0,
   // fetchError: null,
-  watchesByGroup: null,
+  watches: null,
+  // kinds in this set are not supported by this cluster
+  disabledKinds: {},
   // is a map[node-name]string[]
   podsByNode: {},
   // the maximum resourceVersion value seen across all resource fetches
   // by kind--this allows us to set watches more efficiently; 
+  // TODO: we may need to store this on a per-resource basis, 
+  // as the fetches for different resource kinds occur independently
   maxResourceVersionByKind: {},
   // a value used internally to handle fast notification of when the
   // resources have changed in a way such that they should be re-rendered
-  resourceRevisionByGroup: {},
+  resourceRevision: 0,
 }
 
 export default (state = initialState, action) => {
@@ -65,20 +70,23 @@ export default (state = initialState, action) => {
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
 
+    case types.DISABLE_KIND:
+      return doDisableKind(state, action.kind)
+
     case types.REPLACE_ALL:
-      return doReceiveResources(state, action.resources, action.group)
+      return doReceiveResources(state, action.resources)
 
     case types.FILTER_ALL:
-      return doFilterAll(state, state.resources, action.group)
+      return doFilterAll(state, state.resources)
 
     case types.SET_FILTER_NAMES:
-      return doSetFilterNames(state, action.filterNames, action.group)
+      return doSetFilterNames(state, action.filterNames)
 
     case types.PUT_RESOURCE:
-      return doUpdateResource(state, action.resource, action.isNew, action.group)
+      return doUpdateResource(state, action.resource, action.isNew)
 
     case types.REMOVE_RESOURCE:
-      return doRemoveResource(state, action.resource, action.group)
+      return doRemoveResource(state, action.resource)
 
     case types.SELECT_RESOURCE:
       return doSelectResource(state, action.namespace, action.kind, action.name)
@@ -86,14 +94,14 @@ export default (state = initialState, action) => {
     case types.RECEIVE_RESOURCE_CONTENTS:
       return doReceiveResourceContents(state, action.resource, action.contents, action.error)
 
-    // case types.SET_WATCHES:
-    //   return {...state, watches: {} action.watches}
+    case types.SET_WATCHES:
+      return {...state, watches: action.watches}
 
     case types.ADD_FILTER:
-      return doAddFilter(state, action.filter, action.group)
+      return doAddFilter(state, action.filter)
     
     case types.REMOVE_FILTER:
-      return doRemoveFilter(state, action.filter, action.index, action.group)
+      return doRemoveFilter(state, action.filter, action.index)
 
     default:
       return state
@@ -102,50 +110,54 @@ export default (state = initialState, action) => {
 
 function doCleanup(state) {
   if (state.watches) {
-    for (let g in state.watches) {
-      let group = state.watches[g]
-      for (let w in group) {
-        group[w].destroy()
-      }
+    for (let w in state.watches) {
+      state.watches[w].destroy()
     }
   }
 }
 
+function doDisableKind(state, kind) {
+  if (kind in state.disabledKinds) {
+    return state
+  }
+
+  let newState = {...state, disabledKinds: {...state.disabledKinds}}
+  newState.disabledKinds[kind]=true
+  return newState
+}
+
 function doSetFiltersByLocation(state, location) {
   
-  let match = location.pathname.match(/\/(\w+)/)
-  if (match) {
-    let group = match[1]
+  if (location.pathname === '/workloads') {
     let filterNames = queryString.parse(location.search).filters
     if (!filterNames) {
       filterNames = []
     } else if (filterNames.constructor !== Array) {
       filterNames = [filterNames]
     }
-
-    if (!arraysEqual(filterNames, state.filterNamesByGroup[group])) {
+    if (!arraysEqual(filterNames, state.filterNames)) {
       console.log(`updating filter names on location change to ${location}; filterNames: ${filterNames.join(',')}`)
-      return doSetFilterNames(state, filterNames, group)
+      return doSetFilterNames(state, filterNames)
     } 
   }
   return state
 }
 
-function doFilterAll(state, resources, group) {
-  let newState = { ...state }
+function doFilterAll(state, resources) {
+  let newState = { ...state, resources: { ...resources }}
   let possible = null
-  let possibleFilters = newState.possibleFiltersByGroup[group]
-  if (!possibleFilters || possibleFilters.length === 0) {
+  
+  if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
 
-  visitResources(newState.resourcesByGroup[group], function(resource) {
-    updatePossibleFilters(possible, resource, group)
-    applyFiltersToResource(newState.filtersByGroup[group], resource)
+  visitResources(newState.resources, function(resource) {
+    updatePossibleFilters(possible, resource)
+    applyFiltersToResource(newState.filters, resource)
   })
 
   if (possible !== null) {
-    newState.possibleFiltersByGroup[group] = Object.keys(possible)
+    newState.possibleFilters = Object.keys(possible)
   }
 
   return newState
@@ -194,44 +206,42 @@ function registerOwned(resources, unnresolvedOwnership, resource, problemResourc
   }
 }
 
-function updatePossibleFilters(possible, resource, group) {
+function updatePossibleFilters(possible, resource) {
   if (!!possible) {
-    if (group === 'workloads') {
-      if (resource.metadata && resource.metadata.namespace) {
-        possible[`namespace:${resource.metadata.namespace}`]=true
-      }
-      possible[`kind:${resource.kind}`]=true
-      if (resource.metadata.labels && 'app' in resource.metadata.labels) {
-        possible[`app:${resource.metadata.labels.app}`]=true
-      }
-      possible[`status:${resource.statusSummary}`]=true
-      if (resource.kind === 'Pod') {
-        possible[`node:${resource.spec.nodeName}`]=true
-      }
+    if (resource.metadata && resource.metadata.namespace) {
+      possible[`namespace:${resource.metadata.namespace}`]=true
+    }
+    possible[`kind:${resource.kind}`]=true
+    if (resource.metadata.labels && 'app' in resource.metadata.labels) {
+      possible[`app:${resource.metadata.labels.app}`]=true
+    }
+    possible[`status:${resource.statusSummary}`]=true
+    if (resource.kind === 'Pod') {
+      possible[`node:${resource.spec.nodeName}`]=true
     }
   }
 }
 
-function doUpdateResource(state, resource, isNew, group) {
+function doUpdateResource(state, resource, isNew) {
   resource.key = keyForResource(resource)
-  if (!(resource.key in state.resourcesByGroup[group]) && !isNew && resource.kind !== 'Pod') {
+  if (!(resource.key in state.resources) && !isNew && resource.kind !== 'Pod') {
     return state
   }
   resource.statusSummary = statusForResource(resource)
 
   let newState = {...state}
   let possible = {}
-  for (let pf of newState.possibleFiltersByGroup[group]) {
+  for (let pf of newState.possibleFilters) {
     possible[pf]=true
   }
 
-  registerOwned(newState.resourcesByGroup[group], {}, resource, newState.problemResources, possible)
+  registerOwned(newState.resources, {}, resource, newState.problemResources, possible)
   if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
     newState.problemResources[resource.key] = resource
   } else if (resource.key in newState.problemResources) {
     delete newState.problemResources[resource.key]
   }
-  newState.possibleFiltersByGroup[group] = Object.keys(possible)
+  newState.possibleFilters = Object.keys(possible)
 
   if (isNew) {
     newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0 
@@ -244,6 +254,8 @@ function doUpdateResource(state, resource, isNew, group) {
     ++newState.podCount
     newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
     newState.podsByNode[resource.spec.nodeName][resource.key] = resource
+  } else {
+    // TODO: what if pod changes nodes?
   }
   if (resource.metadata.resourceVersion > state.maxResourceVersionByKind[resource.kind]) {
     newState.maxResourceVersionByKind = {...state.maxResourceVersionByKind}
@@ -258,7 +270,7 @@ function doUpdateResource(state, resource, isNew, group) {
   }
 
   if (isNew || resource.kind !== 'Endpoints') {
-    newState.resourceRevisionByGroup[group] = (newState.resourceRevisionByGroup[group] || 0) + 1
+    ++newState.resourceRevision
   }
 
   if (sameResource(newState.resource, resource)) {
@@ -266,23 +278,23 @@ function doUpdateResource(state, resource, isNew, group) {
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
   
-  return doFilterResource(newState, resource, group)
+  return doFilterResource(newState, resource)
 }
 
-function doFilterResource(newState, resource, group) {
+function doFilterResource(newState, resource) {
   newState.resources = {...newState.resources}
   newState.resources[resource.key] = resource
   if (newState.resource && newState.resource.key === resource.key) {
     newState.resource = resource
   }
-  applyFiltersToResource(newState.filtersByGroup[group], resource)
+  applyFiltersToResource(newState.filters, resource)
   return newState
 }
 
-function doRemoveResource(state, resource, group) {
+function doRemoveResource(state, resource) {
   
-  if (resource.key in state.resourcesByGroup[group]) {
-    let resources = { ...state.resourcesByGroup[group] }
+  if (resource.key in state.resources) {
+    let resources = { ...state.resources }
     delete resources[resource.key]
     let podsByNode = {...state.podsByNode}
     delete podsByNode[resource.spec.nodeName][resource.key]
@@ -295,15 +307,12 @@ function doRemoveResource(state, resource, group) {
       delete countsByNamespace[resource.metadata.namespace]
     }
 
-    let newState = { ...state,
+    return { ...state,
       countsByKind: countsByKind,
+      resources: resources,
+      podCount: (state.podCount - 1),
       podsByNode: podsByNode,
-    }
-    if (resource.kind === 'Pod') {
-      --newState.podCount
-    }
-    newState.resourcesByGroup[group] = resources
-    return newState
+    }    
   }
   return state
 }
@@ -339,44 +348,52 @@ function doSelectResource(state, namespace, kind, name) {
       }
     }
   } else {
-    resource = {
-      kind: kind,
-      metadata: {
-        namespace: namespace,
-        name: name
-      },
-      found: false,
-    }
+    resourceNotFound = true
   }
 
   return { ...state, 
-    selectedResource: resource,
+    resource: resource,
+    resourceNotFound: resourceNotFound,
     pods: pods, 
   }
 }
 
-function doReceiveResources(state, resources, group) {
-  let newState = {...state, 
-    lastLoaded: Date.now(),
-  }
-  newState.resourcesByGroup[group] = resources
+// function decrementBackoff(backoff) {
+//   return Math.max(Math.floor(backoff / 4), 0)
+// }
 
-  let possibleFilters = newState.possibleFiltersByGroup[group]
+// function incrementBackoff(backoff) {
+//   return Math.max(backoff * 2, 1000)
+// }
+
+
+function doReceiveResources(state, resources) {
+  let newState = {...state, 
+    possibleFilters: [], 
+    resources: resources,
+    podCount: 0,
+    problemResources: {},
+    lastLoaded: Date.now(),
+    podsByNode: {},
+    namespaces: {},
+    countsByKind: {},
+  }
+  
   let possible = null
-  if (!possibleFilters || possibleFilters.length === 0) {
+  if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
 
   let unnresolvedOwnership = {}
 
-  visitResources(newState.resourcesByGroup[group], function(resource) {
+  visitResources(newState.resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
     registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources, possible)
     if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
       newState.problemResources[resource.key] = resource
     }
-    updatePossibleFilters(possible, resource, group)
-    applyFiltersToResource(newState.filtersByGroup[group], resource)
+    updatePossibleFilters(possible, resource)
+    applyFiltersToResource(newState.filters, resource)
     newState.maxResourceVersionByKind[resource.kind] = Math.max(newState.maxResourceVersionByKind[resource.kind] || 0, resource.metadata.resourceVersion)
     if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
       newState.maxResourceVersionByKind[resource.kind] = 
@@ -404,9 +421,9 @@ function doReceiveResources(state, resources, group) {
   }
 
   if (possible !== null) {
-    newState.possibleFiltersByGroup[group] = Object.keys(possible)
+    newState.possibleFilters = Object.keys(possible)
   }
-  newState.resourceRevisionByGroup[group] = (newState.resourceRevisionByGroup[group] || 0) + 1
+  ++newState.resourceRevision
   return newState
 }
 
@@ -436,14 +453,13 @@ function doReceiveResourceContents(state, resource, contents, error) {
     }
   }
   
-  return { ...state, 
-    editor: {
-      resource: resource, 
-      contents: contents, 
-      error: error, 
-      format: 'yaml',
+  return { ...state, editor: {
+        resource: resource, 
+        contents: contents, 
+        error: error, 
+        format: 'yaml',
+      }
     }
-  }
 }
 
 /**
@@ -474,15 +490,15 @@ function formatYaml(contents) {
  * @param {Object} state the current state
  * @param {String} filterName the filterName to add
  */
-function doAddFilter(state, filterName, group) {
-  let filters = { ...state.filtersByGroup[group] }
-  let filterNames = state.filterNamesByGroup[group].slice(0)
+function doAddFilter(state, filterName) {
+  let filters = { ...state.filters }
+  let filterNames = state.filterNames.slice(0)
   
   if (addFilter(filters, filterNames, filterName)) {
-    let newState = {...state}
-    newState.filterNamesByGroup[group] = filterNames
-    newState.filtersByGroup[group] = filters
-    return doFilterAll(newState, newState.resourcesByGroup[group], group)
+    return doFilterAll({ ...state,
+      filterNames: filterNames,
+      filters: filters
+    }, state.resources)
   } else {
     return state
   }
@@ -495,15 +511,15 @@ function doAddFilter(state, filterName, group) {
  * @param {*} state the current state
  * @param {*} filterNames the filter names to apply
  */
-function doSetFilterNames(state, filterNames, group) {
+function doSetFilterNames(state, filterNames) {
   let newFilters = {}
   let newFilterNames = []
   addFilter(newFilters, newFilterNames, ...filterNames)
   
-  let newState = {...state}
-  newState.filterNamesByGroup[group] = newFilterNames
-  newState.filtersByGroup[group] = newFilters
-  return doFilterAll(newState, newState.resourcesByGroup[group], group)
+  return doFilterAll({ ...state,
+    filterNames: newFilterNames,
+    filters: newFilters,
+  }, state.resources)
 }
 
 /**
@@ -568,16 +584,16 @@ function removeFilter(filters, filterNames, filterName, index) {
  * @param {*} filterName the filter to remove
  * @param {*} index the index of the filter to remove
  */
-function doRemoveFilter(state, filterName, index, group) {
+function doRemoveFilter(state, filterName, index) {
 
-  var filters = { ...state.filtersByGroup[group] }
-  var filterNames = state.filterNamesByGroup[group].slice(0)
+  var filters = { ...state.filters }
+  var filterNames = state.filterNames.slice(0)
 
   removeFilter(filters, filterNames, filterName, index)
 
   // need to re-apply filters after removing one
-  let newState = {...state}
-  newState.filterNamesByGroup[group] = filterNames
-  newState.filtersByGroup[group] = filters
-  return doFilterAll(newState, newState.resourcesByGroup[group], group)
+  return doFilterAll({ ...state,
+    filterNames: filterNames,
+    filters: filters
+  }, state.resources)
 }

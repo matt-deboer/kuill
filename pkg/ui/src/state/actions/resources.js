@@ -31,27 +31,26 @@ for (let type of [
   'SET_WATCHES',
   'DISABLE_KIND',
 ]) {
-  types[type] = `workloads.${type}`
+  types[type] = `resources.${type}`
 }
 
 export const maxReloadInterval = 5000
 
-export function replaceAll(resources, group) {
+export function replaceAll(resources, error) {
   return {
     type: types.REPLACE_ALL,
     resources: resources,
-    group: group,
+    error: error,
   }
 }
 
-export function filterAll(group) {
+export function filterAll() {
   return {
-    type: types.FILTER_ALL,
-    group: group,
+    type: types.FILTER_ALL
   }
 }
 
-export function putResource(newResource, isNew, group) {
+export function putResource(newResource, isNew) {
   return function(dispatch, getState) {
     
     let { maxResourceVersionByKind } = getState().resources
@@ -61,25 +60,23 @@ export function putResource(newResource, isNew, group) {
         type: types.PUT_RESOURCE,
         resource: newResource,
         isNew: isNew,
-        group: group,
       })
 
-      let { selectedResource, resourcesByGroup } = getState().resources
-      let resources = resourcesByGroup[group]
+      let { resource, resources } = getState().resources
       
       dispatch(reconcileEvents(resources))
 
-      if (sameResource(newResource, selectedResource)
-      || isResourceOwnedBy(resources, newResource, selectedResource)
-      || isResourceOwnedBy(resources, selectedResource, newResource)) {
+      if (sameResource(newResource, resource)
+      || isResourceOwnedBy(resources, newResource, resource)
+      || isResourceOwnedBy(resources, resource, newResource)) {
         dispatch({
           type: types.SELECT_RESOURCE,
           namespace: resource.metadata.namespace,
-          kind: selectedResource.kind,
-          name: selectedResource.metadata.name,
+          kind: resource.kind,
+          name: resource.metadata.name,
         })
         let { pods } = getState().resources
-        if (selectedResource.statusSummary === 'disabled') {
+        if (resource.statusSummary === 'disabled') {
           pods = {}
         }
         selectAllForResource(dispatch, resources, resource, pods)
@@ -88,11 +85,10 @@ export function putResource(newResource, isNew, group) {
   }
 }
 
-export function filterResource(resource, group) {
+export function filterResource(resource) {
   return {
     type: types.FILTER_RESOURCE,
-    resource: resource,
-    group: group,
+    resource: resource
   }
 }
 
@@ -107,7 +103,6 @@ export function addFilter(filter, group) {
     dispatch({
       type: types.ADD_FILTER,
       filter: filter,
-      group: group,
     })
     return updateFilterUrl(dispatch, getState, group)
   }
@@ -126,7 +121,6 @@ export function removeFilter(filter, index, group) {
       type: types.REMOVE_FILTER,
       filter: filter,
       index: index,
-      group: group,
     })
     return updateFilterUrl(dispatch, getState, group)
   }
@@ -141,7 +135,7 @@ export function removeFilter(filter, index, group) {
  */
 function updateFilterUrl(dispatch, getState, group) {
   let state = getState()
-  let newFilterNames = state.resources.filterNamesByGroup[group].slice(0)
+  let newFilterNames = state.resources.filterNames.slice(0)
   let currentFilterNames = queryString.parse(state.routing.location.search).filters
   if (currentFilterNames && currentFilterNames.constructor !== Array) {
     currentFilterNames = [currentFilterNames]
@@ -152,7 +146,7 @@ function updateFilterUrl(dispatch, getState, group) {
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
     let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
-      `?${queryString.stringify({filters: newFilterNames})}` :
+      `?${queryString.stringify({filters: state.resources.filterNames})}` :
       ''
     dispatch(routerActions.push(`/${group}${filterQuery}`))
   }
@@ -163,7 +157,6 @@ function updateFilterUrl(dispatch, getState, group) {
  * of filterNames
  * 
  * @param {Array} filterNames 
- * @param {String} group
  */
 export function setFilterNames(filterNames, group) {
   return function(dispatch, getState) {
@@ -173,7 +166,7 @@ export function setFilterNames(filterNames, group) {
       filterNames = [filterNames]
     }
     let state = getState()
-    let currentFilterNames = state.resources.filterNamesByGroup[group].slice(0)
+    let currentFilterNames = state.resources.filterNames.slice(0)
     currentFilterNames.sort()
     let newFilterNames = filterNames.slice(0)
     newFilterNames.sort()
@@ -183,7 +176,6 @@ export function setFilterNames(filterNames, group) {
       dispatch({
         type: types.SET_FILTER_NAMES,
         filterNames: filterNames,
-        group: group,
       })
     }
     updateFilterUrl(dispatch, getState, group)
@@ -206,17 +198,16 @@ export function scaleResource(namespace, kind, name, replicas) {
     })
 
     let { contents } = getState().resources.editor 
-    let { kubeKinds } = getState().apimodels.kinds
     if (contents) {
       let resource = createPost(contents)
-      if (resource.spec && 'replicas' in resource.spec) {
-        let prevReplicas = resource.spec.replicas
-        resource.spec.replicas = (typeof replicas === 'string' ? parseInt(replicas, 10) : replicas)
+      let spec = resource.spec
+      if (spec && ('replicas' in spec || 'readyReplicas' in spec)) {
+        let prevReplicas = spec.replicas
+        spec.replicas = (typeof replicas === 'string' ? parseInt(replicas, 10) : replicas)
         
         // Provide immediate feedback that the resource is scaling
-        resource.statusSummary = 'scaling ' + (prevReplicas > resource.spec.replicas ? 'down' : 'up')
-        let group = kubeKinds[resource.kind].resourceGroup
-        dispatch(putResource(resource, false, group))
+        resource.statusSummary = 'scaling ' + (prevReplicas > spec.replicas ? 'down' : 'up')
+        dispatch(putResource(resource, false))
 
         doRequest(dispatch, getState, 'updateResourceContents', async () => {
           await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
@@ -240,8 +231,9 @@ export function applyResourceChanges(namespace, kind, name, contents) {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
+      let kubeKind = getState().apimodels.kinds
       dispatch(routerActions.push({
-        pathname: linkForResource({name: name, namespace: namespace, kind: kind}).split('?')[0],
+        pathname: linkForResource({name: name, namespace: namespace, kind: kind}, kubeKind).split('?')[0],
         search: '?view=events',
         hash: '',
       }))
@@ -252,16 +244,18 @@ export function applyResourceChanges(namespace, kind, name, contents) {
 
 /**
  * @param {Boolean} force
+ * @param {Function} filter function(kubeKind) => boolean; returns true
+ *  if the kubeKind should be fetched
  */
-export function requestResources(group, force) {
+export function requestResources(force, filter) {
   return async function (dispatch, getState) {
     if (!getState().apimodels.swagger) {
       await requestSwagger()(dispatch, getState)
     } 
     
-    doRequest(dispatch, getState, `fetchResources[${group}]`, async () => {
-      await fetchResources(dispatch, getState, group, force)
-    })
+    doRequest(dispatch, getState, 'fetchResources', async () => {
+        await fetchResources(dispatch, getState, force, filter)
+      })
   }
 }
 
@@ -288,7 +282,7 @@ export function createResource(contents) {
       await doRequest(dispatch, getState, 'createResourceFromContents', async () => {
         resource = await createResourceFromContents(dispatch, getState, contents)
       })
-      // let workloads = getState().workloads
+      // let workloads = getState().resources
       if (!!resource) {
         dispatch(routerActions.push({
           pathname: linkForResource(resource).split('?')[0],
@@ -304,15 +298,11 @@ export function createResource(contents) {
 export function removeResource(...resourcesToRemove) {
   return async function (dispatch, getState) {
       
-      let { resourcesByGroup, selectedResource } = getState().resources
-      let { kubeKinds } = getState().apimodels.kinds
-
+      let { resources, resource } = getState().resources
       let updateSelected = false
       for (let toBeRemoved of resourcesToRemove) {
-        let kubeKind = kubeKinds[toBeRemoved.kind]
-        let resources = resourcesByGroup[kubeKind.resourceGroup]
-        if (isResourceOwnedBy(resources, toBeRemoved, selectedResource)
-        || isResourceOwnedBy(resources, selectedResource, toBeRemoved)) {
+        if (isResourceOwnedBy(resources, toBeRemoved, resource)
+        || isResourceOwnedBy(resources, resource, toBeRemoved)) {
           updateSelected = true
           break
         }
@@ -323,25 +313,22 @@ export function removeResource(...resourcesToRemove) {
       })
 
       if (updateSelected) {
-        let kubeKind = kubeKinds[selectedResource.kind]
-        let resources = resourcesByGroup[kubeKind.resourceGroup]
         dispatch({
           type: types.SELECT_RESOURCE,
-          namespace: selectedResource.metadata.namespace,
-          kind: selectedResource.kind,
-          name: selectedResource.metadata.name,
+          namespace: resource.metadata.namespace,
+          kind: resource.kind,
+          name: resource.metadata.name,
         })
         let { pods } = getState().resources
-        selectAllForResource(dispatch, resources, selectedResource, pods)
+        selectAllForResource(dispatch, resources, resource, pods)
       }
   }
 }
 
-function shouldFetchResources(getState, group, force) {
+function shouldFetchResources(getState, force) {
   let state = getState()
-  let { resourcesByGroup, lastLoaded } = state.resources
+  let { resources, lastLoaded } = state.resources
   let { user } = state.session
-  let resources = resourcesByGroup[group]
 
   // TODO: should also check on resources last loaded time
   let shouldRefresh = (!!force && (Date.now() - lastLoaded) > maxReloadInterval)
@@ -352,16 +339,15 @@ function shouldFetchResources(getState, group, force) {
   return shouldFetch
 }
 
-async function fetchResources(dispatch, getState, group, force) {
+async function fetchResources(dispatch, getState, force, filter) {
   
-  if (shouldFetchResources(getState, group, force)) {
-
+  if (shouldFetchResources(getState, force)) {
     let kubeKinds = getState().apimodels.kinds
+    let entryFilter = (typeof filter === 'function') ?
+      function(entry) { return filter(entry[1]) } : 
+      function(entry) { return true }
 
-    let urls = Object.entries(kubeKinds)
-        .filter(([kind, kubeKind]) => kubeKind.resourceGroup === group)
-        .map(([kind, kubeKind]) => [kind, `/proxy/${kubeKind.base}/${kubeKind.plural}`])
-
+    let urls = Object.entries(kubeKinds).filter(entryFilter).map(entry => [entry[0], `/proxy/${entry[1].base}/${entry[1].plural}`])
     let requests = urls.map(([kind,url],index) => fetch(url, defaultFetchParams
       ).then(resp => {
         if (!resp.ok) {
@@ -371,7 +357,7 @@ async function fetchResources(dispatch, getState, group, force) {
             dispatch(updatePermissionsForKind(kind, {
               namespaced: true
             }))
-            return fetchResourcesByNamespace(dispatch, getState, kubeKinds[kind], kind)
+            return fetchResourcesByNamespace(dispatch, getState, KubeKinds.resources[kind], kind)
           } else if (resp.status === 404) {
             dispatch(disableResourceKind(kind))
           } else {
@@ -384,9 +370,7 @@ async function fetchResources(dispatch, getState, group, force) {
         }
       }
     ))
-    if (group === 'workloads') {
-      requests.push(fetchThirdPartyResources(dispatch, getState))
-    }
+    requests.push(fetchThirdPartyResources(dispatch, getState))
 
     let results = await Promise.all(requests)
 
@@ -423,7 +407,7 @@ async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
 }
 
 async function fetchThirdPartyResources(dispatch, getState) {
-  let kubeKind = getState().apimodels.kinds.ThirdPartyResource
+  let kubeKind = KubeKinds.cluster.ThirdPartyResource
   let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
 
   return await fetch(tprURL, defaultFetchParams
@@ -515,14 +499,14 @@ function parseResults(dispatch, getState, results) {
 function watchResources(dispatch, getState) {
   
     let accessEvaluator = getState().session.accessEvaluator
-    let watches = getState().workloads.watches || {}
-    let maxResourceVersionByKind = getState().workloads.maxResourceVersionByKind
+    let watches = getState().resources.watches || {}
+    let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
     
     var watchableNamespaces
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
-      for (let kind in KubeKinds.workloads) {
+      for (let kind in KubeKinds.resources) {
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
         if (watchableNamespaces.length > 0) {
           let watch = watches[kind]
@@ -539,7 +523,7 @@ function watchResources(dispatch, getState) {
         }
       }
     } else {
-      for (let kind in KubeKinds.workloads) {
+      for (let kind in KubeKinds.resources) {
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
         if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({
@@ -562,7 +546,7 @@ function watchResources(dispatch, getState) {
 async function fetchResource(dispatch, getState, namespace, kind, name) {
   await fetchResources(dispatch, getState)
   
-  let currentResource = getState().workloads.resource
+  let currentResource = getState().resources.resource
   if (!currentResource 
       || currentResource.metadata.namespace !== namespace
       || currentResource.kind !== kind
@@ -577,7 +561,7 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
   
     // TODO: this sets defaults and options for terminal and logs viewer;
     // there is probably a better way to do this
-    let { pods, resource, resources } = getState().workloads
+    let { pods, resource, resources } = getState().resources
     
     if (!!resource) {
       selectAllForResource(dispatch, resources, resource, pods)
@@ -608,14 +592,14 @@ function selectAllForResource(dispatch, resources, resource, pods) {
 
 async function updateResourceContents(dispatch, getState, namespace, kind, name, contents) {
   
-  let resource = getState().workloads.resource
+  let resource = getState().resources.resource
   let body = JSON.stringify(createPatch(resource, contents))
 
   // mimic kubectl annotations so that changes applied in
   // the UI are compatible with those applied in the cli
   // @see https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
 
-  let api = KubeKinds.workloads[kind]
+  let api = KubeKinds.resources[kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
   await fetch(url, { ...defaultFetchParams,
     headers: {
@@ -643,7 +627,7 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
 async function createResourceFromContents(dispatch, getState, contents) {
   let resource = createPost(contents)
   let { namespace } = resource.metadata
-  let api = KubeKinds.workloads[resource.kind]
+  let api = KubeKinds.resources[resource.kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
   let body = JSON.stringify(resource)
 
@@ -672,7 +656,7 @@ async function createResourceFromContents(dispatch, getState, contents) {
         let resource = json
         resource.key = keyForResource(resource)
         dispatch(putResource(resource, true))
-        return getState().workloads.resources[resource.key]
+        return getState().resources.resources[resource.key]
       }
     }
   })
@@ -680,7 +664,7 @@ async function createResourceFromContents(dispatch, getState, contents) {
 
 async function removeResources(dispatch, getState, resources) {
   
-  let knownResources = getState().workloads.resources
+  let knownResources = getState().resources.resources
   let resourcesToRemove = []
   for (let r of resources) {
     if (r.key in knownResources) {
@@ -690,7 +674,7 @@ async function removeResources(dispatch, getState, resources) {
 
   let urls = resourcesToRemove.map(resource => {
     let { namespace, name } = resource.metadata
-    let api = KubeKinds.workloads[resource.kind]
+    let api = KubeKinds.resources[resource.kind]
     return `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
   })
   
@@ -750,9 +734,9 @@ export function editResource(namespace, kind, name) {
 
 async function fetchResourceContents(dispatch, getState, namespace, kind, name) {
 
-  let api = KubeKinds.workloads[kind]
+  let api = KubeKinds.resources[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
-  let resource = getState().workloads.resource
+  let resource = getState().resources.resource
   await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 
       defaultFetchParams
     ).then(resp => {
