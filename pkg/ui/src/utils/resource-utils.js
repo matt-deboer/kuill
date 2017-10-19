@@ -231,15 +231,35 @@ export function statusForResource(resource) {
             if (!resource.status.conditions) {
                 return 'scaling up'
             } else {
-                let cond = resource.status.conditions[0]
-                if (cond.type === 'Initialized' && cond.status === 'True') {
-                    return 'ok'
-                } else if ((cond.type === 'Ready' || cond.type === 'PodScheduled')) {
-                    if (cond.status === 'True') {
-                        return 'scaling up'
-                    } else {
-                        return 'error'
+                let ready = false
+                let scheduled = false
+                let initialized = false
+                for (let cond of resource.status.conditions) {
+                    if (cond.type === 'Initialized') {
+                        initialized = (cond.status === 'True')
+                    } else if (cond.type === 'PodScheduled') {
+                        scheduled = (cond.status === 'True')
+                    } else if (cond.type === 'Ready') {
+                        ready = (cond.status === 'True')
                     }
+                }
+                if (ready && scheduled && initialized) {
+                    for (let cs of resource.status.containerStatuses) {
+                        // if a container's previous run lasted less than 15 minutes, and the current
+                        // run has been less than 15 minutes, we'll consider the container flapping
+                        const fifteenMinutes = 1000 * 60 * 15
+                        let lastRun = cs.lastState.terminated
+                        if (!!lastRun) {
+                            let lastDuration = Date.parse(lastRun.finishedAt) - Date.parse(lastRun.startedAt)
+                            let currentDuration = Date.now() - Date.parse(cs.state.running.startedAt)
+                            if (currentDuration < fifteenMinutes && (lastDuration < fifteenMinutes || lastRun.reason !== 'Completed')) {
+                                return 'warning'
+                            }
+                        }
+                    }
+                    return 'ok'
+                } else if (ready || scheduled) {
+                    return 'scaling up'
                 }
             }
             break
