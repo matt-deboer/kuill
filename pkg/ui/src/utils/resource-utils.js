@@ -244,15 +244,20 @@ export function statusForResource(resource) {
                     }
                 }
                 if (ready && scheduled && initialized) {
+                    let podDuration = Date.now() - Date.parse(resource.status.startTime)
                     for (let cs of resource.status.containerStatuses) {
-                        // if a container's previous run lasted less than 15 minutes, and the current
+                        // If a container's previous run lasted less than 15 minutes, and the current
                         // run has been less than 15 minutes, we'll consider the container flapping
+                        // Also if the container's average uptime is less than 15 minutes and it has
+                        // restarted at least twice, we'll consider it flapping
                         const fifteenMinutes = 1000 * 60 * 15
                         let lastRun = cs.lastState.terminated
                         if (!!lastRun) {
                             let lastDuration = Date.parse(lastRun.finishedAt) - Date.parse(lastRun.startedAt)
                             let currentDuration = Date.now() - Date.parse(cs.state.running.startedAt)
                             if (currentDuration < fifteenMinutes && (lastDuration < fifteenMinutes || lastRun.reason !== 'Completed')) {
+                                return 'warning'
+                            } else if (cs.restartCount > 1 && podDuration / cs.restartCount < fifteenMinutes) {
                                 return 'warning'
                             }
                         }
