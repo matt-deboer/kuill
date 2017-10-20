@@ -6,7 +6,7 @@ import NodesTab from './NodesTab'
 import { withRouter } from 'react-router-dom' 
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import ClusterResourceTab from './ClusterResourceTab'
+import PersistentVolumesTab from './PersistentVolumesTab'
 import StorageClassesTab from './StorageClassesTab'
 import ResourceQuotasTab from './ResourceQuotasTab'
 import NamespacesTab from './NamespacesTab'
@@ -70,7 +70,7 @@ class ClusterPage extends React.Component {
     this.tabs.push({
       label: 'Persistent Volumes',
       name: 'persistentvolumes',
-      component: <ClusterResourceTab kind="PersistentVolume" />,
+      component: <PersistentVolumesTab />,
     })
 
     this.tabs.push({
