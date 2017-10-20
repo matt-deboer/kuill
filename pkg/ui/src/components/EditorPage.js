@@ -262,7 +262,7 @@ class EditorPage extends React.Component {
       title=!!resource &&
         (<div>
           <span style={{ paddingRight: 10, color: 'rgb(240,240,240)'}}>{mode}:</span>
-          <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace} / ${resource.kind} / ${resource.metadata.name}`}</span>
+          <span style={{fontWeight: 600, color: 'rgb(240,240,240)'}}>{`${resource.metadata.namespace || '~'} / ${resource.kind} / ${resource.metadata.name}`}</span>
         </div>
         )
     }
