@@ -83,6 +83,7 @@ const styles = {
   },
   cardHeaderTitleStyle: {
     fontSize: '24px',
+    lineHeight: '30px',
     fontWeight: 600,
     paddingLeft: 10,
     color: 'rgba(240,240,240,1)',
@@ -91,7 +92,7 @@ const styles = {
     maxWidth: 'calc(100vw - 320px)',
     verticalAlign: 'middle',
     whiteSpace: 'nowrap',
-  }
+  },
 }
 
 
