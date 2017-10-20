@@ -257,7 +257,9 @@ class ClusterResourceTab extends React.Component {
       this.actionsClicked = true
       return false
     } else {
-      this.props.viewResource(resource)
+      if (!col.clickDisabled) {
+        this.props.viewResource(resource)
+      }
       return false
     }
   }

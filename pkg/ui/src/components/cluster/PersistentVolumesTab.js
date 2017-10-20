@@ -117,6 +117,7 @@ class PersistentVolumesTab extends React.Component {
             return `${ref.kind}/${ref.namespace}/${ref.name}`
           }
         },
+        clickDisabled: true,
         render: function(r) {
           let ref = r.spec.claimRef
           if (ref) {
