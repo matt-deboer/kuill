@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { editResource, requestResource, applyResourceChanges } from '../state/actions/cluster'
+import { editResource, requestResource, applyResourceChanges } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
@@ -19,9 +19,9 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.cluster.resource,
+    resource: store.resources.resource,
     user: store.session.user,
-    editor: store.cluster.editor,
+    editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
   }

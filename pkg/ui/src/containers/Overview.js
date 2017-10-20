@@ -16,8 +16,7 @@ import ResourceCounts from '../components/dashboard/ResourceCounts'
 import NamespaceBarChart from '../components/dashboard/NamespaceBarChart'
 
 import { watchEvents } from '../state/actions/events'
-import { requestResources as requestClusterResources } from '../state/actions/cluster'
-import { requestResources as requestWorkloadsResources } from '../state/actions/workloads'
+import { requestResources } from '../state/actions/resources'
 import { calculateMetrics } from '../utils/summary-utils'
 import { connect } from 'react-redux'
 import './Overview.css'
@@ -29,20 +28,20 @@ const mapStateToProps = function(store) {
     // memory: store.cluster.memory,
     // podCount: store.workloads.podCount,
     // memoryUnits: store.cluster.memoryUnits,
-    isFetching: store.cluster.isFetching,
+    // isFetching: store.cluster.isFetching,
     user: store.session.user,
     recentEvents: store.events.recentEvents,
     events: store.events.events,
     eventsRevision: store.events.revision,
     countsByNamespace: store.workloads.countsByNamespace,
     workloadsRevision: store.workloads.revision,
-    clusterRevision: store.cluster.resourceRevision,
-    clusterResources: store.cluster.resources,
+    resourceRevision: store.resources.resourceRevision,
+    resources: store.resources.resources,
     clusterMetrics: store.metrics.cluster,
     namespaceMetrics: store.metrics.namespace,
     selectedNamespaces: store.usersettings.selectedNamespaces,
     metricsRevision: store.metrics.revision,
-    quotasByNamespace: store.cluster.quotasByNamespace,
+    quotasByNamespace: store.resources.quotasByNamespace,
   }
 }
 
@@ -68,7 +67,7 @@ class Overview extends React.Component {
     if (props.user) {
       this.fetch()
     }
-    this.nodes = Object.entries(props.clusterResources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
   }
 
   fetch = () => {
@@ -82,12 +81,12 @@ class Overview extends React.Component {
     if (!!nextProps.user && !this.props.user) {
       this.fetch()
     }
-    this.nodes = Object.entries(this.props.clusterResources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.nodes = Object.entries(this.props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return (this.props.workloadsRevision !== nextProps.workloadsRevision
-      || this.props.clusterRevision !== nextProps.clusterRevision
+      || this.props.resourceRevision !== nextProps.resourceRevision
       || this.props.metricsRevision !== nextProps.metricsRevision
       || this.props.eventsRevision !== nextProps.eventsRevision
       || this.props.selectedNamespaces !== nextProps.selectedNamespaces
@@ -146,7 +145,7 @@ class Overview extends React.Component {
           <NamespaceBarChart
             stats={stats}
             style={{paddingTop: 50}}
-            clusterRevision={props.clusterRevision}/>
+            resourceRevision={props.resourceRevision}/>
         </div>
 
         <div className="row" style={styles.summaryStatsBox}>

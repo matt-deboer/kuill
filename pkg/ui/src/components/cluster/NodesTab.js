@@ -3,7 +3,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
+import { addFilter, removeFilter, removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 import { toHumanizedAge } from '../../converters'
@@ -29,13 +29,13 @@ import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
-    filters: store.cluster.filters,
-    filterNames: store.cluster.filterNames,
-    possibleFilters: store.cluster.possibleFilters,
-    resourceRevision: store.cluster.resourceRevision,
+    filters: store.resources.filters,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
+    resourceRevision: store.resources.resourceRevision,
     nodeMetrics: store.metrics.node,
     metricsRevision: store.metrics.revision,
-    resources: store.cluster.resources,
+    resources: store.resources.resources,
     kinds: store.apimodels.kinds,
   }
 }

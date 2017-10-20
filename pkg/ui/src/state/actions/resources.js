@@ -507,7 +507,7 @@ function watchResources(dispatch, getState) {
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
       for (let kind in KubeKinds.resources) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
+        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
         if (watchableNamespaces.length > 0) {
           let watch = watches[kind]
           if (!!watch && watch.closed()) {
@@ -524,7 +524,7 @@ function watchResources(dispatch, getState) {
       }
     } else {
       for (let kind in KubeKinds.resources) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'workloads')
+        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
         if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({
             kind: kind, 

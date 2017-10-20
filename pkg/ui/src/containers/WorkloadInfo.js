@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { applyResourceChanges, requestResource, editResource, removeResource, scaleResource } from '../state/actions/workloads'
+import { applyResourceChanges, requestResource, editResource, removeResource, scaleResource } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
@@ -21,14 +21,14 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.workloads.resource,
-    resourceNotFound: store.workloads.resourceNotFound,
-    isFetching: store.workloads.isFetching,
+    resource: store.resources.resource,
+    resourceNotFound: store.resources.resourceNotFound,
+    isFetching: store.resources.isFetching,
     user: store.session.user,
-    editor: store.workloads.editor,
+    editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
-    resourceRevision: store.workloads.resourceRevision,
+    resourceRevision: store.resources.resourceRevision,
   }
 }
 

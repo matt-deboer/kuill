@@ -358,19 +358,11 @@ function doSelectResource(state, namespace, kind, name) {
   }
 }
 
-// function decrementBackoff(backoff) {
-//   return Math.max(Math.floor(backoff / 4), 0)
-// }
-
-// function incrementBackoff(backoff) {
-//   return Math.max(backoff * 2, 1000)
-// }
-
-
 function doReceiveResources(state, resources) {
+  
   let newState = {...state, 
-    possibleFilters: [], 
-    resources: resources,
+    possibleFilters: [],
+    resources: {...state.resources, ...resources},
     podCount: 0,
     problemResources: {},
     lastLoaded: Date.now(),
@@ -379,38 +371,19 @@ function doReceiveResources(state, resources) {
     countsByKind: {},
   }
   
-  let possible = null
-  if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
-    possible = {}
-  }
-
+  let possible = {}
   let unnresolvedOwnership = {}
 
-  visitResources(newState.resources, function(resource) {
+  visitResources(resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
     registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources, possible)
-    if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
-      newState.problemResources[resource.key] = resource
-    }
+    updateProblemResources(newState, resource)
     updatePossibleFilters(possible, resource)
     applyFiltersToResource(newState.filters, resource)
-    newState.maxResourceVersionByKind[resource.kind] = Math.max(newState.maxResourceVersionByKind[resource.kind] || 0, resource.metadata.resourceVersion)
-    if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
-      newState.maxResourceVersionByKind[resource.kind] = 
-        parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
-    }
-    if (!!resource.metadata.namespace) {
-      newState.namespaces[resource.metadata.namespace]=true
-    }
-    if (resource.kind === 'Pod') {
-      ++newState.podCount
-      newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
-      newState.podsByNode[resource.spec.nodeName][resource.key] = resource
-    }
-    newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0
-    newState.countsByKind[resource.kind]++
-    newState.countsByNamespace[resource.metadata.namespace] = newState.countsByNamespace[resource.metadata.namespace] || 0 
-    newState.countsByNamespace[resource.metadata.namespace]++
+    updateVersionByKind(newState, resource)
+    updateNamespaces(newState, resource)
+    updatePodCount(newState, resource)
+    updateResourceCounts(newState, resource)
   })
 
   for (let ownerKey in unnresolvedOwnership) {
@@ -420,11 +393,50 @@ function doReceiveResources(state, resources) {
     }
   }
 
-  if (possible !== null) {
-    newState.possibleFilters = Object.keys(possible)
-  }
+  newState.possibleFilters = Object.keys(possible)
   ++newState.resourceRevision
   return newState
+}
+
+function updateProblemResources(state, resource) {
+  if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
+    state.problemResources[resource.key] = resource
+  }
+}
+
+function updateVersionByKind(state, resource) {
+  
+  let currentMax = state.maxResourceVersionByKind[resource.kind] || 0
+  if (typeof currentMax !== 'number') {
+    currentMax = parseInt(currentMax, 10)
+  }
+  let resourceVersion = resource.metadata.resourceVersion
+  if (typeof currentMax !== 'number') {
+    resourceVersion = parseInt(resourceVersion, 10)
+  }
+
+  state.maxResourceVersionByKind[resource.kind] = Math.max(currentMax, resourceVersion)
+}
+
+function updateNamespaces(state, resource) {
+  if (!!resource.metadata.namespace) {
+    state.namespaces[resource.metadata.namespace]=true
+  }
+}
+
+function updatePodCount(state, resource) {
+  if (resource.kind === 'Pod') {
+    ++state.podCount
+    state.podsByNode[resource.spec.nodeName] = state.podsByNode[resource.spec.nodeName] || {}
+    state.podsByNode[resource.spec.nodeName][resource.key] = resource
+  }
+}
+
+function updateResourceCounts(state, resource) {
+  state.countsByKind[resource.kind] = state.countsByKind[resource.kind] || 0
+  state.countsByKind[resource.kind]++
+  state.countsByNamespace[resource.metadata.namespace] = state.countsByNamespace[resource.metadata.namespace] || 0 
+  state.countsByNamespace[resource.metadata.namespace]++
 }
 
 /**

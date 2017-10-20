@@ -4,7 +4,7 @@ import { zoneLabel } from '../../utils/filter-utils'
 import UtilizationPieChart from './UtilizationPieChart'
 import HexagonChart from './HexagonChart'
 import { connect } from 'react-redux'
-import { setFilterNames } from '../../state/actions/cluster'
+import { setFilterNames } from '../../state/actions/resources'
 import { hostnameLabel } from '../../utils/filter-utils'
 import HelpText from '../../i18n/help-text'
 import './NodeHeatmap.css'
@@ -38,8 +38,8 @@ const usageQuantiles = [20, 40, 60, 80, 100]
 
 const mapStateToProps = function(store) {
   return {
-    filterNames: store.cluster.filterNames,
-    resourceRevision: store.cluster.resourceRevision,
+    filterNames: store.resources.filterNames,
+    resourceRevision: store.resources.resourceRevision,
   }
 }
 

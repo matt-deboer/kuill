@@ -2,7 +2,7 @@ import React from 'react'
 import {blueA400, grey200, grey300, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { removeResource } from '../../state/actions/cluster'
+import { removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 

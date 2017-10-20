@@ -403,7 +403,7 @@ function watchResources(dispatch, getState, resourceVersion) {
         }
       }
     } else {
-      for (let [kind, kubeKind] of Object.entries(KubeKinds)) {
+      for (let [kind, kubeKind] of Object.entries(kubeKinds)) {
         if (kubeKind.resourceGroup === 'access' && kubeKind.verbs.includes('watch')) {
           watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
           if (watchableNamespaces.length > 0) {

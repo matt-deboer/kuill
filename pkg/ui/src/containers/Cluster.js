@@ -1,16 +1,16 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, setFilterNames } from '../state/actions/cluster'
+import { requestResources, setFilterNames } from '../state/actions/resources'
 import ClusterPage from '../components/cluster/ClusterPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.cluster.resources,
-    filterNames: store.cluster.filterNames,
-    possibleFilters: store.cluster.possibleFilters,
-    isFetching: store.cluster.isFetching,
+    resources: store.resources.resources,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
+    // isFetching: store.cluster.isFetching,
     user: store.session.user,
   }
 }
