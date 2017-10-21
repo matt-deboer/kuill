@@ -49,7 +49,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          paddingLeft: 20,
+          paddingLeft: '25%',
         },
         value: function(r) {
           return r.metadata.name
@@ -61,7 +61,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 100,
+          width: '10%',
         },
         value: function(r) {
           return r.spec.capacity.storage
@@ -73,7 +73,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 120,
+          width: '10%',
         },
         value: function(r) {
           return r.spec.accessModes.map(m=>m.replace(/[a-z]+/g,'')).join(', ')
@@ -85,7 +85,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 120,
+          width: '10%',
         },
         value: function(r) {
           return r.spec.persistentVolumeReclaimPolicy
@@ -97,7 +97,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 100,
+          width: '10%',
         },
         value: function(r) {
           return r.status.phase
@@ -109,7 +109,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 300,
+          width: '20%',
         },
         value: function(r) {
           let ref = r.spec.claimRef
@@ -134,7 +134,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 120,
+          width: '15%',
         },
         value: function(r) {
           return r.spec.storageClassName

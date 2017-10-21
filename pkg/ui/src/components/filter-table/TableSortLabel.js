@@ -58,6 +58,7 @@ export default class TableSortLabel extends React.Component {
       || this.state.order !== nextState.order
       || this.props.order !== nextProps.order
       || this.props.active !== nextProps.active
+      || this.props.sortable !== nextProps.sortable
     )
     return shouldUpdate
   }
@@ -115,6 +116,7 @@ export default class TableSortLabel extends React.Component {
           label={props.text || "&nbsp;"}
           labelPosition={'before'}
           labelStyle={styles.label}
+          disabled={!props.sortable}
           onTouchTap={this.onRequestSort}
           icon={orderIcons[props.sortable ? this.state.order : 'unsortable']}
           />

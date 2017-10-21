@@ -183,19 +183,6 @@ export default class FilterTable extends React.PureComponent {
     let { props } = this;
     console.log(`(re) rendering filter-table`)
 
-    let headerColumns = 
-        props.columns.map(col => 
-          <TableSortLabel
-            key={col.id}
-            text={col.label}
-            style={{...col.style, ...col.headerStyle}}
-            onRequestSort={this.createSortHandler(col.id)}
-            active={this.state.orderBy === col.id}
-            sortable={!!col.sortable}
-            iconStyle={props.iconStyle}
-            iconInactiveStyle={props.iconInactiveStyle}
-        />)
-
     let dataRows =
         this.state.data.map((row, rowIndex) => {
           let id = props.getCellValue(props.idColumn, row)
@@ -213,6 +200,19 @@ export default class FilterTable extends React.PureComponent {
             </TableRow>
           )
         })
+
+    let headerColumns = 
+        props.columns.map(col => 
+          <TableSortLabel
+            key={col.id}
+            text={col.label}
+            style={{...col.style, ...col.headerStyle}}
+            onRequestSort={this.createSortHandler(col.id)}
+            active={this.state.orderBy === col.id}
+            sortable={!!col.sortable && dataRows.length > 0}
+            iconStyle={props.iconStyle}
+            iconInactiveStyle={props.iconInactiveStyle}
+        />)
 
     return (
       <div className={'filter-table-root'}>
