@@ -1,15 +1,11 @@
 
 import React from 'react'
 import { white } from 'material-ui/styles/colors'
-<<<<<<< HEAD
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { toHumanizedAge } from '../../converters'
 import { linkForResource } from '../../routes'
 import FilterChip from '../FilterChip'
-=======
-import { toHumanizedAge } from '../../converters'
->>>>>>> initial tpr support
 import ClusterResourceTab from './ClusterResourceTab'
 
 const styles = {

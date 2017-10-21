@@ -6,10 +6,7 @@ import NodesTab from './NodesTab'
 import { withRouter } from 'react-router-dom' 
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-<<<<<<< HEAD
 import PersistentVolumesTab from './PersistentVolumesTab'
-=======
->>>>>>> initial tpr support
 import StorageClassesTab from './StorageClassesTab'
 import ResourceQuotasTab from './ResourceQuotasTab'
 import NamespacesTab from './NamespacesTab'
