@@ -1,7 +1,9 @@
 
 import React from 'react'
 import { white } from 'material-ui/styles/colors'
-import { toHumanizedAge } from '../../converters'
+import { toHumanizedAge, convertUnits, parseUnits } from '../../converters'
+import { routerActions } from 'react-router-redux'
+import { connect } from 'react-redux'
 import ClusterResourceTab from './ClusterResourceTab'
 
 const styles = {
@@ -17,12 +19,36 @@ const styles = {
   },
 }
 
-export default class StorageClassesTab extends React.Component {
+const mapStateToProps = function(store) {
+  return {
+    resources: store.cluster.resources,
+  }
+}
+
+const mapDispatchToProps = function(dispatch, ownProps) {
+  return {
+    selectView: function(tab) {
+      let { location } = ownProps
+      let newSearch = `?view=${tab}`
+      console.log(`selectView: pushed new location...`)
+      dispatch(routerActions.push({
+        pathname: location.pathname,
+        search: newSearch,
+        hash: location.hash,
+      }))
+    },
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps) (
+class StorageClassesTab extends React.Component {
 
   constructor(props) {
     super(props)
 
+    this.updateVolumesByClass(props.resources)
     this.kind = 'StorageClass'
+    let that = this
     this.columns = [
       {
         id: 'name',
@@ -34,6 +60,44 @@ export default class StorageClassesTab extends React.Component {
         },
         value: function(r) {
           return r.metadata.name
+        },
+      },
+      {
+        id: 'volumes',
+        label: 'volumes',
+        sortable: true,
+        headerStyle: {...styles.header,
+          paddingRight: 20,
+        },
+        style: { ...styles.cell,
+          width: 240,
+          textAlign: 'right',
+          paddingRight: 30,
+        },
+        value: function(r) {
+          return (that.state.volumesByClass[r.name] || []).length
+        },
+      },
+      {
+        id: 'provisioned-capacity',
+        label: 'provisioned capacity',
+        sortable: true,
+        headerStyle: {...styles.header,
+          paddingRight: 20,
+        },
+        style: { ...styles.cell,
+          width: 240,
+          textAlign: 'right',
+          paddingRight: 40,
+        },
+        value: function(r) {
+          let size = 0
+          for (let vol of (that.state.volumesByClass[r.name] || [])) {
+            let cap = parseUnits(vol.spec.capacity.storage)
+            let total = convertUnits(cap[0], cap[1], 'gibibytes')
+            size += total
+          }
+          return `${size} Gi`
         },
       },
       {
@@ -67,7 +131,28 @@ export default class StorageClassesTab extends React.Component {
     ]
   }
 
+  updateVolumesByClass = (resources) => {
+    let volumesByClass = {}
+    Object.entries(resources).filter(([key, resource])=> resource.kind === 'PersistentVolume')
+      .map(([key, resource]) => {
+        let volumes = volumesByClass[resource.spec.storageClassName] || []
+        volumes.push(resource)
+        volumesByClass[resource.spec.storageClassName] = volumes
+      })
+    this.setState({
+      volumesByClass: volumesByClass
+    })
+  }
+
+  componentWillReceiveProps = (props) => {
+    this.updateVolumesByClass(props.resources)
+  }
+
+  getVolumesForStorageClass = (sc) => {
+
+  }
+
   render() {
     return <ClusterResourceTab kind={this.kind} columns={this.columns} deletable={true}/>
   }
-}
+})

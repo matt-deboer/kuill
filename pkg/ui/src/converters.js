@@ -110,6 +110,21 @@ export function decodeBase64(input) {
   return unescape(output)
 }
 
+export function parseUnits(valueWithUnit) {
+  let parts = valueWithUnit.match(/([0-9]+)([A-Z)[iBb])/)
+  switch (parts[2]) {
+    case 'Gi': case 'gibibytes':
+      parts[2] = 'gibibytes'
+      break
+    case 'Mi': case 'mebibytes':
+      parts[2] = 'mebibytes'
+      break
+    case 'Ki': case 'kibibytes':
+      parts[2] = 'kibibytes'
+      break
+  }
+  return parts.slice(1)
+}
 
 export function convertUnits(value, baseUnit, targetUnit) {
   let base = baseUnit.split('/')
