@@ -16,13 +16,13 @@ export default function FilterChip(props) {
     return (
 
         <Chip
-          style={{
+          style={{...props.style, ...{
             margin: '8px 8px 0 0',
             padding: 0,
             float: 'left', 
             pointerEvents: props.isDisabled ? 'none' : 'all' 
-          }}
-          labelStyle={{'lineHeight': '22px', fontSize: '12px'}}
+          }}}
+          labelStyle={{...{'lineHeight': '22px', fontSize: '12px',...props.labelStyle}}}
           backgroundColor={props.isFocused ? blueA100 : null}
           onTouchTap={props.onTouchTap}
           onRequestDelete={props.onRequestDelete}

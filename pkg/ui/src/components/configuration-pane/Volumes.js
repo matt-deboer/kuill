@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 
 export default class Volumes extends React.PureComponent {
   

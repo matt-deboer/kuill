@@ -79,7 +79,7 @@ class ConfigurationPane extends React.Component {
       contents = (
         <div className="row" style={{marginLeft: 0, marginRight: 0}}> 
           <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <PodDetailsPanel resource={resource} />
+            <PodDetailsPanel resource={resource} linkGenerator={linkGenerator}/>
           </div>
           <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <Card style={{...styles.cards}}>

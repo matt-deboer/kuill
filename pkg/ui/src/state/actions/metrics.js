@@ -1,4 +1,4 @@
-import { defaultFetchParams, sleep } from '../../utils/request-utils'
+import { defaultFetchParams } from '../../utils/request-utils'
 import { invalidateSession } from './session'
 import { doRequest } from './requests'
 

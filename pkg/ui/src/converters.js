@@ -122,6 +122,7 @@ export function parseUnits(valueWithUnit) {
     case 'Ki': case 'kibibytes':
       parts[2] = 'kibibytes'
       break
+    default:
   }
   return parts.slice(1)
 }

@@ -251,7 +251,6 @@ export function applyResourceChanges(namespace, kind, name, contents) {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
-      let kubeKind = getState().apimodels.kinds[kind]
       let link = getState().session.linkGenerator.linkForResource({
         name: name, namespace: namespace, kind: kind})
       dispatch(routerActions.push({

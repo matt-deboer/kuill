@@ -1,13 +1,12 @@
 import React from 'react'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
-import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { addFilter, removeFilter, removeResource, viewResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
-import { toHumanizedAge } from '../../converters'
-
+import FilterChip from '../FilterChip'
+import { toHumanizedAge, convertUnits } from '../../converters'
 import { withRouter } from 'react-router-dom'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
@@ -54,6 +53,11 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeResource(...resources))
     }
   } 
+}
+
+const ignoredLabels = {
+  'kubernetes.io/hostname': true,
+  'beta.kubernetes.io/arch': true,
 }
 
 const styles = {
@@ -136,8 +140,9 @@ class NodesTab extends React.Component {
       hoveredResources: null,
     }
     this.selectedIds = {}
-    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
-    this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.extractNodes(props.resources)
+    // this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    // this.rows = Object.entries(this.nodes).map(([k,v])=> v).filter(v => !v.isFiltered)
     this.columns = [
       {
         id: 'status',
@@ -157,9 +162,18 @@ class NodesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '35%',
+          width: '25%',
           paddingLeft: 20,
         },
+      },
+      {
+        id: 'labels',
+        label: 'labels',
+        sortable: true,
+        headerStyle: styles.header,
+        style: { ...styles.cell,
+          width: '40%',
+        }
       },
       {
         id: 'age',
@@ -212,6 +226,21 @@ class NodesTab extends React.Component {
         },
       },
       {
+        id: 'cpu_total',
+        label: 'cpu total',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+        },
+        style: { ...styles.cell,
+          width: 50,
+          textAlign: 'right',
+        },
+      },
+      {
         id: 'mem_utilized',
         label: 'mem used',
         sortable: true,
@@ -227,8 +256,38 @@ class NodesTab extends React.Component {
         },
       },
       {
+        id: 'mem_total',
+        label: 'mem total',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+        },
+        style: { ...styles.cell,
+          width: 58,
+          textAlign: 'right',
+        },
+      },
+      {
         id: 'disk_utilized',
         label: 'disk used',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+        },
+        style: { ...styles.cell,
+          width: 52,
+          textAlign: 'right',
+        },
+      },
+      {
+        id: 'disk_total',
+        label: 'disk total',
         sortable: true,
         isNumeric: true,
         headerStyle: {...styles.header,
@@ -272,6 +331,24 @@ class NodesTab extends React.Component {
       //   className: 'resource-actions',
       // },
     ]
+  }
+
+  extractNodes = (resources) => {
+    this.nodes = Object.entries(resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    let allLabels = {}
+    this.rows = Object.entries(this.nodes).map(([k,v])=> v).filter(v => {
+      for (let key in v.metadata.labels) {
+        allLabels[key] = allLabels[key] || {}
+        allLabels[key][v.metadata.labels[key]] = true
+      }
+      return !v.isFiltered
+    })
+    this.labelsOfInterest = {}
+    for (let name in allLabels) {
+      if (Object.keys(allLabels[name]).length > 1 && !(name in ignoredLabels)) {
+        this.labelsOfInterest[name]=true
+      }
+    }
   }
 
   resourcesToRows = (resources) => {
@@ -346,9 +423,9 @@ class NodesTab extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    // this.rows = this.resourcesToRows(nextProps.resources)
-    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
-    this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.extractNodes(nextProps.resources)
+    // this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    // this.rows = Object.entries(this.nodes).map(([k,v])=> v).filter(v => !v.isFiltered)
   }
 
   renderCell = (column, row) => {
@@ -362,24 +439,55 @@ class NodesTab extends React.Component {
         return row.metadata.namespace
       case 'kind':
         return row.kind
+      case 'labels':
+        return <div>
+          {Object.entries(row.metadata.labels).filter(([key, val])=> (key in this.labelsOfInterest))
+            .map(([key, val]) => 
+              <FilterChip key={key} prefix={key.split('/').pop()} suffix={val} 
+                labelStyle={{fontSize: 10}} style={{margin: '5px 5px 0 0',}}
+              />)
+          }
+        </div>
       case 'mem_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.memory.usage / metrics.memory.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'mem_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.memory.total, 'bytes', 'gibibytes')
+        } else {
+          value = 0
+        }
+        return value.toFixed(2) + ' Gi'
       case 'cpu_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.cpu.usage / metrics.cpu.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'cpu_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.cpu.total, 'millicores', 'cores')
+        }
+        return value
       case 'disk_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.disk.usage / metrics.disk.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'disk_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.disk.total, 'bytes', 'gibibytes')
+        } else {
+          value = 0
+        }
+        return value.toFixed(1) + ' Gi'
       case 'pods':
         if (nodeMetrics && row.metadata.name in nodeMetrics) { 
           value = nodeMetrics[row.metadata.name].pods.usage

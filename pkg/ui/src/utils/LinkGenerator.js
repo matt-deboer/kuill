@@ -29,6 +29,9 @@ export default class LinkGenerator {
       kind = resource.kind
     }
     let kubeKind = this.kubeKinds[kind]
+    if (!kubeKind) {
+      return `/DNE`
+    }
     let path = kubeKind.resourceGroup
     let query = view === '' ? '' : `?view=${view}`
     return `/${path}/${ns}/${kind}/${name}${query}`
@@ -43,7 +46,10 @@ export default class LinkGenerator {
   linkForKind(kind, selectedNamespaces) {
     this.initialize()
     let kubeKind = this.kubeKinds[kind]
-    let name = kubeKind.name
+    if (!kubeKind) {
+      return `/DNE`
+    }
+    let name = kind
     if (!(name.endsWith('s'))) {
       name += 's'
     } else if (name.endsWith('ss')) {
@@ -56,7 +62,7 @@ export default class LinkGenerator {
     if (group === 'cluster') {
       linkParams.view = name.toLowerCase()
     } else {
-      linkParams.filters =[`kind:${kubeKind.name}`]
+      linkParams.filters =[`kind:${kind}`]
       if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
         for (let ns in selectedNamespaces) {
           linkParams.filters.push(`namespace:${ns}`)

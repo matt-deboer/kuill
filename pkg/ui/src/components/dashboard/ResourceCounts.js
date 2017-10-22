@@ -34,7 +34,7 @@ class ResourceCounts extends React.PureComponent {
   render() {
 
     let { props } = this
-    let { resources, selectedNamespaces, kinds, linkGenerator } = props
+    let { resources, selectedNamespaces, linkGenerator } = props
 
     const styles = {
       wrapper: {
