@@ -14,7 +14,7 @@ for (let type of [
 
 export function requestSwagger() {
   return async function (dispatch, getState) {
-    return doRequest(dispatch, getState, 'fetchSwagger', async () => {
+    return doRequest(dispatch, getState, 'swagger', async () => {
       return await fetchSwagger(dispatch, getState)
     })
   }
@@ -24,7 +24,7 @@ export function requestSwagger() {
  */
 export function requestKinds() {
   return async function (dispatch, getState) {
-    doRequest(dispatch, getState, 'fetchResources', async () => {
+    doRequest(dispatch, getState, 'kinds', async () => {
       await fetchKinds(dispatch, getState)
     })
 

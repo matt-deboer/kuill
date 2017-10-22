@@ -18,7 +18,7 @@ for (let type of [
  */
 export function requestTemplates() {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'fetchResourceTemplates', async () => {
+      doRequest(dispatch, getState, 'templates', async () => {
         await fetchResourceTemplates(dispatch, getState)
       })
   }

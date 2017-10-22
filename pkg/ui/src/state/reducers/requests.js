@@ -1,7 +1,7 @@
 import { types } from '../actions/requests'
 
 const initialState = {
-  isFetching: {},
+  fetching: {},
   fetchBackoff: 0,
   fetchError: null,
 }
@@ -14,7 +14,7 @@ export default (state = initialState, action) => {
 
     case types.DONE_FETCHING:
       return {...state, 
-        isFetching: false,
+        fetching: false,
         fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
       }
 
@@ -24,8 +24,12 @@ export default (state = initialState, action) => {
 }
 
 function doSetFetching(state, name, fetching) {
-  let newState = {...state, isFetching: {...state.isFetching}}
-  newState.isFetching[name] = fetching
+  let newState = {...state, fetching: {...state.fetching}}
+  if (fetching) {
+    newState.fetching[name] = fetching
+  } else {
+    delete newState.fetching[name]
+  }
 
   if (!fetching) {
     newState.fetchBackoff = !!newState.fetchError ? incrementBackoff(newState.fetchBackoff) : decrementBackoff(newState.fetchBackoff)

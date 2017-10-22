@@ -37,6 +37,7 @@ const mapStateToProps = function(store) {
     accessEvaluator: store.session.accessEvaluator,
     kinds: store.apimodels.kinds,
     linkGenerator: store.session.linkGenerator,
+    resourceRevision: store.resources.resourceRevision,
   }
 }
 
@@ -279,6 +280,7 @@ class WorkloadsPage extends React.Component {
   shouldComponentUpdate = (nextProps, nextState) => {
     return !arraysEqual(this.props.filterNames, nextProps.filterNames)
       || !arraysEqual(this.props.possibleFilters, nextProps.possibleFilters)
+      || this.props.resourceRevision !== nextProps.resourceRevision
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
@@ -286,6 +288,7 @@ class WorkloadsPage extends React.Component {
       || this.state.suspendOpen !== nextState.suspendOpen
       || this.state.scaleOpen !== nextState.scaleOpen
       || this.props.kinds !== nextProps.kinds
+      
   }
 
   handleActionsRequestClose = () => {
@@ -451,8 +454,8 @@ class WorkloadsPage extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    this.rows = this.resourcesToRows(nextProps.resources)
-    this.setState({filters: nextProps})
+    this.rows = this.resourcesToRows(nextProps.resources, nextProps.kinds)
+    this.setState({filters: nextProps.filters})
   }
 
   renderCell = (column, row) => {

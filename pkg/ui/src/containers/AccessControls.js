@@ -10,7 +10,7 @@ const mapStateToProps = function(store) {
     resources: store.resources.resources,
     filterNames: store.resources.filterNames,
     possibleFilters: store.resources.possibleFilters,
-    isFetching: store.resources.isFetching,
+    fetching: store.requests.fetching,
     user: store.session.user,
   };
 }
@@ -43,7 +43,7 @@ class AccessControls extends React.Component {
 
   render() {
     return (<div>
-      <LoadingSpinner loading={this.props.isFetching} />
+      <LoadingSpinner loading={this.props.fetching.kinds || this.props.fetching.resources} />
       <AccessControlsPage {...this.props} />
     </div>)
   }

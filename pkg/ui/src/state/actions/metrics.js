@@ -1,5 +1,6 @@
 import { defaultFetchParams, sleep } from '../../utils/request-utils'
 import { invalidateSession } from './session'
+import { doRequest } from './requests'
 
 export var types = {}
 for (let type of [
@@ -15,28 +16,10 @@ for (let type of [
  */
 export function requestMetrics(clusterResources) {
   return async function (dispatch, getState) {
-    doFetch(dispatch, getState, async () => {
+    doRequest(dispatch, getState, 'metrics', async () => {
       await fetchMetrics(dispatch, getState, clusterResources)
     })
   }
-}
-
-/**
- * Wraps any fetch request with proper setting of the `isFetching`
- * guards, and applies any fetchBackoff value.
- * 
- * @param {*} dispatch 
- * @param {*} getState 
- * @param {*} request 
- */
-async function doFetch(dispatch, getState, request) {
-  if (getState().cluster.isFetching) {
-    console.warn(`doFetch called while already fetching...`)
-  }
-  dispatch({ type: types.START_FETCHING })
-  let { fetchBackoff } = getState().cluster
-  await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING })
 }
 
 async function fetchMetrics(dispatch, getState, clusterResources) {

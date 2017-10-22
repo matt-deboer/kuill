@@ -1,5 +1,6 @@
 import { invalidateSession, updatePermissionsForKind } from './session'
 import { requestSwagger } from './apimodels'
+import { requestMetrics } from './metrics'
 import { selectLogsFor } from './logs'
 import { selectTerminalFor } from './terminal'
 import { routerActions } from 'react-router-redux'
@@ -193,7 +194,7 @@ export function setFilterNames(filterNames, group) {
 export function scaleResource(namespace, kind, name, replicas) {
   return async function (dispatch, getState) {
       
-    await doRequest(dispatch, getState, 'fetchResourceContents', async () => {
+    await doRequest(dispatch, getState, 'resource.contents', async () => {
       await fetchResourceContents(dispatch, getState, namespace, kind, name)
     })
 
@@ -209,7 +210,7 @@ export function scaleResource(namespace, kind, name, replicas) {
         resource.statusSummary = 'scaling ' + (prevReplicas > spec.replicas ? 'down' : 'up')
         dispatch(putResource(resource, false))
 
-        doRequest(dispatch, getState, 'updateResourceContents', async () => {
+        doRequest(dispatch, getState, 'resource.contents', async () => {
           await updateResourceContents(dispatch, getState, namespace, kind, name, resource)
         })
       }
@@ -227,7 +228,7 @@ export function scaleResource(namespace, kind, name, replicas) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'updateResourceContents', async () => {
+      doRequest(dispatch, getState, 'resources.contents', async () => {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
@@ -247,7 +248,7 @@ export function applyResourceChanges(namespace, kind, name, contents) {
  */
 export function requestNamespaces() {
   return async function (dispatch, getState) {
-    doRequest(dispatch, getState, 'fetchNamespaces', async () => {
+    doRequest(dispatch, getState, 'namespaces', async () => {
       await fetchNamespaces(dispatch, getState)
     })
   }
@@ -291,7 +292,7 @@ export function requestResources(force, filter) {
       await requestSwagger()(dispatch, getState)
     } 
     
-    doRequest(dispatch, getState, 'fetchResources', async () => {
+    doRequest(dispatch, getState, 'resources', async () => {
         await fetchResources(dispatch, getState, force, filter)
       })
   }
@@ -305,7 +306,7 @@ export function requestResources(force, filter) {
  */
 export function requestResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'fetchResource', async () => {
+      doRequest(dispatch, getState, 'resources.selected', async () => {
         await fetchResource(dispatch, getState, namespace, kind, name)
       })
   }
@@ -317,7 +318,7 @@ export function requestResource(namespace, kind, name) {
 export function createResource(contents) {
   return async function (dispatch, getState) {
       let resource = null
-      await doRequest(dispatch, getState, 'createResourceFromContents', async () => {
+      await doRequest(dispatch, getState, 'resources.create', async () => {
         resource = await createResourceFromContents(dispatch, getState, contents)
       })
       // let workloads = getState().resources
@@ -347,7 +348,7 @@ export function removeResource(...resourcesToRemove) {
         }
       }
 
-      await doRequest(dispatch, getState, 'removeResources', async () => {
+      await doRequest(dispatch, getState, 'resources.delete', async () => {
         await removeResources(dispatch, getState, resourcesToRemove)
       })
 
@@ -528,6 +529,7 @@ function parseResults(dispatch, getState, results) {
   dispatch(replaceAll(resources))
   dispatch(reconcileEvents(resources))
   dispatch(watchEvents(resources))
+  dispatch(requestMetrics(resources))
   watchResources(dispatch, getState)
 }
 
@@ -766,7 +768,7 @@ export function clearEditor() {
 
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'fetchResourceContents', async () => {
+      doRequest(dispatch, getState, 'resources.current', async () => {
         await fetchResourceContents(dispatch, getState, namespace, kind, name)
       })
   }
