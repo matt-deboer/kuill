@@ -110,7 +110,9 @@ class PodTemplatePane extends React.Component {
                   {spec.volumes &&
                     <TableRow style={styles.tableRow} displayBorder={false}>
                       <TableRowColumn style={styles.tableRowKeyCol}>Volumes:</TableRowColumn>
-                      <TableRowColumn style={styles.tableRowValCol}><Volumes volumes={spec.volumes} namespace={resource.metadata.namespace}/></TableRowColumn>
+                      <TableRowColumn style={styles.tableRowValCol}>
+                        <Volumes volumes={spec.volumes} namespace={resource.metadata.namespace} linkGenerator={linkGenerator}/>
+                      </TableRowColumn>
                     </TableRow>
                   }
                 </TableBody>

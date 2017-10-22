@@ -244,8 +244,8 @@ class ResourceInfoPage extends React.Component {
 
   render() {
 
-    let { resourceGroup, resource, logs } = this.props
-    let { resourceAccess, linkGenerator } = this.state
+    let { resourceGroup, resource, logs, linkGenerator } = this.props
+    let { resourceAccess } = this.state
 
     let tabs = []
     let targetTab = this.props.activeTab

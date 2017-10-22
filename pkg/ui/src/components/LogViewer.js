@@ -21,7 +21,7 @@ import './LogViewer.scss'
 const mapStateToProps = function(store) {
   
   return {
-    pods: store.workloads.pods,
+    pods: store.resources.pods,
     selectedContainers: store.logs.podContainers,
   }
 }
