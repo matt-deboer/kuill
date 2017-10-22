@@ -9,7 +9,6 @@ import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
 import { sameResourceVersion, resourceMatchesParams } from '../utils/resource-utils'
-import { linkForResourceKind } from '../routes'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
@@ -29,6 +28,8 @@ const mapStateToProps = function(store) {
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
     resourceRevision: store.resources.resourceRevision,
+    kinds: store.apimodels.kinds,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -77,7 +78,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       if (!!namespace) {
         ns[namespace] = true
       }
-      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
+      let link = ownProps.linkGenerator.linkForKind(kind, ns)
+      dispatch(routerActions.push(link))
     },
     viewFilters: function(filters) {
       let search = `?${queryString.stringify({filters: filters})}`

@@ -4,7 +4,6 @@ import { white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { toHumanizedAge } from '../../converters'
-import { linkForResource } from '../../routes'
 import FilterChip from '../FilterChip'
 import ClusterResourceTab from './ClusterResourceTab'
 
@@ -23,13 +22,14 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     viewResource: function(resourceKey, view='config') {
-      dispatch(routerActions.push(linkForResource(resourceKey,view)))
+      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resourceKey,view)))
     },
   } 
 }

@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 import { toHumanizedAge } from '../../converters'
 
 let kinds = {
@@ -141,12 +140,12 @@ let kinds = {
     },
   },
   PersistentVolume: {
-    getData: ({status, spec, metadata }) => {
+    getData: ({status, spec, metadata }, linkGenerator) => {
       return [
           ['Status:', status.phase],
           ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
           ['Claim:', spec.claimRef ? 
-            <Link to={linkForResource(`PersistentVolumeClaim/${spec.claimRef.namespace}/${spec.claimRef.name}`)}>
+            <Link to={linkGenerator.linkForResource(`PersistentVolumeClaim/${spec.claimRef.namespace}/${spec.claimRef.name}`)}>
               {spec.claimRef.namespace + '/' + spec.claimRef.name}
             </Link>: null
           ],

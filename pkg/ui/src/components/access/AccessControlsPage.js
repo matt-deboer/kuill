@@ -24,7 +24,7 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
-    resourceRevision: store.access.resourceRevision,
+    resourceRevision: store.resources.resourceRevision,
   }
 }
 

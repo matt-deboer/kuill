@@ -4,13 +4,12 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import { blueA400, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/access'
+import { addFilter, removeFilter, removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 import { toHumanizedAge } from '../../converters'
 
 import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 
@@ -18,6 +17,7 @@ import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 
 import { arraysEqual } from '../../comparators'
 import { resourceStatus as resourceStatusIcons } from '../icons'
+import { kindsByResourceGroup } from '../../utils/resource-utils'
 
 import FilterBox from '../FilterBox'
 import ConfirmationDialog from '../ConfirmationDialog'
@@ -28,12 +28,14 @@ import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
-    filters: store.access.filters,
-    filterNames: store.access.filterNames,
-    possibleFilters: store.access.possibleFilters,
-    resources: store.access.resources,
+    filters: store.resources.filters,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
+    resources: store.resources.resources,
     accessEvaluator: store.session.accessEvaluator,
-  };
+    linkGenerator: store.session.linkGenerator,
+    kinds: store.apimodels.kinds,
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
@@ -45,7 +47,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(linkForResource(resource,view)))
+      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
@@ -122,7 +124,7 @@ class ResourcesTab extends React.Component {
     }
     this.selectedIds = {}
     this.deleteEnabled = false
-    this.rows = this.resourcesToRows(props.resources)
+    this.rows = this.resourcesToRows(props.resources, props.kinds)
     this.columns = [
       {
         id: 'kind',
@@ -177,8 +179,11 @@ class ResourcesTab extends React.Component {
     ]
   }
 
-  resourcesToRows = (resources) => {
-    return Object.values(resources).filter(el => !el.isFiltered)
+  resourcesToRows = (resources, kinds) => {
+    if (!this.kinds || Object.keys(this.kinds).length === 0) {
+      this.kinds = kindsByResourceGroup(kinds, 'access')
+    }
+    return Object.values(resources).filter(el => !el.isFiltered && el.kind in this.kinds)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -292,7 +297,7 @@ class ResourcesTab extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    this.rows = this.resourcesToRows(nextProps.resources)
+    this.rows = this.resourcesToRows(nextProps.resources, nextProps.kinds)
     this.setState({filters: nextProps})
   }
 
@@ -365,7 +370,8 @@ class ResourcesTab extends React.Component {
           />
 
         <FilteredResourceCountsPanel 
-          resources={props.resources} 
+          resources={props.resources}
+          kinds={this.kinds}
           style={{backgroundColor: 'rgb(99,99,99)'}}/>
 
         <FilterTable
@@ -425,6 +431,7 @@ class ResourcesTab extends React.Component {
           resources={this.state.selectedResources}
           onRequestClose={this.handleRequestCloseDelete}
           onConfirm={this.handleConfirmDelete}
+          linkGenerator={this.props.linkGenerator}
           />
 
       </div>

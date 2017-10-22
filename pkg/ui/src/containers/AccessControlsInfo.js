@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { applyResourceChanges, requestResource, editResource, removeResource } from '../state/actions/access'
+import { applyResourceChanges, requestResource, editResource, removeResource } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
@@ -10,7 +10,6 @@ import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
-import { linkForResourceKind } from '../routes'
 
 const AsyncEditorPage = Loadable({
   loader: () => import('../components/EditorPage'),
@@ -20,11 +19,13 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.access.resource,
-    resources: store.access.resources,
+    resource: store.resources.selectedResource,
+    resources: store.resources.resources,
     user: store.session.user,
-    editor: store.access.editor,
-    events: store.events.selectedEvents,
+    editor: store.resources.editor,
+    events: store.resources.selectedEvents,
+    kinds: store.apimodels.kinds,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -73,7 +74,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       if (!!namespace) {
         ns[namespace] = true
       }
-      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
+      let link = ownProps.linkGenerator.linkForKind(kind, ns)
+      dispatch(routerActions.push(link))
     },
     viewFilters: function(filters) {
       let search = `?${queryString.stringify({filters: filters})}`

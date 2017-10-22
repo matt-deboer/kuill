@@ -14,9 +14,16 @@ export default (state = initialState, action) => {
     case types.RECEIVE_SWAGGER:
       return {...state, swagger: action.swagger}
     case types.RECEIVE_KINDS:
-      return {...state, kinds: action.kinds}
-
+      return doReceiveKinds(state, action.kinds)
     default:
       return state;
   }
+}
+
+function doReceiveKinds(state, kinds) {
+  let kindMap = {}
+  for (let kind of kinds) {
+    kindMap[kind.name] = kind
+  }
+  return {...state, kinds: kindMap}
 }

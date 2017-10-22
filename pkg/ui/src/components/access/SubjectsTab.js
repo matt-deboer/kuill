@@ -7,8 +7,8 @@ import PermissionsPane from '../configuration-pane/PermissionsPane'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.access.resources,
-    subjects: store.access.subjects,
+    resources: store.resources.resources,
+    subjects: store.resources.subjects,
   }
 }
 

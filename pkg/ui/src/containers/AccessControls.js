@@ -1,16 +1,16 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, setFilterNames } from '../state/actions/access'
+import { requestResources, setFilterNames } from '../state/actions/resources'
 import AccessControlsPage from '../components/access/AccessControlsPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.access.resources,
-    filterNames: store.access.filterNames,
-    possibleFilters: store.access.possibleFilters,
-    isFetching: store.access.isFetching,
+    resources: store.resources.resources,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
+    isFetching: store.resources.isFetching,
     user: store.session.user,
   };
 }

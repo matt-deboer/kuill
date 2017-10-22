@@ -7,7 +7,6 @@ import {
   TableRowColumn,
 } from 'material-ui/Table'
 import { Link } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 import GenericExpanderButton from './GenericExpanderButton'
 import './ContainerPanel.css'
 
@@ -49,7 +48,7 @@ const styles = {
 
 export default class StringArrayExpander extends React.PureComponent {
 
-  renderEnvValue = (env) => {
+  renderEnvValue = (env, linkGenerator) => {
     let { namespace } = this.props
     if ('value' in env) {
       return <span className="quoted-string">{env.value}</span>
@@ -59,7 +58,7 @@ export default class StringArrayExpander extends React.PureComponent {
         return (
         <div>
           <span className="env-ref-type">secretKeyRef</span>&nbsp;:&nbsp; 
-          <Link to={linkForResource(`Secret/${namespace}/${valueFrom.secretKeyRef.name}`)}>
+          <Link to={linkGenerator.linkForResource(`Secret/${namespace}/${valueFrom.secretKeyRef.name}`)}>
             {valueFrom.secretKeyRef.name}
           </Link> : <span className="env-ref-key">{valueFrom.secretKeyRef.key}</span>
         </div>
@@ -68,7 +67,7 @@ export default class StringArrayExpander extends React.PureComponent {
         return (
         <div>
           <span className="env-ref-type">configMapKeyRef</span>&nbsp;:&nbsp; 
-          <Link to={linkForResource(`ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`)}>
+          <Link to={linkGenerator.linkForResource(`ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`)}>
             {valueFrom.configMapKeyRef.name}
           </Link> : <span className="env-ref-key">{valueFrom.configMapKeyRef.key}</span>
         </div>
@@ -87,7 +86,7 @@ export default class StringArrayExpander extends React.PureComponent {
   render() {
   
     let { props } = this
-    let { data, title } = props
+    let { data, title, linkGenerator } = props
     
     return (
         <GenericExpanderButton
@@ -99,7 +98,7 @@ export default class StringArrayExpander extends React.PureComponent {
                 {data.map((env) =>
                   <TableRow key={env.name} style={styles.tableRow} displayBorder={false}>
                       <TableRowColumn style={styles.tableRowKeyCol}>{env.name}</TableRowColumn>
-                      <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env)}</TableRowColumn>
+                      <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env, linkGenerator)}</TableRowColumn>
                   </TableRow>
                 )}
               </TableBody>

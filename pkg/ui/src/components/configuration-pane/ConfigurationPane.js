@@ -69,10 +69,10 @@ class ConfigurationPane extends React.Component {
   render() {
   
     let { props } = this
-    let { resource } = props
+    let { resource, linkGenerator } = props
     let kind = ResourceDetails[resource.kind]
     let { getData } = kind
-    let data = (typeof getData === 'function' && getData(resource)) || []
+    let data = (typeof getData === 'function' && getData(resource, linkGenerator)) || []
 
     let contents = null
     if (resource.kind === 'Pod') {
@@ -92,7 +92,9 @@ class ConfigurationPane extends React.Component {
                 <div className="row" style={{marginLeft: 0, marginRight: 0, marginBottom: 10}}>
                   {resource.spec.containers.map(container => {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
-                      <ContainerPanel container={container} namespace={resource.metadata.namespace}/>
+                      <ContainerPanel container={container} 
+                        namespace={resource.metadata.namespace}
+                        linkGenerator={linkGenerator}/>
                     </div>
                   })}
                 </div>

@@ -61,7 +61,7 @@ export default class ContainerPanel extends React.Component {
   render() {
   
     let { props } = this
-    let { container, namespace, initIndex } = props
+    let { container, namespace, initIndex, linkGenerator } = props
     let initHeader = null
     if (initIndex !== undefined) {
       initHeader = <span className="init-container-index">{initIndex}</span>
@@ -97,7 +97,9 @@ export default class ContainerPanel extends React.Component {
             {container.env &&
               <TableRow style={styles.tableRow} displayBorder={false}>
                 <TableRowColumn style={styles.tableRowKeyCol}>Env:</TableRowColumn>
-                <TableRowColumn style={styles.tableRowValCol}><EnvironmentExpander data={container.env} title={'env'} namespace={namespace}/></TableRowColumn>
+                <TableRowColumn style={styles.tableRowValCol}>
+                  <EnvironmentExpander data={container.env} title={'env'} namespace={namespace} linkGenerator={linkGenerator}/>
+                </TableRowColumn>
               </TableRow>
             }
 

@@ -8,7 +8,6 @@ import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { watchEvents, selectEventsFor, reconcileEvents } from './events'
-import { linkForResource } from '../../routes'
 import { addError } from './errors'
 import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
 import { doRequest } from './requests'
@@ -30,6 +29,7 @@ for (let type of [
   'SELECT_RESOURCE',
   'SET_WATCHES',
   'DISABLE_KIND',
+  'PUT_NAMESPACES',
 ]) {
   types[type] = `resources.${type}`
 }
@@ -231,16 +231,54 @@ export function applyResourceChanges(namespace, kind, name, contents) {
         await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
-      let kubeKind = getState().apimodels.kinds
+      let kubeKind = getState().apimodels.kinds[kind]
+      let link = getState().session.linkGenerator.linkForResource({
+        name: name, namespace: namespace, kind: kind})
       dispatch(routerActions.push({
-        pathname: linkForResource({name: name, namespace: namespace, kind: kind}, kubeKind).split('?')[0],
+        pathname: link.split('?')[0],
         search: '?view=events',
         hash: '',
       }))
   }
 }
 
+/**
+ * 
+ */
+export function requestNamespaces() {
+  return async function (dispatch, getState) {
+    doRequest(dispatch, getState, 'fetchNamespaces', async () => {
+      await fetchNamespaces(dispatch, getState)
+    })
+  }
+}
 
+
+async function fetchNamespaces(dispatch, getState) {
+  
+  let url = '/namespaces'
+  let result = await fetch(url, defaultFetchParams
+  ).then(resp => {
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        dispatch(invalidateSession())
+      }
+      return resp
+    } else {
+      return resp.json()
+    }
+  })
+
+  if ('namespaces' in result) {
+    dispatch({
+      type: types.PUT_NAMESPACES,
+      namespaces: result.namespaces,
+    })
+  } else {
+    let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+    console.error(msg)
+  }
+}
 
 /**
  * @param {Boolean} force
@@ -284,8 +322,9 @@ export function createResource(contents) {
       })
       // let workloads = getState().resources
       if (!!resource) {
+        let link = getState().session.linkGenerator.linkForResource(resource)
         dispatch(routerActions.push({
-          pathname: linkForResource(resource).split('?')[0],
+          pathname: link.split('?')[0],
           search: '?view=events',
         }))
       }
@@ -357,10 +396,8 @@ async function fetchResources(dispatch, getState, force, filter) {
             dispatch(updatePermissionsForKind(kind, {
               namespaced: true
             }))
-            return fetchResourcesByNamespace(dispatch, getState, KubeKinds.resources[kind], kind)
-          } else if (resp.status === 404) {
-            dispatch(disableResourceKind(kind))
-          } else {
+            return fetchResourcesByNamespace(dispatch, getState, kubeKinds[kind], kind)
+          } else if (resp.status !== 404) {
             dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
               'Try Again', () => { dispatch(requestResources()) } ))
           }
@@ -386,8 +423,6 @@ async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
       if (!resp.ok) {
         if (resp.status === 401) {
           dispatch(invalidateSession())
-        } else if (resp.status === 404) {
-          dispatch(disableResourceKind(kind))
         } else if (resp.status !== 403) {
           dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
             'Try Again', () => { dispatch(requestResources()) } ))
@@ -407,7 +442,8 @@ async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
 }
 
 async function fetchThirdPartyResources(dispatch, getState) {
-  let kubeKind = KubeKinds.cluster.ThirdPartyResource
+  let kubeKinds = getState().apimodels.kinds
+  let kubeKind = kubeKinds.ThirdPartyResource
   let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
 
   return await fetch(tprURL, defaultFetchParams
@@ -501,18 +537,19 @@ function watchResources(dispatch, getState) {
     let accessEvaluator = getState().session.accessEvaluator
     let watches = getState().resources.watches || {}
     let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
-    
+    let kubeKinds = getState().apimodels.kinds
     var watchableNamespaces
 
     if (!objectEmpty(watches)) {
       // Update/reset any existing watches
-      for (let kind in KubeKinds.resources) {
+      for (let kind in kubeKinds) {
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
         if (watchableNamespaces.length > 0) {
           let watch = watches[kind]
           if (!!watch && watch.closed()) {
             watch.destroy()
             watches[kind] = new ResourceKindWatcher({
+              kubeKinds: kubeKinds,
               kind: kind,
               dispatch: dispatch,
               resourceVersion: maxResourceVersionByKind[kind] || 0,
@@ -523,10 +560,11 @@ function watchResources(dispatch, getState) {
         }
       }
     } else {
-      for (let kind in KubeKinds.resources) {
+      for (let kind in kubeKinds) {
         watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
         if (watchableNamespaces.length > 0) {
           watches[kind] = new ResourceKindWatcher({
+            kubeKinds: kubeKinds,
             kind: kind, 
             dispatch: dispatch,
             resourceVersion: maxResourceVersionByKind[kind] || 0,
@@ -594,12 +632,12 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
   
   let resource = getState().resources.resource
   let body = JSON.stringify(createPatch(resource, contents))
-
+  let kubeKinds = getState().apimodels.kinds
   // mimic kubectl annotations so that changes applied in
   // the UI are compatible with those applied in the cli
   // @see https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
 
-  let api = KubeKinds.resources[kind]
+  let api = kubeKinds[kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
   await fetch(url, { ...defaultFetchParams,
     headers: {
@@ -627,7 +665,8 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
 async function createResourceFromContents(dispatch, getState, contents) {
   let resource = createPost(contents)
   let { namespace } = resource.metadata
-  let api = KubeKinds.resources[resource.kind]
+  let kubeKinds = getState().apimodels.kinds
+  let api = kubeKinds[resource.kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
   let body = JSON.stringify(resource)
 
@@ -665,6 +704,7 @@ async function createResourceFromContents(dispatch, getState, contents) {
 async function removeResources(dispatch, getState, resources) {
   
   let knownResources = getState().resources.resources
+  let kubeKinds = getState().apimodels.kinds
   let resourcesToRemove = []
   for (let r of resources) {
     if (r.key in knownResources) {
@@ -674,7 +714,7 @@ async function removeResources(dispatch, getState, resources) {
 
   let urls = resourcesToRemove.map(resource => {
     let { namespace, name } = resource.metadata
-    let api = KubeKinds.resources[resource.kind]
+    let api = kubeKinds[resource.kind]
     return `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
   })
   
@@ -734,7 +774,8 @@ export function editResource(namespace, kind, name) {
 
 async function fetchResourceContents(dispatch, getState, namespace, kind, name) {
 
-  let api = KubeKinds.resources[kind]
+  let kubeKinds = getState().apimodels.kinds
+  let api = kubeKinds[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
   let resource = getState().resources.resource
   await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 

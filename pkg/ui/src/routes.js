@@ -12,8 +12,8 @@ import Apps from 'material-ui/svg-icons/navigation/apps'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from './components/LoadingComponentStub'
-import { createResource as createWorkload } from './state/actions/workloads'
-import { createResource as createAccessControl } from './state/actions/access'
+import { createResource } from './state/actions/resources'
+
 
 const AsyncNewWorkload = Loadable({
   loader: () => import('./containers/NewResource'),
@@ -53,7 +53,7 @@ const routes = [
     component: AsyncNewWorkload,
     props: {
       resourceGroup: 'workloads',
-      resourceCreator: createWorkload,
+      resourceCreator: createResource,
     },
   },
   { 
@@ -86,7 +86,7 @@ const routes = [
     component: AsyncNewAccessControl,
     props: {
       resourceGroup: 'access',
-      resourceCreator: createAccessControl,
+      resourceCreator: createResource,
     },
   },
   { 
@@ -122,19 +122,19 @@ export default routes
  * @param {*} resource 
  * @param {*} view 
  */
-export function linkForResource(resource, kubeKind, view='config') {
-  var ns, name, kind
-  if (typeof resource === 'string') {
-    [ kind, ns, name ] = resource.split('/')
-  } else {
-    ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
-    name = resource.name || resource.metadata.name
-    kind = resource.kind
-  }
-  let path = kubeKind.resourceGroup
-  let query = view === '' ? '' : `?view=${view}`
-  return `/${path}/${ns}/${kind}/${name}${query}`
-}
+// export function linkForResource(resource, kubeKind, view='config') {
+//   var ns, name, kind
+//   if (typeof resource === 'string') {
+//     [ kind, ns, name ] = resource.split('/')
+//   } else {
+//     ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
+//     name = resource.name || resource.metadata.name
+//     kind = resource.kind
+//   }
+//   let path = kubeKind.resourceGroup
+//   let query = view === '' ? '' : `?view=${view}`
+//   return `/${path}/${ns}/${kind}/${name}${query}`
+// }
 
 /**
  * Returns a link to the specified resource kind
@@ -142,27 +142,27 @@ export function linkForResource(resource, kubeKind, view='config') {
  * @param {*} resource 
  * @param {*} view 
  */
-export function linkForResourceKind(kubeKind, selectedNamespaces) {
-  let name = kubeKind.name
-  if (!(name.endsWith('s'))) {
-    name += 's'
-  } else if (name.endsWith('ss')) {
-    name += 'es'
-  } else if (name.endsWith('eus')) {
-    name = name.replace(/us$/, "i")
-  }
-  let group = kubeKind.resourceGroup
-  let linkParams = {}
-  if (group === 'cluster') {
-    linkParams.view = name.toLowerCase()
-  } else {
-    linkParams.filters =[`kind:${kubeKind.name}`]
-    if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
-      for (let ns in selectedNamespaces) {
-        linkParams.filters.push(`namespace:${ns}`)
-      }
-    }
-  }
-  let query = queryString.stringify(linkParams)
-  return `/${group}?${query}`
-}
+// export function linkForResourceKind(kubeKind, selectedNamespaces) {
+//   let name = kubeKind.name
+//   if (!(name.endsWith('s'))) {
+//     name += 's'
+//   } else if (name.endsWith('ss')) {
+//     name += 'es'
+//   } else if (name.endsWith('eus')) {
+//     name = name.replace(/us$/, "i")
+//   }
+//   let group = kubeKind.resourceGroup
+//   let linkParams = {}
+//   if (group === 'cluster') {
+//     linkParams.view = name.toLowerCase()
+//   } else {
+//     linkParams.filters =[`kind:${kubeKind.name}`]
+//     if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
+//       for (let ns in selectedNamespaces) {
+//         linkParams.filters.push(`namespace:${ns}`)
+//       }
+//     }
+//   }
+//   let query = queryString.stringify(linkParams)
+//   return `/${group}?${query}`
+// }

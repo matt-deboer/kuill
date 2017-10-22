@@ -4,12 +4,11 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource, scaleResource } from '../state/actions/workloads'
+import { addFilter, removeFilter, removeResource, scaleResource } from '../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 
 import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../routes'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconSuspend from 'material-ui/svg-icons/content/block'
@@ -19,7 +18,7 @@ import Paper from 'material-ui/Paper'
 import { arraysEqual } from '../comparators'
 import { toHumanizedAge } from '../converters'
 import { resourceStatus as resourceStatusIcons } from './icons'
-import { compareStatuses } from '../utils/resource-utils'
+import { compareStatuses, kindsByResourceGroup } from '../utils/resource-utils'
 
 import FilterBox from './FilterBox'
 import ConfirmationDialog from './ConfirmationDialog'
@@ -32,10 +31,12 @@ import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
-    filters: store.workloads.filters,
-    filterNames: store.workloads.filterNames,
-    possibleFilters: store.workloads.possibleFilters,
+    filters: store.resources.filters,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
     accessEvaluator: store.session.accessEvaluator,
+    kinds: store.apimodels.kinds,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -48,7 +49,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(linkForResource(resource,view)))
+      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
@@ -192,7 +193,7 @@ class WorkloadsPage extends React.Component {
     this.selectedIds = {}
     this.deleteEnabled = false
     this.suspendEnabled = false
-    this.rows = this.resourcesToRows(props.resources)
+    this.rows = this.resourcesToRows(props.resources, props.kinds)
     this.columns = [
       {
         id: 'kind',
@@ -268,8 +269,11 @@ class WorkloadsPage extends React.Component {
     ]
   }
 
-  resourcesToRows = (resources) => {
-    return Object.values(resources).filter(el => !el.isFiltered)
+  resourcesToRows = (resources, kinds) => {
+    if (!this.kinds || Object.keys(this.kinds).length === 0) {
+      this.kinds = kindsByResourceGroup(kinds, 'workloads')
+    }
+    return Object.values(resources).filter(el => !el.isFiltered && el.kind in this.kinds)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -281,6 +285,7 @@ class WorkloadsPage extends React.Component {
       || this.state.deleteOpen !== nextState.deleteOpen
       || this.state.suspendOpen !== nextState.suspendOpen
       || this.state.scaleOpen !== nextState.scaleOpen
+      || this.props.kinds !== nextProps.kinds
   }
 
   handleActionsRequestClose = () => {
@@ -518,7 +523,7 @@ class WorkloadsPage extends React.Component {
           possibleFilters={props.possibleFilters}
           />
 
-        <FilteredResourceCountsPanel resources={props.resources} />
+        <FilteredResourceCountsPanel resources={props.resources} kinds={this.kinds}/>
 
         <FilterTable
           className={'workloads'}
@@ -592,6 +597,7 @@ class WorkloadsPage extends React.Component {
           resources={this.state.selectedResources}
           onRequestClose={this.handleRequestCloseDelete}
           onConfirm={this.handleConfirmDelete}
+          linkGenerator={this.props.linkGenerator}
           />
        
         <ConfirmationDialog 
@@ -603,6 +609,7 @@ class WorkloadsPage extends React.Component {
           resources={this.state.selectedResources}
           onRequestClose={this.handleRequestCloseSuspend}
           onConfirm={this.handleConfirmSuspend}
+          linkGenerator={this.props.linkGenerator}
           />
 
         <ScaleDialog 

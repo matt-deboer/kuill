@@ -10,7 +10,6 @@ import PersistentVolumesTab from './PersistentVolumesTab'
 import StorageClassesTab from './StorageClassesTab'
 import ResourceQuotasTab from './ResourceQuotasTab'
 import NamespacesTab from './NamespacesTab'
-import PersistentVolumesTab from './PersistentVolumesTab'
 import ThirdPartyResourcesTab from './ThirdPartyResourcesTab'
 import queryString from 'query-string'
 import './ClusterPage.css'
@@ -29,7 +28,7 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
-    pods: store.workloads.pods,
+    pods: store.resources.pods,
   }
 }
 

@@ -11,6 +11,7 @@ const initialState = {
   // changes to take effect, but this is not unreasonable
   permissionsByKind: {},
   accessEvaluator: null,
+  linkGenerator: null,
 }
 
 export default (state = initialState, action) => {
@@ -25,6 +26,7 @@ export default (state = initialState, action) => {
         initialized: true,
         loginMethod: action.loginMethod,
         accessEvaluator: action.accessEvaluator,
+        linkGenerator: action.linkGenerator,
       }
 
     case types.LOGOUT:

@@ -15,6 +15,7 @@ const mapStateToProps = function(store) {
   return {
     recentEvents: store.events.recentEvents,
     selectedNamespaces: store.usersettings.selectedNamespaces,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -68,7 +69,7 @@ class RecentUpdates extends React.Component {
     }
 
     let { props } = this
-    let { selectedNamespaces } = props
+    let { selectedNamespaces, linkGenerator } = props
 
     let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
     let recentEvents
@@ -97,7 +98,7 @@ class RecentUpdates extends React.Component {
                 disabled={true}
                 primaryText={event.object.message}
                 secondaryText={<div style={{overflow: 'visible', paddingBottom: 20}}>
-                  <Link key={'link'} style={styles.link} to={linkForResource(event.key)}>{event.key.replace(/\//g," / ")}</Link>
+                  <Link key={'link'} style={styles.link} to={linkGenerator.linkForResource(event.key)}>{event.key.replace(/\//g," / ")}</Link>
                   <div key={'age'} style={styles.timestamp}>{`at ${event.object.lastTimestamp} (${toHumanizedAge(event.object.lastTimestamp)} ago)`}</div>
                 </div>
                 }

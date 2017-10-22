@@ -149,6 +149,18 @@ export function compareStatuses(s1,s2) {
     return statuses[s1] - statuses[s2]
 }
 
+
+export function kindsByResourceGroup(kubeKinds, group) {
+    let kinds = {}
+    for (let k in kubeKinds) {
+        let kind = kubeKinds[k]
+        if (kind.resourceGroup === group) {
+            kinds[k] = kind
+        }
+    }
+    return kinds
+}
+
 /**
  * Selects events from the provided set of events that
  * either directly or transitively relate to the provided

@@ -21,7 +21,7 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.cluster.resources,
+    resources: store.resources.resources,
   }
 }
 
@@ -45,7 +45,9 @@ class StorageClassesTab extends React.Component {
 
   constructor(props) {
     super(props)
-
+    this.state = {
+      volumesByClass: {},
+    }
     this.updateVolumesByClass(props.resources)
     this.kind = 'StorageClass'
     let that = this
@@ -134,7 +136,7 @@ class StorageClassesTab extends React.Component {
   updateVolumesByClass = (resources) => {
     let volumesByClass = {}
     Object.entries(resources).filter(([key, resource])=> resource.kind === 'PersistentVolume')
-      .map(([key, resource]) => {
+      .forEach(([key, resource]) => {
         let volumes = volumesByClass[resource.spec.storageClassName] || []
         volumes.push(resource)
         volumesByClass[resource.spec.storageClassName] = volumes

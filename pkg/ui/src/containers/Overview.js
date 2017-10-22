@@ -33,8 +33,8 @@ const mapStateToProps = function(store) {
     recentEvents: store.events.recentEvents,
     events: store.events.events,
     eventsRevision: store.events.revision,
-    countsByNamespace: store.workloads.countsByNamespace,
-    workloadsRevision: store.workloads.revision,
+    countsByNamespace: store.resources.countsByNamespace,
+    workloadsRevision: store.resources.revision,
     resourceRevision: store.resources.resourceRevision,
     resources: store.resources.resources,
     clusterMetrics: store.metrics.cluster,
@@ -50,11 +50,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     watchEvents: function() {
       dispatch(watchEvents())
     },
-    requestClusterResources: function() {
-      dispatch(requestClusterResources())
-    },
-    requestWorkloadsResources: function() {
-      dispatch(requestWorkloadsResources())
+    requestResources: function() {
+      dispatch(requestResources())
     },
   }
 }
@@ -72,9 +69,8 @@ class Overview extends React.Component {
 
   fetch = () => {
     let { props } = this
-    props.requestWorkloadsResources()
+    props.requestResources()
     props.watchEvents()
-    props.requestClusterResources()
   }
 
   componentWillReceiveProps = (nextProps) => {

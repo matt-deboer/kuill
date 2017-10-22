@@ -63,7 +63,7 @@ class PodTemplatePane extends React.Component {
   render() {
   
     let { props } = this
-    let { resource } = props
+    let { resource, linkGenerator } = props
 
     let {status, spec, metadata } = resource.spec.template
 
@@ -132,7 +132,9 @@ class PodTemplatePane extends React.Component {
                   {resource.spec.template.spec.initContainers && 
                     resource.spec.template.spec.initContainers.map(container => {
                       return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
-                        <ContainerPanel key={container.name} container={container} namespace={resource.metadata.namespace} isInit={true}/>
+                        <ContainerPanel key={container.name} container={container}
+                          namespace={resource.metadata.namespace} isInit={true}
+                          linkGenerator={linkGenerator}/>
                       </div>
                     })
                   }

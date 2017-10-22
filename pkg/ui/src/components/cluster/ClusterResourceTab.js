@@ -6,7 +6,6 @@ import { removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 
-import { linkForResource } from '../../routes'
 import IconButton from 'material-ui/IconButton'
 
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
@@ -22,8 +21,9 @@ import './ClusterResourceTab.css'
 
 const mapStateToProps = function(store) {
   return {
-    resourceRevision: store.cluster.resourceRevision,
-    resources: store.cluster.resources,
+    resourceRevision: store.resources.resourceRevision,
+    resources: store.resources.resources,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -33,7 +33,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeResource(...resources))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(linkForResource(resource,view)))
+      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
     },
   } 
 }

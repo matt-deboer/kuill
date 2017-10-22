@@ -1,4 +1,4 @@
-import { types } from '../actions/workloads'
+import { types } from '../actions/resources'
 import { types as session } from '../actions/session'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
@@ -34,8 +34,8 @@ const initialState = {
   // reload all resources on some regular cadence to account for 
   // possible missed events
   lastLoaded: 0,
-  // all seen namespaces
-  namespaces: {},
+  // all namespaces
+  namespaces: [],
   editor: {
     format: 'yaml'
   },
@@ -57,6 +57,7 @@ const initialState = {
   // a value used internally to handle fast notification of when the
   // resources have changed in a way such that they should be re-rendered
   resourceRevision: 0,
+  subjects: [],
 }
 
 export default (state = initialState, action) => {
@@ -102,6 +103,9 @@ export default (state = initialState, action) => {
     
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
+    
+    case types.PUT_NAMESPACES:
+      return {...state, namespaces: action.namespaces}
 
     default:
       return state
@@ -146,18 +150,24 @@ function doSetFiltersByLocation(state, location) {
 function doFilterAll(state, resources) {
   let newState = { ...state, resources: { ...resources }}
   let possible = null
-  
+  let subjects = null
   if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
     possible = {}
   }
+  if (!newState.subjects || newState.subjects.length === 0) {
+    subjects = {}
+  }
 
   visitResources(newState.resources, function(resource) {
-    updatePossibleFilters(possible, resource)
+    updatePossibleFilters(possible, subjects, resource)
     applyFiltersToResource(newState.filters, resource)
   })
 
   if (possible !== null) {
     newState.possibleFilters = Object.keys(possible)
+  }
+  if (subjects !== null) {
+    newState.subjects = Object.keys(subjects)
   }
 
   return newState
@@ -206,7 +216,7 @@ function registerOwned(resources, unnresolvedOwnership, resource, problemResourc
   }
 }
 
-function updatePossibleFilters(possible, resource) {
+function updatePossibleFilters(possible, subjects, resource) {
   if (!!possible) {
     if (resource.metadata && resource.metadata.namespace) {
       possible[`namespace:${resource.metadata.namespace}`]=true
@@ -218,6 +228,15 @@ function updatePossibleFilters(possible, resource) {
     possible[`status:${resource.statusSummary}`]=true
     if (resource.kind === 'Pod') {
       possible[`node:${resource.spec.nodeName}`]=true
+    }
+    if (resource.kind === 'RoleBinding' || resource.kind === 'ClusterRoleBinding') {
+      for (let subject of resource.subjects) {
+        possible[`subject:${subject.name}`]=true
+        if (!!subjects) {
+          subjects[`${subject.kind}:${subject.name}`]=true
+        }
+      }
+      possible[`role:${resource.roleRef.name}`]=true
     }
   }
 }
@@ -264,9 +283,6 @@ function doUpdateResource(state, resource, isNew) {
       newState.maxResourceVersionByKind[resource.kind] = 
         parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
     }
-  }
-  if (!!resource.metadata.namespace) {
-    newState.namespaces[resource.metadata.namespace]=true
   }
 
   if (isNew || resource.kind !== 'Endpoints') {
@@ -372,16 +388,16 @@ function doReceiveResources(state, resources) {
   }
   
   let possible = {}
+  let subjects = {}
   let unnresolvedOwnership = {}
 
   visitResources(resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
     registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources, possible)
     updateProblemResources(newState, resource)
-    updatePossibleFilters(possible, resource)
+    updatePossibleFilters(possible, subjects, resource)
     applyFiltersToResource(newState.filters, resource)
     updateVersionByKind(newState, resource)
-    updateNamespaces(newState, resource)
     updatePodCount(newState, resource)
     updateResourceCounts(newState, resource)
   })
@@ -394,6 +410,7 @@ function doReceiveResources(state, resources) {
   }
 
   newState.possibleFilters = Object.keys(possible)
+  newState.subjects = Object.keys(subjects)
   ++newState.resourceRevision
   return newState
 }
@@ -416,12 +433,6 @@ function updateVersionByKind(state, resource) {
   }
 
   state.maxResourceVersionByKind[resource.kind] = Math.max(currentMax, resourceVersion)
-}
-
-function updateNamespaces(state, resource) {
-  if (!!resource.metadata.namespace) {
-    state.namespaces[resource.metadata.namespace]=true
-  }
 }
 
 function updatePodCount(state, resource) {

@@ -1,16 +1,16 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, setFilterNames, maxReloadInterval } from '../state/actions/workloads'
+import { requestResources, setFilterNames, maxReloadInterval } from '../state/actions/resources'
 import WorkloadsPage from '../components/WorkloadsPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.workloads.resources,
-    filterNames: store.workloads.filterNames,
-    possibleFilters: store.workloads.possibleFilters,
-    isFetching: store.workloads.isFetching,
+    resources: store.resources.resources,
+    filterNames: store.resources.filterNames,
+    possibleFilters: store.resources.possibleFilters,
+    isFetching: store.resources.isFetching,
     user: store.session.user,
   };
 }

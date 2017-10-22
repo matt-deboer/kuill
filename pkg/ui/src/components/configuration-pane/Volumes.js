@@ -4,20 +4,20 @@ import { linkForResource } from '../../routes'
 
 export default class Volumes extends React.PureComponent {
   
-  renderVolume = (vol) => {
+  renderVolume = (vol, linkGenerator) => {
     var type, value
     let ns = this.props.namespace
     if (!!vol.secret) {
       type = 'Secret'
-      let link = linkForResource(`${type}/${ns}/${vol.secret.secretName}`)
+      let link = linkGenerator.linkForResource(`${type}/${ns}/${vol.secret.secretName}`)
       value = <Link to={link}>{vol.secret.secretName}</Link>
     } else if (!!vol.configMap) {
       type = 'ConfigMap'
-      let link = linkForResource(`${type}/${ns}/${vol.configMap.name}`)
+      let link = linkGenerator.linkForResource(`${type}/${ns}/${vol.configMap.name}`)
       value = <Link to={link}>{`${vol.configMap.name}${vol.configMap.optional ? ' (optional)': ''}`}</Link>
     } else if (!!vol.persistentVolumeClaim) {
       type = 'PersistentVolumeClaim'
-      let link = linkForResource(`${type}/${ns}/${vol.persistentVolumeClaim.claimName}`)
+      let link = linkGenerator.linkForResource(`${type}/${ns}/${vol.persistentVolumeClaim.claimName}`)
       value = <Link to={link}>{`${vol.persistentVolumeClaim.claimName}`}</Link>
     } else if (!!vol.hostPath) {
       type = 'hostPath'
@@ -46,11 +46,11 @@ export default class Volumes extends React.PureComponent {
   render() {
   
     let { props } = this
-    let { volumes } = props
+    let { volumes, linkGenerator } = props
 
     return (
       <div style={{marginLeft: -50, paddingTop: 35}}>
-        {volumes.map(vol => this.renderVolume(vol))}
+        {volumes.map(vol => this.renderVolume(vol, linkGenerator))}
       </div>      
     )
   }

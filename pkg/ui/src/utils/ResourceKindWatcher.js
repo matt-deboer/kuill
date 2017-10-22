@@ -1,5 +1,4 @@
-import Kinds from '../kube-kinds'
-import { putResource, removeResource } from '../state/actions/workloads'
+import { putResource, removeResource } from '../state/actions/resources'
 import { addError } from '../state/actions/errors'
 import { keyForResource } from '../utils/resource-utils'
 
@@ -15,6 +14,7 @@ export default class ResourceKindWatcher {
 
     this.props = props
     this.tries = 0
+    this.kubeKinds = props.kubeKinds
     this.initialize = this.initialize.bind(this)
     if (!!props.kind && !!props.dispatch && !!props.resourceGroup) {
       this.initialize()
@@ -26,7 +26,7 @@ export default class ResourceKindWatcher {
     this.namespaces = props.namespaces || []
     this.swagger = props.swagger
     this.dispatch = props.dispatch
-    this.kind = Kinds[props.resourceGroup][props.kind]
+    this.kind = this.kubeKinds[props.kind]
     let resourceVersion = props.resourceVersion || 0
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
