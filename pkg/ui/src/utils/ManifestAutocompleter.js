@@ -2,18 +2,17 @@ import 'react'
 
 import * as SwaggerValidator from 'swagger-object-validator'
 import { getPathAndIndentForPosition } from '../utils/yaml-utils'
-import KubeKinds from '../kube-kinds'
 import {safeLoad as loadYamlAST} from 'yaml-ast-parser'
 
 
 export default class ManifestAutocompleter {
 
-  constructor(swagger, resourceGroup, resource) {
+  constructor(swagger, resourceGroup, resource, kubeKinds) {
     this.swagger = swagger
     this.validator = new SwaggerValidator.Handler(swagger)
     this.resourceGroup = resourceGroup
     this.resource = resource
-    this.kubeKinds = KubeKinds[this.resourceGroup]
+    this.kubeKinds = kubeKinds
     this.completions = {
       kind: Object.keys(this.kubeKinds),
       '.': {
@@ -49,7 +48,7 @@ export default class ManifestAutocompleter {
           completions.push([c, path])
         }
       } else if (path === '.kind') {
-        for (let c of Object.keys(KubeKinds[this.resourceGroup])) {
+        for (let c of Object.keys(this.kubeKinds)) {
           completions.push([c, path])
         }
       } else if (path === '.apiVersion') {

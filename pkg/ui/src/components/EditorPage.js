@@ -29,6 +29,7 @@ const mapStateToProps = function(store) {
     swagger: store.apimodels.swagger,
     latestError: store.errors.latestError,
     accessEvaluator: store.session.accessEvaluator,
+    kinds: store.apimodels.kinds,
   }
 }
 
@@ -129,8 +130,8 @@ class EditorPage extends React.Component {
 
   componentWillReceiveProps = (props) => {
     if (props.swagger && !this.validator) {
-      this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables, props.resource)
-      this.autocompleter = new ManifestAutocompleter(props.swagger, props.resourceGroup, props.resource)
+      this.validator = new ManifestValidator(props.swagger, props.resourceGroup, props.detectVariables, props.resource, props.kinds)
+      this.autocompleter = new ManifestAutocompleter(props.swagger, props.resourceGroup, props.resource, props.kinds)
       langTools.setCompleters([this.autocompleter])
     }
     

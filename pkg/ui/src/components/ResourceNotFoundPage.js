@@ -37,7 +37,7 @@ class ResourceNotFoundPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.kubeKind = this.props.kinds[props.resourceGroup][props.kind]
+    this.kubeKind = this.props.kinds[props.kind]
   }
 
   render() {

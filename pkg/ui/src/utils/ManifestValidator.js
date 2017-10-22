@@ -1,20 +1,17 @@
 import React from 'react'
-
-
 import * as SwaggerValidator from 'swagger-object-validator'
 import { getErrorPosition, getPositionForPath } from '../utils/yaml-utils'
-import KubeKinds from '../kube-kinds'
 import yaml from 'js-yaml'
-
 
 export default class ManifestValidator {
 
-  constructor(swagger, resourceGroup, detectVariables, resource) {
+  constructor(swagger, resourceGroup, detectVariables, resource, kubeKinds) {
     this.swagger = swagger
     this.validator = new SwaggerValidator.Handler(swagger)
     this.resourceGroup = resourceGroup
     this.detectVariables = detectVariables
     this.resource = resource
+    this.kubeKinds = kubeKinds
   }
  
 
@@ -70,8 +67,7 @@ export default class ManifestValidator {
           }
         }
         if (typeof resource === 'object' && 'kind' in resource) {
-          let kinds = KubeKinds[this.resourceGroup]
-          let kind = kinds[resource.kind]
+          let kind = this.kubeKinds[resource.kind]
           if (!!kind) {
             let modelGuess = `io.k8s.apimachinery.pkg.${kind.base.replace(/\//g,'.')}.${resource.kind}`
             

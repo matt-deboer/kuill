@@ -48,7 +48,7 @@ export default class AccessEvaluator {
   }
 
   getObjectPermissions = async (resource) => {
-    
+    this.initialize()
     let kubeKind = this.kubeKinds[resource.kind]
     let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
     let namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] = 
@@ -65,7 +65,7 @@ export default class AccessEvaluator {
       return permissions
     }
 
-    let results = await resolveResourcePermissions(resource, permissions, kubeKind)
+    let results = await resolveResourcePermissions(resource, permissions, kubeKind, this.kubeKinds)
     for (let result of results) {
       let allowed = result.status.allowed
       let attrs = result.spec.resourceAttributes
@@ -155,7 +155,7 @@ export default class AccessEvaluator {
   }
 }
 
-async function resolveResourcePermissions(resource, permissions, kubeKind) {
+async function resolveResourcePermissions(resource, permissions, kubeKind, kubeKinds) {
   let requests = []
   if (!('get' in permissions)) {
     requests.push(accessReview(kubeKind, 'get'))
@@ -175,17 +175,17 @@ async function resolveResourcePermissions(resource, permissions, kubeKind) {
       resource.metadata.namespace, resource.metadata.name))
   }
   if (!('logs' in permissions)) {
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', '', '', 'log'))
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'log'))
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, '', 'log'))
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, resource.metadata.name, 'log'))
   }
   if (!('exec' in permissions)) {
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', '', '', 'exec'))
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'exec'))
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, '', 'exec'))
-    requests.push(accessReview(this.kubeKinds.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, resource.metadata.name, 'exec'))
   }
   return Promise.all(requests)

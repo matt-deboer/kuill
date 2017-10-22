@@ -4,7 +4,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource, scaleResource } from '../state/actions/resources'
+import { addFilter, removeFilter, removeResource, scaleResource, viewResource } from '../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 
@@ -50,7 +50,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))

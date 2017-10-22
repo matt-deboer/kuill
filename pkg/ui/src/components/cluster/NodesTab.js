@@ -3,7 +3,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/resources'
+import { addFilter, removeFilter, removeResource, viewResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 import { toHumanizedAge } from '../../converters'
@@ -36,7 +36,6 @@ const mapStateToProps = function(store) {
     metricsRevision: store.metrics.revision,
     resources: store.resources.resources,
     kinds: store.apimodels.kinds,
-    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -49,7 +48,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))

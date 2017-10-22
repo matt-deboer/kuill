@@ -51,6 +51,25 @@ export function filterAll() {
   }
 }
 
+export function viewResource(resource, view='config') {
+
+  return function(dispatch, getState) {
+    let kubeKinds = getState().apimodels.kinds
+    let ns, name, kind
+    if (typeof resource === 'string') {
+      [ kind, ns, name ] = resource.split('/')
+    } else {
+      ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
+      name = resource.name || resource.metadata.name
+      kind = resource.kind
+    }
+    let kubeKind = kubeKinds[kind]
+    let path = kubeKind.resourceGroup
+    let query = view === '' ? '' : `?view=${view}`
+    dispatch(routerActions.push(`/${path}/${ns}/${kind}/${name}${query}`))
+  }
+}
+
 export function putResource(newResource, isNew) {
   return function(dispatch, getState) {
     
@@ -369,12 +388,13 @@ function shouldFetchResources(getState, force) {
   let state = getState()
   let { resources, lastLoaded } = state.resources
   let { user } = state.session
+  let { kinds } = state.apimodels
 
   // TODO: should also check on resources last loaded time
   let shouldRefresh = (!!force && (Date.now() - lastLoaded) > maxReloadInterval)
   let noResources = (!resources || Object.keys(resources).length === 0)
 
-  let shouldFetch = (!!user) && (noResources || shouldRefresh)    
+  let shouldFetch = (!!user) && (!!kinds) && (noResources || shouldRefresh)    
 
   return shouldFetch
 }

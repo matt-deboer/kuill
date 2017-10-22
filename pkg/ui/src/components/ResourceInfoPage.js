@@ -48,7 +48,7 @@ const AsyncLogViewer = Loadable({
 
 const mapStateToProps = function(store) {
   return {
-    pods: store.workloads.pods,
+    pods: store.resources.pods,
     accessEvaluator: store.session.accessEvaluator,
     kinds: store.apimodels.kinds,
     linkGenerator: store.session.linkGenerator,
@@ -124,7 +124,7 @@ class ResourceInfoPage extends React.Component {
     }
 
     if (props.resource) {
-      this.kubeKind = this.props.kinds[props.resourceGroup][props.resource.kind]
+      this.kubeKind = this.props.kinds[props.resource.kind]
       let that = this
       this.props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
         that.setState({
@@ -239,7 +239,7 @@ class ResourceInfoPage extends React.Component {
   }
 
   componentDidUpdate = () => {
-    this.kubeKind = !!this.props.resource && this.props.kinds[this.props.resourceGroup][this.props.resource.kind]
+    this.kubeKind = !!this.props.resource && this.props.kinds[this.props.resource.kind]
   }
 
   render() {
