@@ -12,4 +12,5 @@ export { default as templates } from './templates'
 export { default as requests } from './requests'
 export { default as apimodels } from './apimodels'
 export { default as resources } from './resources'
+export { default as location } from './location'
 

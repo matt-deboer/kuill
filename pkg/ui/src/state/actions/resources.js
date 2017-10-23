@@ -1,5 +1,5 @@
 import { invalidateSession, updatePermissionsForKind } from './session'
-import { requestSwagger } from './apimodels'
+import { requestSwagger, requestKinds } from './apimodels'
 import { requestMetrics } from './metrics'
 import { selectLogsFor } from './logs'
 import { selectTerminalFor } from './terminal'
@@ -16,7 +16,7 @@ import { doRequest } from './requests'
 
 export var types = {}
 for (let type of [
-  'REPLACE_ALL',
+  'RECEIVE_RESOURCES',
   'FILTER_ALL',
   'PUT_RESOURCE',
   'REMOVE_RESOURCE',
@@ -36,12 +36,19 @@ for (let type of [
 }
 
 export const maxReloadInterval = 5000
+const excludedKinds = {
+  'Event': true,
+  'ComponentStatus': true,
+}
 
-export function replaceAll(resources, error) {
-  return {
-    type: types.REPLACE_ALL,
-    resources: resources,
-    error: error,
+export function receiveResources(resources) {
+  return function(dispatch, getState) {
+    let kubeKinds = getState().apimodels.kinds
+    dispatch({
+      type: types.RECEIVE_RESOURCES,
+      resources: resources,
+      kubeKinds: kubeKinds,
+    })
   }
 }
 
@@ -72,14 +79,16 @@ export function viewResource(resource, view='config') {
 
 export function putResource(newResource, isNew) {
   return function(dispatch, getState) {
-    
-    let { maxResourceVersionByKind } = getState().resources
+    let state = getState()
+    let kubeKinds = state.apimodels.kinds
+    let { maxResourceVersionByKind } = state.resources
     if (newResource.metadata.resourceVersion > maxResourceVersionByKind[newResource.kind] || 0) {
       // only allow events we've not yet seen to change resource state
       dispatch({
         type: types.PUT_RESOURCE,
         resource: newResource,
         isNew: isNew,
+        kubeKinds: kubeKinds,
       })
 
       let { resource, resources } = getState().resources
@@ -116,7 +125,7 @@ export function filterResource(resource) {
  * Add a filter
  * @param {*} filter 
  */
-export function addFilter(filter, group) {
+export function addFilter(filter) {
   
   return function(dispatch, getState) {
 
@@ -124,7 +133,7 @@ export function addFilter(filter, group) {
       type: types.ADD_FILTER,
       filter: filter,
     })
-    return updateFilterUrl(dispatch, getState, group)
+    return updateFilterUrl(dispatch, getState)
   }
 }
 
@@ -133,7 +142,7 @@ export function addFilter(filter, group) {
  * @param {*} filter 
  * @param {*} index 
  */
-export function removeFilter(filter, index, group) {
+export function removeFilter(filter, index) {
   
   return function(dispatch, getState) {
 
@@ -142,7 +151,7 @@ export function removeFilter(filter, index, group) {
       filter: filter,
       index: index,
     })
-    return updateFilterUrl(dispatch, getState, group)
+    return updateFilterUrl(dispatch, getState)
   }
 }
 
@@ -153,10 +162,12 @@ export function removeFilter(filter, index, group) {
  * @param {*} dispatch 
  * @param {*} getState 
  */
-function updateFilterUrl(dispatch, getState, group) {
+function updateFilterUrl(dispatch, getState) {
   let state = getState()
   let newFilterNames = state.resources.filterNames.slice(0)
-  let currentFilterNames = queryString.parse(state.routing.location.search).filters
+  let path = state.routing.location.pathname
+  let query = queryString.parse(state.routing.location.search)
+  let currentFilterNames = query.filters
   if (currentFilterNames && currentFilterNames.constructor !== Array) {
     currentFilterNames = [currentFilterNames]
   } else {
@@ -165,10 +176,11 @@ function updateFilterUrl(dispatch, getState, group) {
   newFilterNames && newFilterNames.sort()
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
+    query.filters = newFilterNames
     let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
-      `?${queryString.stringify({filters: state.resources.filterNames})}` :
+      `?${queryString.stringify(query)}` :
       ''
-    dispatch(routerActions.push(`/${group}${filterQuery}`))
+    dispatch(routerActions.push(`${path}${filterQuery}`))
   }
 }
 
@@ -198,7 +210,7 @@ export function setFilterNames(filterNames, group) {
         filterNames: filterNames,
       })
     }
-    updateFilterUrl(dispatch, getState, group)
+    updateFilterUrl(dispatch, getState)
   }
 }
 
@@ -402,9 +414,14 @@ async function fetchResources(dispatch, getState, force, filter) {
   
   if (shouldFetchResources(getState, force)) {
     let kubeKinds = getState().apimodels.kinds
+    if (!kubeKinds) {
+      await dispatch(requestKinds())
+      kubeKinds = getState().apimodels.kinds
+    }
+
     let entryFilter = (typeof filter === 'function') ?
-      function(entry) { return filter(entry[1]) } : 
-      function(entry) { return true }
+      function(entry) { return !(entry[0] in excludedKinds) && filter(entry[1]) } : 
+      function(entry) { return !(entry[0] in excludedKinds) }
 
     let urls = Object.entries(kubeKinds).filter(entryFilter).map(entry => [entry[0], `/proxy/${entry[1].base}/${entry[1].plural}`])
     let requests = urls.map(([kind,url],index) => fetch(url, defaultFetchParams
@@ -545,7 +562,7 @@ function parseResults(dispatch, getState, results) {
     }
   }
 
-  dispatch(replaceAll(resources))
+  dispatch(receiveResources(resources))
   dispatch(reconcileEvents(resources))
   dispatch(watchEvents(resources))
   dispatch(requestMetrics(resources))
@@ -796,23 +813,30 @@ export function editResource(namespace, kind, name) {
 async function fetchResourceContents(dispatch, getState, namespace, kind, name) {
 
   let kubeKinds = getState().apimodels.kinds
-  let api = kubeKinds[kind]
-  await fetchResource(dispatch, getState, namespace, kind, name)
-  let resource = getState().resources.resource
-  await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 
-      defaultFetchParams
-    ).then(resp => {
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          dispatch(invalidateSession())
+  if (!kubeKinds) {
+    await dispatch(requestKinds())
+    kubeKinds = getState().apimodels.kinds
+  }
+
+  let api = kubeKinds && kubeKinds[kind]
+  if (!!api) {
+    await fetchResource(dispatch, getState, namespace, kind, name)
+    let resource = getState().resources.resource
+    await fetch(`/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`, 
+        defaultFetchParams
+      ).then(resp => {
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            dispatch(invalidateSession())
+          } else {
+            dispatch(addError(resp,'error',`Failed to load contents for ${kind}/${namespace}/${name}: ${resp.statusText}`))
+          }
+          // dispatch(receiveResource(resource, null, resp.statusText))
         } else {
-          dispatch(addError(resp,'error',`Failed to load contents for ${kind}/${namespace}/${name}: ${resp.statusText}`))
+          return resp.json()
         }
-        // dispatch(receiveResource(resource, null, resp.statusText))
-      } else {
-        return resp.json()
-      }
-    }).then(contents => {
-      dispatch(receiveResource(resource, contents))
-    })
+      }).then(contents => {
+        dispatch(receiveResource(resource, contents))
+      })
+  }
 }
