@@ -103,7 +103,7 @@ export function getPathAndIndentForPosition(contents, row, column) {
     let index = new YamlIndex(contents)
     return index.lookupPathAndIndent(row, column)
   } else {
-    return [['.', '']]
+    return {paths: ['.'], indent: ''}
   }
 }
 
