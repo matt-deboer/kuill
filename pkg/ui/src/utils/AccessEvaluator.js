@@ -1,4 +1,5 @@
 import { defaultFetchParams } from './request-utils'
+import { keyForResource } from './resource-utils'
 
 export default class AccessEvaluator {
   
@@ -51,10 +52,13 @@ export default class AccessEvaluator {
     this.initialize()
     let kubeKind = this.kubeKinds[resource.kind]
     let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
-    let namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] = 
-        this.permissions[`${resource.kind}/${resource.metadata.namespace}`] || {}
-    let objectPerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}/${resource.metadata.name}`] =
-        this.permissions[`${resource.kind}/${resource.metadata.namespace}/${resource.metadata.name}`] || {}
+    let namespacePerms = {}
+    if (resource.metadata && resource.metadata.namespace) {
+      namespacePerms = this.permissions[`${resource.kind}/${resource.namespace}`] =
+      this.permissions[`${resource.kind}/${resource.namespace}`] || {}
+    }
+    let key = keyForResource(resource)
+    let objectPerms = this.permissions[key] = this.permissions[key] || {}
     let permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
 
     if ('get' in permissions && 
