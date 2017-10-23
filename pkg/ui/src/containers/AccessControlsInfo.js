@@ -19,7 +19,7 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.resources.selectedResource,
+    resource: store.resources.resource,
     resources: store.resources.resources,
     user: store.session.user,
     editor: store.resources.editor,
