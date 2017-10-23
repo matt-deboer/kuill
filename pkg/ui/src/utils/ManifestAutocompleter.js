@@ -14,7 +14,9 @@ export default class ManifestAutocompleter {
     this.resource = resource
     this.kubeKinds = kubeKinds
     this.completions = {
-      kind: Object.keys(this.kubeKinds),
+      kind: Object.entries(this.kubeKinds)
+        .filter(([name, kind])=> kind.resourceGroup === resourceGroup)
+        .map(([name, kind])=> name),
       '.': {
         kind: {type:'string'},
         apiVersion: {type:'string'},
@@ -48,7 +50,7 @@ export default class ManifestAutocompleter {
           completions.push([c, path])
         }
       } else if (path === '.kind') {
-        for (let c of Object.keys(this.kubeKinds)) {
+        for (let c of this.completions.kind) {
           completions.push([c, path])
         }
       } else if (path === '.apiVersion') {
