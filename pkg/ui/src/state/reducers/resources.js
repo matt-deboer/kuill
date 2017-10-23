@@ -15,8 +15,12 @@ const initialState = {
   //  map[key] => map[value] => true
   // TODO: consider leveraging the filter mechanism from kubernetes-ui/filters
   filters: {},
-  // the list of possible filters (strings), used for auto-complete
-  possibleFilters: [],
+  autocomplete: {
+    workloads: {},
+    nodes: {},
+    access: {},
+    subjects: {},
+  },
   // the currently selected resource
   resource: null,
   // the currently requested resource cannot be found
@@ -71,11 +75,8 @@ export default (state = initialState, action) => {
     case LOCATION_CHANGE:
       return doSetFiltersByLocation(state, action.payload)
 
-    case types.DISABLE_KIND:
-      return doDisableKind(state, action.kind)
-
-    case types.REPLACE_ALL:
-      return doReceiveResources(state, action.resources)
+    case types.RECEIVE_RESOURCES:
+      return doReceiveResources(state, action.resources, action.kubeKinds)
 
     case types.FILTER_ALL:
       return doFilterAll(state, state.resources)
@@ -84,7 +85,7 @@ export default (state = initialState, action) => {
       return doSetFilterNames(state, action.filterNames)
 
     case types.PUT_RESOURCE:
-      return doUpdateResource(state, action.resource, action.isNew)
+      return doUpdateResource(state, action.resource, action.isNew, action.kubeKinds)
 
     case types.REMOVE_RESOURCE:
       return doRemoveResource(state, action.resource)
@@ -120,55 +121,27 @@ function doCleanup(state) {
   }
 }
 
-function doDisableKind(state, kind) {
-  if (kind in state.disabledKinds) {
-    return state
-  }
-
-  let newState = {...state, disabledKinds: {...state.disabledKinds}}
-  newState.disabledKinds[kind]=true
-  return newState
-}
-
 function doSetFiltersByLocation(state, location) {
   
-  if (location.pathname === '/workloads') {
-    let filterNames = queryString.parse(location.search).filters
-    if (!filterNames) {
-      filterNames = []
-    } else if (filterNames.constructor !== Array) {
-      filterNames = [filterNames]
-    }
-    if (!arraysEqual(filterNames, state.filterNames)) {
-      console.log(`updating filter names on location change to ${location}; filterNames: ${filterNames.join(',')}`)
-      return doSetFilterNames(state, filterNames)
-    } 
+  let filterNames = queryString.parse(location.search).filters
+  if (!filterNames) {
+    filterNames = []
+  } else if (filterNames.constructor !== Array) {
+    filterNames = [filterNames]
   }
+  if (!arraysEqual(filterNames, state.filterNames)) {
+    console.log(`updating filter names on location change to ${location}; filterNames: ${filterNames.join(',')}`)
+    return doSetFilterNames(state, filterNames)
+  } 
   return state
 }
 
 function doFilterAll(state, resources) {
   let newState = { ...state, resources: { ...resources }}
-  let possible = null
-  let subjects = null
-  if (!newState.possibleFilters || newState.possibleFilters.length === 0) {
-    possible = {}
-  }
-  if (!newState.subjects || newState.subjects.length === 0) {
-    subjects = {}
-  }
-
+  
   visitResources(newState.resources, function(resource) {
-    updatePossibleFilters(possible, subjects, resource)
     applyFiltersToResource(newState.filters, resource)
   })
-
-  if (possible !== null) {
-    newState.possibleFilters = Object.keys(possible)
-  }
-  if (subjects !== null) {
-    newState.subjects = Object.keys(subjects)
-  }
 
   return newState
 }
@@ -184,12 +157,12 @@ function doFilterAll(state, resources) {
  * @param {*} problemResources 
  * @param {*} possibleFilters 
  */
-function registerOwned(resources, unnresolvedOwnership, resource, problemResources, possibleFilters) {
+function registerOwned(state, resource) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
       let resolved = false
       let ownerKey = keyForResource(ref, resource.metadata.namespace)
-      let owner = resources[ownerKey]
+      let owner = state.resources[ownerKey]
       if (!!owner) {
         let owned = owner.owned = owner.owned || {}
         owned[resource.key] = resource
@@ -197,92 +170,105 @@ function registerOwned(resources, unnresolvedOwnership, resource, problemResourc
         // problemResources can depend on descendents' status summaries
         owner.statusSummary = statusForResource(owner)
         if (!!owner.statusSummary && 'error warning timed out'.includes(owner.statusSummary)) {
-          problemResources[owner.key] = owner
-        } else if (owner.key in problemResources) {
-          delete problemResources[owner.key]
+          state.problemResources[owner.key] = owner
+        } else if (owner.key in state.problemResources) {
+          delete state.problemResources[owner.key]
         }
-        possibleFilters[`status:${owner.statusSummary}`]=true
+        state.autocomplete.workloads[`status:${owner.statusSummary}`]=true
 
         resolved = true
-        registerOwned(resources, unnresolvedOwnership, owner, problemResources, possibleFilters)
+        registerOwned(state, owner)
 
       }
       if (!resolved) {
-        unnresolvedOwnership[ownerKey] = unnresolvedOwnership[ownerKey] || []
-        unnresolvedOwnership[ownerKey].push(resource)
-        // console.warn(`owner ref ${keyForResource(ref)} for resource ${resource.key} could not be resolved`)
+        state.unnresolvedOwnership[ownerKey] = state.unnresolvedOwnership[ownerKey] || []
+        state.unnresolvedOwnership[ownerKey].push(resource)
       }
     }
   }
 }
 
-function updatePossibleFilters(possible, subjects, resource) {
-  if (!!possible) {
-    if (resource.metadata && resource.metadata.namespace) {
-      possible[`namespace:${resource.metadata.namespace}`]=true
-    }
-    possible[`kind:${resource.kind}`]=true
-    if (resource.metadata.labels && 'app' in resource.metadata.labels) {
-      possible[`app:${resource.metadata.labels.app}`]=true
-    }
-    possible[`status:${resource.statusSummary}`]=true
-    if (resource.kind === 'Pod') {
-      possible[`node:${resource.spec.nodeName}`]=true
-    }
-    if (resource.kind === 'RoleBinding' || resource.kind === 'ClusterRoleBinding') {
-      for (let subject of resource.subjects) {
-        possible[`subject:${subject.name}`]=true
-        if (!!subjects) {
-          subjects[`${subject.kind}:${subject.name}`]=true
-        }
-      }
-      possible[`role:${resource.roleRef.name}`]=true
-    }
+function updateAutocomplete(autocomplete, resource, group) {
+
+  let autocompleteGroup = group
+  if (resource.kind === 'Node') {
+    autocompleteGroup = 'nodes'
+  } else if (resource.kind === 'RoleBinding' || resource.kind === 'ClusterRoleBinding') {
+    autocompleteGroup = 'subjects'
+  }
+
+  switch(autocompleteGroup) {
+    case 'workloads':
+      updateWorkloadsAutocomplete(autocomplete.workloads, resource)
+      break
+    case 'nodes':
+      updateNodesAutocomplete(autocomplete.nodes, resource)
+      break
+    case 'access':
+    case 'subjects':
+      updateAccessAutocomplete(autocomplete.access, autocomplete.subjects, resource)
+      break
+    default:
   }
 }
 
-function doUpdateResource(state, resource, isNew) {
+function updateWorkloadsAutocomplete(possible, resource) {
+  if (resource.metadata && resource.metadata.namespace) {
+    possible[`namespace:${resource.metadata.namespace}`]=true
+  }
+  possible[`kind:${resource.kind}`]=true
+  if (resource.metadata.labels && 'app' in resource.metadata.labels) {
+    possible[`app:${resource.metadata.labels.app}`]=true
+  }
+  possible[`status:${resource.statusSummary}`]=true
+  if (resource.kind === 'Pod') {
+    possible[`node:${resource.spec.nodeName}`]=true
+  }
+}
+
+function updateNodesAutocomplete(possible, resource) {
+  for (let key in resource.metadata.labels) {
+    possible[`${key.split('/').pop()}:${resource.metadata.labels[key]}`]=true
+  }
+  possible[`status:${resource.statusSummary}`]=true
+}
+
+function updateAccessAutocomplete(access, subjects, resource) {
+  if (resource.metadata && resource.metadata.namespace) {
+    access[`namespace:${resource.metadata.namespace}`]=true
+  }
+  access[`kind:${resource.kind}`]=true
+  if (resource.metadata.labels && 'app' in resource.metadata.labels) {
+    access[`app:${resource.metadata.labels.app}`]=true
+  }
+
+  if ('subjects' in resource) {
+    for (let subject of resource.subjects) {
+      access[`subject:${subject.name}`]=true
+      subjects[`${subject.kind}:${subject.name}`]=true
+    }
+  }
+  if ('roleRef' in resource) {
+    access[`role:${resource.roleRef.name}`]=true
+  }
+}
+
+function doUpdateResource(state, resource, isNew, kubeKinds) {
   resource.key = keyForResource(resource)
   if (!(resource.key in state.resources) && !isNew && resource.kind !== 'Pod') {
     return state
   }
-  resource.statusSummary = statusForResource(resource)
-
   let newState = {...state}
-  let possible = {}
-  for (let pf of newState.possibleFilters) {
-    possible[pf]=true
-  }
-
-  registerOwned(newState.resources, {}, resource, newState.problemResources, possible)
-  if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
-    newState.problemResources[resource.key] = resource
-  } else if (resource.key in newState.problemResources) {
-    delete newState.problemResources[resource.key]
-  }
-  newState.possibleFilters = Object.keys(possible)
-
+  let kubeKind = kubeKinds[resource.kind]
+  let resourceGroup = (kubeKind && kubeKind.resourceGroup) || 'workloads'
+  resource.statusSummary = statusForResource(resource)
+  registerOwned(newState, resource)
+  updateProblemResources(newState, resource)
+  updateAutocomplete(newState.autocomplete, resource, resourceGroup)
+  updateVersionByKind(newState, resource)
   if (isNew) {
-    newState.countsByKind[resource.kind] = newState.countsByKind[resource.kind] || 0 
-    newState.countsByKind[resource.kind]++
-    newState.countsByNamespace[resource.metadata.namespace] = newState.countsByNamespace[resource.metadata.namespace] || 0 
-    newState.countsByNamespace[resource.metadata.namespace]++
-  }
-
-  if (isNew && resource.kind === 'Pod') {
-    ++newState.podCount
-    newState.podsByNode[resource.spec.nodeName] = newState.podsByNode[resource.spec.nodeName] || {}
-    newState.podsByNode[resource.spec.nodeName][resource.key] = resource
-  } else {
-    // TODO: what if pod changes nodes?
-  }
-  if (resource.metadata.resourceVersion > state.maxResourceVersionByKind[resource.kind]) {
-    newState.maxResourceVersionByKind = {...state.maxResourceVersionByKind}
-    newState.maxResourceVersionByKind[resource.kind] = resource.metadata.resourceVersion
-    if (typeof newState.maxResourceVersionByKind[resource.kind] !== 'number') {
-      newState.maxResourceVersionByKind[resource.kind] = 
-        parseInt(newState.maxResourceVersionByKind[resource.kind], 10)
-    }
+    updateResourceCounts(newState, resource)
+    updatePodCount(newState, resource)
   }
 
   if (isNew || resource.kind !== 'Endpoints') {
@@ -293,7 +279,6 @@ function doUpdateResource(state, resource, isNew) {
     newState = doSelectResource(newState, 
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
-  
   return doFilterResource(newState, resource)
 }
 
@@ -374,10 +359,9 @@ function doSelectResource(state, namespace, kind, name) {
   }
 }
 
-function doReceiveResources(state, resources) {
+function doReceiveResources(state, resources, kubeKinds) {
   
   let newState = {...state, 
-    possibleFilters: [],
     resources: {...state.resources, ...resources},
     podCount: 0,
     problemResources: {},
@@ -385,39 +369,41 @@ function doReceiveResources(state, resources) {
     podsByNode: {},
     namespaces: {},
     countsByKind: {},
+    unresolvedOwnership: {},
   }
-  
-  let possible = {}
-  let subjects = {}
-  let unnresolvedOwnership = {}
 
   visitResources(resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
-    registerOwned(newState.resources, unnresolvedOwnership, resource, newState.problemResources, possible)
+    let kubeKind = kubeKinds[resource.kind]
+    let resourceGroup = (kubeKind && kubeKind.resourceGroup) || 'workloads'
+    registerOwned(newState, resource)
     updateProblemResources(newState, resource)
-    updatePossibleFilters(possible, subjects, resource)
+    updateAutocomplete(newState.autocomplete, resource, resourceGroup)
     applyFiltersToResource(newState.filters, resource)
     updateVersionByKind(newState, resource)
     updatePodCount(newState, resource)
     updateResourceCounts(newState, resource)
   })
+  processUnresolvedOwners(newState)
+  
+  ++newState.resourceRevision
+  return newState
+}
 
-  for (let ownerKey in unnresolvedOwnership) {
-    let owned = unnresolvedOwnership[ownerKey]
+function processUnresolvedOwners(state) {
+  for (let ownerKey in state.unnresolvedOwnership) {
+    let owned = state.unnresolvedOwnership[ownerKey]
     for (let resource of owned) {
       console.warn(`owner ref ${ownerKey} for resource ${resource.key} could not be resolved`)
     }
   }
-
-  newState.possibleFilters = Object.keys(possible)
-  newState.subjects = Object.keys(subjects)
-  ++newState.resourceRevision
-  return newState
 }
 
 function updateProblemResources(state, resource) {
   if (!!resource.statusSummary && 'error warning timed out'.includes(resource.statusSummary)) {
     state.problemResources[resource.key] = resource
+  } else {
+    delete state.problemResources[resource.key]
   }
 }
 

@@ -4,7 +4,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton'
 import { blueA400, grey500, red900, white } from 'material-ui/styles/colors'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/resources'
+import { viewResource, addFilter, removeFilter, removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 import { toHumanizedAge } from '../../converters'
@@ -30,7 +30,7 @@ const mapStateToProps = function(store) {
   return {
     filters: store.resources.filters,
     filterNames: store.resources.filterNames,
-    possibleFilters: store.resources.possibleFilters,
+    autocomplete: store.resources.autocomplete.access,
     resources: store.resources.resources,
     accessEvaluator: store.session.accessEvaluator,
     linkGenerator: store.session.linkGenerator,
@@ -47,7 +47,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
@@ -188,7 +188,7 @@ class ResourcesTab extends React.Component {
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return !arraysEqual(this.props.filterNames, nextProps.filterNames)
-      || !arraysEqual(this.props.possibleFilters, nextProps.possibleFilters)
+      || !arraysEqual(this.props.autocomplete, nextProps.autocomplete)
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
@@ -366,7 +366,7 @@ class ResourcesTab extends React.Component {
           addFilter={props.addFilter} 
           removeFilter={props.removeFilter}
           filterNames={props.filterNames}
-          possibleFilters={props.possibleFilters}
+          autocomplete={props.autocomplete}
           />
 
         <FilteredResourceCountsPanel 

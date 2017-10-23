@@ -8,7 +8,7 @@ import PermissionsPane from '../configuration-pane/PermissionsPane'
 const mapStateToProps = function(store) {
   return {
     resources: store.resources.resources,
-    subjects: store.resources.subjects,
+    autocomplete: store.resources.autocomplete.subjects,
   }
 }
 
@@ -25,7 +25,7 @@ class SubjectsTab extends React.PureComponent {
     let query = queryString.parse(this.props.location.search)
     this.state = {
       selection: ('subject' in query ? [query.subject] : []),
-      subjects: props.subjects.filter(e=> !e.startsWith('ServiceAccount:')),
+      subjects: Object.keys(props.autocomplete).filter(e=> !e.startsWith('ServiceAccount:')),
     }
   }
 
@@ -50,7 +50,7 @@ class SubjectsTab extends React.PureComponent {
   componentWillReceiveProps = (props) => {
     let query = queryString.parse(this.props.location.search)
     this.setState({
-      subjects: props.subjects.filter(e=> !e.startsWith('ServiceAccount:')),
+      subjects: Object.keys(props.autocomplete).filter(e=> !e.startsWith('ServiceAccount:')),
       selection: ('subject' in query ? [query.subject] : []),
     })
   }
@@ -114,7 +114,7 @@ class SubjectsTab extends React.PureComponent {
           addFilter={this.addSubject} 
           removeFilter={this.removeSubject}
           filterNames={this.state.selection}
-          possibleFilters={this.state.subjects}
+          autocomplete={this.state.subjects}
           floatingLabelText={'user or group...'}
           maxFilters={1}
           removeFirstOnMax={true}
