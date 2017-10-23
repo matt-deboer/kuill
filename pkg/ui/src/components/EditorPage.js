@@ -107,7 +107,7 @@ class EditorPage extends React.Component {
   }
 
   getResourceAccess = (resource, resourceGroup) => {
-    if (resource && resourceGroup) {
+    if (resourceGroup && resourceReady(resource)) {
       this.props.accessEvaluator.getObjectAccess(resource, resourceGroup).then((access) => {
         this.setState({
           resourceAccess: access,
@@ -350,4 +350,8 @@ function debounce(func, wait, immediate) {
 		timeout = setTimeout(later, wait)
 		if (callNow) func.apply(context, args)
 	}
+}
+
+function resourceReady(resource) {
+  return resource && resource.metadata && resource.metadata.name && resource.kind
 }
