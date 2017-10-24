@@ -139,6 +139,13 @@ let kinds = {
       ]
     },
   },
+  StorageClass: {
+    getData: (resource) => {
+      return [
+        ['Created:', `${resource.metadata.creationTimestamp} (${toHumanizedAge(resource.metadata.creationTimestamp)} ago)`],
+      ]
+    },
+  },
   PersistentVolume: {
     getData: ({status, spec, metadata }, linkGenerator) => {
       return [
