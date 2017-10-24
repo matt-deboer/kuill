@@ -4,15 +4,15 @@ import React from 'react'
 const images = [
   {
     text: [
-      <p>sorry, nothing to see here...</p>,
-      <p>other than this volcano:</p>
+      <p key={1}>sorry, nothing to see here...</p>,
+      <p key={2}>other than this volcano:</p>
     ],
     src: require('../images/paper-volcano.png')
   },
   {
     text: [
-      <p>sorry, no more of those...</p>,
-      <p>perhaps they were eaten by this t-rex:</p>
+      <p key={1}>sorry, no more of those...</p>,
+      <p key={2}>perhaps they were eaten by this t-rex:</p>
     ],
     src: require('../images/t-rex.png')
   },

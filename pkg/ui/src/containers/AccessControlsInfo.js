@@ -3,9 +3,11 @@ import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { applyResourceChanges, requestResource, editResource, removeResource } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
+import { tryGoBack } from '../state/actions/location'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
@@ -32,7 +34,7 @@ const mapStateToProps = function(store) {
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     cancelEditor: function() {
-      dispatch(routerActions.goBack())
+      dispatch(tryGoBack())
     },
     onEditorApply: function(contents) {
       let { namespace, kind, name } = ownProps.match.params
@@ -65,7 +67,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search = '?'+search
       }
       dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
+        pathname: `/access`,
         search: search,
       }))
     },
@@ -103,7 +105,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
-class ClusterInfo extends React.Component {
+class AccessControlsInfo extends React.Component {
 
   constructor(props) {
     super(props);
@@ -121,7 +123,7 @@ class ClusterInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!!props.user && !resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params)) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
@@ -174,6 +176,29 @@ class ClusterInfo extends React.Component {
 
     let { events, props } = this
 
+    let resourceInfoPage = null
+    let resourceNotFound = null
+
+    if (!!this.state.resource) {
+      if (this.state.resource.notFound) {
+        resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
+      } else {
+        resourceInfoPage = 
+          <ResourceInfoPage
+            removeResource={props.removeResource}
+            editResource={props.editResource}
+            scaleResource={props.scaleResource}
+            viewKind={props.viewKind}
+            viewFilters={props.viewFilters}
+            selectView={props.selectView}
+            resourceGroup={'access'}
+            resource={this.state.resource}
+            events={events}
+            activeTab={(this.props.location.search || 'config').replace('?view=','')}
+            />
+      }
+    }
+
     return (<div>
       
       <AsyncEditorPage 
@@ -185,20 +210,8 @@ class ClusterInfo extends React.Component {
         contents={this.state.editor.contents}
         />
 
-      {!!this.state.resource &&
-        <ResourceInfoPage
-          resourceGroup={'access'}
-          editResource={props.editResource}
-          removeResource={props.removeResource}
-          viewKind={props.viewKind}
-          viewFilters={props.viewFilters}
-          selectView={props.selectView}
-          resource={this.state.resource}
-          resources={props.resources}
-          events={events}
-          activeTab={(props.location.search || 'config').replace('?view=','')}
-          />
-      }
+      {resourceInfoPage}
+      {resourceNotFound}
       
       <LoadingSpinner loading={props.isFetching} />
     </div>)

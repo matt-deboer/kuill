@@ -23,8 +23,6 @@ const initialState = {
   },
   // the currently selected resource
   resource: null,
-  // the currently requested resource cannot be found
-  resourceNotFound: false,
   // pods that are transitively owned by the currently selected resource
   pods: {},
   // total number of pods seen
@@ -298,11 +296,13 @@ function doRemoveResource(state, resource) {
     let resources = { ...state.resources }
     delete resources[resource.key]
     let podsByNode = {...state.podsByNode}
-    delete podsByNode[resource.spec.nodeName][resource.key]
+    if (resource.kind === 'Pod') {
+      delete podsByNode[resource.spec.nodeName][resource.key]
+    }
     let countsByKind = {...state.countsByKind}
     countsByKind[resource.kind] -= 1
     let countsByNamespace = {...state.countsByNamespace}
-    countsByNamespace[resource.metadata.namespace] -= 1
+    countsByNamespace[resource.metadata.namespace || '~'] -= 1
 
     if (countsByNamespace[resource.metadata.namespace] === 0) {
       delete countsByNamespace[resource.metadata.namespace]
@@ -322,11 +322,10 @@ function doSelectResource(state, namespace, kind, name) {
 
   let pods = {}
   let key = keyForResource({kind: kind, namespace: namespace, name: name})
-  let resource = state.resources[key]
-
+  let resources = state.resources
+  let resource = resources[key]
   // When a resource is selected, we find all pods that are
   // owned by that resource
-  let resourceNotFound = false
   if (!!resource) {
     if (kind === 'Pod') {
       pods[name] = resource
@@ -349,12 +348,22 @@ function doSelectResource(state, namespace, kind, name) {
       }
     }
   } else {
-    resourceNotFound = true
+    resources = {...resources}
+    resource = resources[key] = {
+      kind: kind,
+      metadata: {
+        name: name,
+      },
+      notFound: true,
+    }
+    if (namespace && namespace !== '~') {
+      resource.metadata.namespace = namespace
+    }
   }
 
   return { ...state, 
+    resources: resources,
     resource: resource,
-    resourceNotFound: resourceNotFound,
     pods: pods, 
   }
 }

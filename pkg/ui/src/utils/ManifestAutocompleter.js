@@ -70,14 +70,16 @@ export default class ManifestAutocompleter {
             // let part = parts[i].split(/\[/)[0]
             let [,part,arrayPos] = parts[i].match(/(\w+)(?:\[(\d+)\]|\s*)/)
             doc = this.subAST(doc, part, arrayPos)
-            let prop = def.properties[part]
-            let type = prop.type === 'array' ? (prop.items.$ref || prop.items.type) : (prop.type || prop.$ref)
-            isArray = (prop.type === 'array')
-            if (type.startsWith('#/definitions')) {
-              let defName = type.substr(14)
-              def = this.swagger.definitions[defName]
-            } else {
-              def = type
+            if (def.properties) {
+              let prop = def.properties[part]
+              let type = prop.type === 'array' ? (prop.items.$ref || prop.items.type) : (prop.type || prop.$ref)
+              isArray = (prop.type === 'array')
+              if (type.startsWith('#/definitions')) {
+                let defName = type.substr(14)
+                def = this.swagger.definitions[defName]
+              } else {
+                def = type
+              }
             }
           }
           if (def.properties) {
@@ -187,5 +189,5 @@ function getMappingValue(ast, key) {
 }
 
 function isFirstArrayElement(doc) {
-  return doc && (doc.parent.items.length === 0)
+  return doc && doc.parent && doc.parent.items && (doc.parent.items.length === 0)
 }

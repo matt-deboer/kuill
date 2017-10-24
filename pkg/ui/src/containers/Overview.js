@@ -17,18 +17,13 @@ import NamespaceBarChart from '../components/dashboard/NamespaceBarChart'
 
 import { watchEvents } from '../state/actions/events'
 import { requestResources } from '../state/actions/resources'
+import { requestMetrics } from '../state/actions/metrics'
 import { calculateMetrics } from '../utils/summary-utils'
 import { connect } from 'react-redux'
 import './Overview.css'
 
 const mapStateToProps = function(store) {
   return {
-    // cores: store.cluster.cores,
-    // nodes: store.cluster.nodes,
-    // memory: store.cluster.memory,
-    // podCount: store.workloads.podCount,
-    // memoryUnits: store.cluster.memoryUnits,
-    // isFetching: store.cluster.isFetching,
     user: store.session.user,
     recentEvents: store.events.recentEvents,
     events: store.events.events,
@@ -52,6 +47,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     requestResources: function() {
       dispatch(requestResources())
+    },
+    requestMetrics: function() {
+      dispatch(requestMetrics())
     },
   }
 }

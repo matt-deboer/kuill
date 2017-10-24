@@ -1,12 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { routerActions } from 'react-router-redux'
 import { withRouter } from 'react-router-dom'
 import { white, blueA700, grey100, grey300, grey700, grey800 } from 'material-ui/styles/colors'
 import EditorPage from '../components/EditorPage'
 import { requestTemplates } from '../state/actions/templates'
 import { requestSwagger } from '../state/actions/apimodels'
+import { tryGoBack } from '../state/actions/location'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
@@ -24,13 +24,15 @@ const mapStateToProps = function(store) {
     templatesByGroup: store.templates.templatesByGroup,
     isFetching: store.templates.isFetching,
     swagger: store.apimodels.swagger,
+    previousLocation: store.location.previous,
+    currentLocation: store.location.current,
   }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     cancelEditor: function() {
-      dispatch(routerActions.goBack())
+      dispatch(tryGoBack())
     },
     createResource: function(contents) {
       dispatch(ownProps.resourceCreator(contents))

@@ -99,9 +99,7 @@
       "target": "https://localhost:8888",
       "secure": false,
       "ws": true,
-      "toProxy": true,
-      "changeOrigin": true,
-      "logLevel": "debug"
+      "toProxy": true
     },
     "/metrics": {
       "target": "https://localhost:8888",

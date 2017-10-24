@@ -177,7 +177,7 @@ class Authenticated extends React.Component {
     return (
       <div>
         <LoginDialog 
-          open={this.props.sessionInitialized && !this.props.user} 
+          open={/*this.props.sessionInitialized && */!this.props.user} 
           credsLink={this.state.credsLink} 
           loginLinks={this.state.loginLinks}
           loginError={this.state.loginError}

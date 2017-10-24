@@ -46,9 +46,8 @@ class StorageClassesTab extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      volumesByClass: {},
+      volumesByClass: this.getVolumesByClass(props.resources),
     }
-    this.updateVolumesByClass(props.resources)
     this.kind = 'StorageClass'
     let that = this
     this.columns = [
@@ -133,7 +132,7 @@ class StorageClassesTab extends React.Component {
     ]
   }
 
-  updateVolumesByClass = (resources) => {
+  getVolumesByClass = (resources) => {
     let volumesByClass = {}
     Object.entries(resources).filter(([key, resource])=> resource.kind === 'PersistentVolume')
       .forEach(([key, resource]) => {
@@ -141,13 +140,13 @@ class StorageClassesTab extends React.Component {
         volumes.push(resource)
         volumesByClass[resource.spec.storageClassName] = volumes
       })
-    this.setState({
-      volumesByClass: volumesByClass
-    })
+    return volumesByClass
   }
 
   componentWillReceiveProps = (props) => {
-    this.updateVolumesByClass(props.resources)
+    this.setState({
+      volumesByClass: this.getVolumesByClass(props.resources),
+    })
   }
 
   getVolumesForStorageClass = (sc) => {

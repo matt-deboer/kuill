@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {blueA400, grey200, grey600, grey700, redA700} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
+import { requestKinds } from '../state/actions/apimodels'
 import { routerActions } from 'react-router-redux'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
 import FilterChip from './FilterChip'
@@ -22,6 +23,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     createResource: function(namespace, kind, name) {
       dispatch(routerActions.push(`/workloads/new?kind=${kind}&namespace=${namespace}&name=${name}`))
     },
+    requestKinds: function() {
+      dispatch(requestKinds())
+    },
   }
 }
 
@@ -37,12 +41,26 @@ class ResourceNotFoundPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.kubeKind = this.props.kinds[props.kind]
+    if (!props.kinds) {
+      props.requestKinds()
+    } else {
+      this.kubeKind = this.props.kinds[props.kind]
+    }
+  }
+
+  componentWillReceiveProps = (props) => {
+    if (!this.kubeKind && props.kinds) {
+      this.kubeKind = props.kinds[props.kind]
+    }
   }
 
   render() {
 
     let { kind, namespace, name } = this.props
+
+    if (!this.kubeKind) {
+      return null
+    }
 
     return (
       <div>

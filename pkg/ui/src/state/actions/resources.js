@@ -688,6 +688,8 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
     if (!resp.ok) {
       if (resp.status === 401) {
         dispatch(invalidateSession())
+      } else if (resp.status < 500) {
+        return resp.json()
       } else {
         dispatch(addError(resp,'error',`Failed to update contents for ${kind}/${namespace}/${name}: ${resp.statusText}`))
       }
@@ -695,8 +697,12 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
       return resp.json()
     }
   }).then(resource => {
-    dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
-    dispatch(receiveResource(resource, resource))
+    if (resource.code) {
+      dispatch(addError(resource,'error',`Failed to update contents for ${kind}/${namespace}/${name}: ${resource.message}`))
+    } else {
+      dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
+      dispatch(receiveResource(resource, resource))
+    }
   })
 }
 

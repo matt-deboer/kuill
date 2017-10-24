@@ -42,6 +42,7 @@ export function createPatch(resource, contents) {
   removeReadOnlyFields(patch)
   
   if (!!resource) {
+    patch.metadata.annotations = patch.metadata.annotations || {}
     patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
   }
   return patch

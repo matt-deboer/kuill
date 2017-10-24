@@ -17,7 +17,7 @@ import './PodTemplatePane.css'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.access.resources,
+    resources: store.resources.resources,
     linkGenerator: store.session.linkGenerator,
   }
 }

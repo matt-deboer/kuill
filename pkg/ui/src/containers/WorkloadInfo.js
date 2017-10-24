@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { applyResourceChanges, requestResource, editResource, removeResource, scaleResource } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
+import { tryGoBack } from '../state/actions/location'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
@@ -21,8 +22,7 @@ const AsyncEditorPage = Loadable({
 const mapStateToProps = function(store) {
   return { 
     resource: store.resources.resource,
-    resourceNotFound: store.resources.resourceNotFound,
-    isFetching: store.resources.isFetching,
+    fetching: store.requests.fetching.resources,
     user: store.session.user,
     editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
@@ -36,7 +36,7 @@ const mapStateToProps = function(store) {
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     cancelEditor: function() {
-      dispatch(routerActions.goBack())
+      dispatch(tryGoBack())
     },
     onEditorApply: function(contents) {
       let { namespace, kind, name } = ownProps.match.params
@@ -62,7 +62,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search = '?'+search
       }
       dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
+        pathname: `/workloads`,
         search: search,
       }))
     },
@@ -183,7 +183,7 @@ class WorkloadInfo extends React.Component {
   shouldComponentUpdate = (nextProps, nextState) => {
     let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
         || !sameResourceVersion(this.state.resource,nextProps.resource)
-        || this.props.isFetching !== nextProps.isFetching
+        || this.props.fetching !== nextProps.fetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
@@ -228,24 +228,27 @@ class WorkloadInfo extends React.Component {
 
     let resourceInfoPage = null
     let resourceNotFound = null
+
     if (!!this.state.resource) {
-      resourceInfoPage = 
-        <ResourceInfoPage
-          removeResource={props.removeResource}
-          editResource={props.editResource}
-          scaleResource={props.scaleResource}
-          viewKind={props.viewKind}
-          viewFilters={props.viewFilters}
-          selectView={props.selectView}
-          resourceGroup={'workloads'}
-          resource={this.state.resource}
-          logs={logs}
-          events={events}
-          onLogsActivated={this.onLogsActivated.bind(this)}
-          activeTab={(this.props.location.search || 'config').replace('?view=','')}
-          />
-    } else if (this.props.resourceNotFound) {
-      resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
+      if (this.state.resource.notFound) {
+        resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
+      } else {
+        resourceInfoPage = 
+          <ResourceInfoPage
+            removeResource={props.removeResource}
+            editResource={props.editResource}
+            scaleResource={props.scaleResource}
+            viewKind={props.viewKind}
+            viewFilters={props.viewFilters}
+            selectView={props.selectView}
+            resourceGroup={'workloads'}
+            resource={this.state.resource}
+            logs={logs}
+            events={events}
+            onLogsActivated={this.onLogsActivated.bind(this)}
+            activeTab={(this.props.location.search || 'config').replace('?view=','')}
+            />
+      }
     }
 
     return (
@@ -262,7 +265,7 @@ class WorkloadInfo extends React.Component {
         {resourceInfoPage}
         {resourceNotFound}
         
-        <LoadingSpinner loading={!this.state.resource && this.props.isFetching} />
+        <LoadingSpinner loading={this.props.isFetching} />
       </div>
     )
   }
