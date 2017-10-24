@@ -101,7 +101,6 @@ func (k *kindLister) update() error {
 	})
 
 	for _, apiGroup := range apiGroups {
-		log.Infof("apiGroup: %v", apiGroup)
 		version := apiGroup.GetPreferredVersion()
 		var resources *unversioned.APIResourceList
 		var err error
