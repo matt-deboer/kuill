@@ -259,17 +259,19 @@ export function scaleResource(namespace, kind, name, replicas) {
  */
 export function applyResourceChanges(namespace, kind, name, contents) {
   return async function (dispatch, getState) {
-      doRequest(dispatch, getState, 'resources.contents', async () => {
-        await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
+      let success = await doRequest(dispatch, getState, 'resources.contents', async () => {
+        return await updateResourceContents(dispatch, getState, namespace, kind, name, contents)
       })
       // TODO: should we really be controlling routing here?
-      let link = getState().session.linkGenerator.linkForResource({
-        name: name, namespace: namespace, kind: kind})
-      dispatch(routerActions.push({
-        pathname: link.split('?')[0],
-        search: '?view=events',
-        hash: '',
-      }))
+      if (success) {
+        let link = getState().session.linkGenerator.linkForResource({
+          name: name, namespace: namespace, kind: kind})
+        dispatch(routerActions.push({
+          pathname: link.split('?')[0],
+          search: '?view=events',
+          hash: '',
+        }))
+      }
   }
 }
 
@@ -677,7 +679,7 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
 
   let api = kubeKinds[kind]
   let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
-  await fetch(url, { ...defaultFetchParams,
+  return await fetch(url, { ...defaultFetchParams,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/strategic-merge-patch+json'
@@ -702,6 +704,7 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
     } else {
       dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
       dispatch(receiveResource(resource, resource))
+      return true
     }
   })
 }

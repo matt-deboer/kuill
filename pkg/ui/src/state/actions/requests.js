@@ -20,8 +20,9 @@ export async function doRequest(dispatch, getState, name, request) {
   }
   dispatch({ type: types.START_FETCHING, name: name })
   let fetchBackoff = getState().requests.fetchBackoff[name] || 0
-  await sleep(fetchBackoff).then(request)
+  let result = await sleep(fetchBackoff).then(request)
   dispatch({ type: types.DONE_FETCHING, name: name })
+  return result
 }
 
 export async function sleep (time) {

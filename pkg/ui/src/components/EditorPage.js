@@ -12,6 +12,9 @@ import { requestSwagger } from '../state/actions/apimodels'
 import ManifestValidator from '../utils/ManifestValidator'
 import ManifestAutocompleter from '../utils/ManifestAutocompleter'
 
+import ClearError from 'material-ui/svg-icons/content/clear'
+import IconButton from 'material-ui/IconButton'
+
 import AceEditor from 'react-ace'
 import 'brace/mode/yaml'
 import 'brace/mode/json'
@@ -59,12 +62,17 @@ const styles = {
     width: '50%',
     background: '#960000',
     zIndex: 1,
-    bottom: 110,
-    right: 40,
+    bottom: 120,
+    right: 48,
     fontSize: 14,
     padding: 10,
     borderRadius: 2,
-  }
+  },
+  clearError: {
+    position: 'absolute',
+    top: 0, 
+    right: 0
+  },
 }
 
 // use functional component style for representational components
@@ -95,6 +103,7 @@ class EditorPage extends React.Component {
     this.state = {
       errors: [],
       resource: props.resource,
+      latestErrorOpen: false,
     }
     this.getResourceAccess(this.state.resource, this.props.resourceGroup)
   }
@@ -139,6 +148,12 @@ class EditorPage extends React.Component {
       this.setState({resource: props.resource})
     }
 
+    if (props.latestError && !this.state.latestError) {
+      this.setState({
+        latestError: props.latestError,
+        latestErrorOpen: true,
+      })
+    }
     if (!this.contents) {
       this.contents = props.contents
     }
@@ -190,6 +205,10 @@ class EditorPage extends React.Component {
         delete div.dataset.rhCls
       }
     }
+  }
+
+  handleClearError = () => {
+    this.setState({latestErrorOpen: false, latestError: null})
   }
 
   onSelectionChange = (selection, event) => {
@@ -280,12 +299,16 @@ class EditorPage extends React.Component {
         <div id={`errors-for-row-${row}`} key={`errors-for-row-${row}`} style={{display: 'none'}}>
           {errorsByRow[row]}
         </div>)
-    }  
+    }
 
     let latestError = null
-    if (this.props.latestError) {
+    if (this.state.latestError && this.state.latestErrorOpen) {
       latestError = (
         <div className={'latest-error'} style={styles.latestError}>
+          <IconButton style={styles.clearError}
+            onTouchTap={this.handleClearError}>
+            <ClearError/>
+          </IconButton> 
           {this.props.latestError.message}
         </div>
       )

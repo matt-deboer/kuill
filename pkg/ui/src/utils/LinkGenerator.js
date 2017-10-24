@@ -28,6 +28,9 @@ export default class LinkGenerator {
       name = resource.name || resource.metadata.name
       kind = resource.kind
     }
+    if (!this.kubeKinds) {
+      return null
+    }
     let kubeKind = this.kubeKinds[kind]
     if (!kubeKind) {
       return `/DNE`

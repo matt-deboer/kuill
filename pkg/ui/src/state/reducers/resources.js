@@ -39,8 +39,9 @@ const initialState = {
   // all namespaces
   namespaces: [],
   editor: {
-    format: 'yaml'
+    format: 'yaml',
   },
+  editing: false,
   // isFetching: false,
   countsByKind: {},
   countsByNamespace: {},
@@ -71,7 +72,7 @@ export default (state = initialState, action) => {
       return initialState
 
     case LOCATION_CHANGE:
-      return doSetFiltersByLocation(state, action.payload)
+      return doReceiveNewLocation(state, action.payload)
 
     case types.RECEIVE_RESOURCES:
       return doReceiveResources(state, action.resources, action.kubeKinds)
@@ -119,9 +120,16 @@ function doCleanup(state) {
   }
 }
 
-function doSetFiltersByLocation(state, location) {
+function doReceiveNewLocation(state, location) {
+  let query = queryString.parse(location.search)
+  let newState = doSetFiltersByLocation(state, location, query)
+  newState.editing = (query.view === 'edit' || location.pathname.endsWith('/new'))
+  return newState
+}
+
+function doSetFiltersByLocation(state, location, query) {
   
-  let filterNames = queryString.parse(location.search).filters
+  let filterNames = query.filters
   if (!filterNames) {
     filterNames = []
   } else if (filterNames.constructor !== Array) {
