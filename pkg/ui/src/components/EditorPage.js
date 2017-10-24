@@ -8,6 +8,7 @@ import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 import { grey500 } from 'material-ui/styles/colors'
 
+import { clearLatestError } from '../state/actions/errors'
 import { requestSwagger } from '../state/actions/apimodels'
 import ManifestValidator from '../utils/ManifestValidator'
 import ManifestAutocompleter from '../utils/ManifestAutocompleter'
@@ -48,6 +49,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     requestSwagger: function() {
       dispatch(requestSwagger())
+    },
+    clearLatestError: function() {
+      dispatch(clearLatestError())
     },
   }
 }
@@ -209,6 +213,7 @@ class EditorPage extends React.Component {
 
   handleClearError = () => {
     this.setState({latestErrorOpen: false, latestError: null})
+    this.props.clearLatestError()
   }
 
   onSelectionChange = (selection, event) => {
