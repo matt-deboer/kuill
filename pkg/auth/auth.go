@@ -194,12 +194,14 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 }
 
 func (m *Manager) keepSessionAlive(session *SessionToken, w http.ResponseWriter) {
-	// If the session expires in less than 1 minute, renew it
-	if session != nil && session.Valid && session.Expires() < (time.Now().Unix()-int64(time.Minute.Seconds())) {
+	// If the session is more than half expired, renew it
+	if session != nil && session.Valid && session.Expires() < (time.Now().Unix()+(int64(m.sessionTimeout.Seconds()/2))) {
+		expiry := session.Expires()
 		session = m.NewSessionToken(session.User(), []string{}, session.claims)
 		m.writeSessionCookie(session, w)
 		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Renewed session for %s: expires %d -> %d", session.User(), session.Expires())
+			log.Debugf("Renewed session for %s: (expires:%d < now:%d + half_timeout:%d); new expiry -> %d",
+				session.User(), expiry, time.Now().Unix(), int64(m.sessionTimeout.Seconds()/2), session.Expires())
 		}
 	}
 }
@@ -270,7 +272,9 @@ func (m *Manager) NewSessionToken(user string, groups []string, additionalClaims
 	}
 	if additionalClaims != nil {
 		for k, v := range additionalClaims {
-			claims[k] = v
+			if k != claimExpires && k != claimNotBefore {
+				claims[k] = v
+			}
 		}
 	}
 	return &SessionToken{Token: jwt.NewWithClaims(jwt.SigningMethodHS256, claims), claims: claims}
