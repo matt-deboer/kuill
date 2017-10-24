@@ -73,7 +73,7 @@
     "dev": "npm-run-all -p test-proxy watch-css start-js",
     "build": "npm run build-css && react-scripts build",
     "build-test-proxy": "npm install ./test-proxy",
-    "test": "react-scripts test --env=jsdom", 
+    "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
@@ -82,39 +82,33 @@
   },
   "proxy": {
     "/auth": {
-      "target": "https://localhost:8888",
+      "target": "https://127.0.0.1:8888",
       "secure": false
     },
     "/kinds": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/namespaces": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/proxy": {
-      "target": "https://localhost:8888",
+      "target": "https://127.0.0.1:8888",
       "secure": false,
-      "ws": true,
-      "toProxy": true
+      "ws": true
     },
     "/metrics": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/templates": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/version": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     }
   },
   "_proxy": {
