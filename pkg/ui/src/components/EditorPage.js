@@ -158,9 +158,14 @@ class EditorPage extends React.Component {
         latestErrorOpen: true,
       })
     }
+    
     if (!this.contents) {
       this.contents = props.contents
+    } else if (!props.open) {
+      this.contents = ''
+      this.handleClearError()
     }
+
     if (!this.state.resourceAccess) {
       this.getResourceAccess(this.state.resource, props.resourceGroup)
     }
