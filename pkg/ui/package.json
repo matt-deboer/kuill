@@ -44,6 +44,7 @@
     "source-map-explorer": "^1.4.0",
     "swagger-object-validator": "git://github.com/matt-deboer/swagger-object-validator.git#1.1.4-es5",
     "text-encoding-utf-8": "^1.0.1",
+    "visibilityjs": "^1.2.5",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
     "xterm": "^2.6.0",
     "yaml-ast-parser": "0.0.34"
@@ -96,6 +97,7 @@
     "/proxy": {
       "target": "https://127.0.0.1:8888",
       "secure": false,
+      "logLevel": "silent",
       "ws": true
     },
     "/metrics": {
