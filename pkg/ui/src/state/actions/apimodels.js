@@ -12,25 +12,35 @@ for (let type of [
   types[type] = `apimodels.${type}`
 }
 
-export function requestSwagger() {
+export function requestSwagger(force) {
   return async function (dispatch, getState) {
-    return doRequest(dispatch, getState, 'swagger', async () => {
-      return await fetchSwagger(dispatch, getState)
-    })
+    let swagger = getState().apimodels.swagger
+    if (force || !swagger) {
+      await doRequest(dispatch, getState, 'swagger', async () => {
+        return await fetchSwagger(dispatch, getState)
+      })
+      swagger = getState().apimodels.swagger
+    } 
+    return swagger
   }
 }
 
 /**
  */
-export function requestKinds() {
+export function requestKinds(force) {
   return async function (dispatch, getState) {
-    doRequest(dispatch, getState, 'kinds', async () => {
-      await fetchKinds(dispatch, getState)
-    })
+    let kinds = getState().apimodels.kinds
+    if (force || !kinds) {
+      await doRequest(dispatch, getState, 'kinds', async () => {
+        return await fetchKinds(dispatch, getState)
+      })
+      kinds = getState().apimodels.kinds
+    }
 
     if (!getState().apimodels.swagger) {
-      await requestSwagger()(dispatch, getState)
+      dispatch(requestSwagger())
     }
+    return kinds
   }
 }
 
@@ -38,7 +48,7 @@ export function requestKinds() {
 async function fetchKinds(dispatch, getState) {
   
   let url = '/kinds'
-  await fetch(url, defaultFetchParams)
+  let kinds = await fetch(url, defaultFetchParams)
     .then(resp => {
       if (!resp.ok) {
         if (resp.status === 401) {
@@ -54,15 +64,21 @@ async function fetchKinds(dispatch, getState) {
     })
     .then(json => {
       if ('items' in json) {
-        dispatch({
-          type: types.RECEIVE_KINDS,
-          kinds: json.items,
-        })
+        return json.items
       } else {
         dispatch(addError(json,'error',`Failed to fetch kinds at ${url}: ${json.message}`,
           'Try Again', () => { dispatch(requestKinds()) } ))
       }
     })
+
+  if (kinds) {
+    await dispatch({
+      type: types.RECEIVE_KINDS,
+      kinds: kinds,
+    })
+    kinds = getState().apimodels.kinds
+  }
+  return kinds
 }
 
 async function fetchSwagger(dispatch, getState) {
@@ -73,8 +89,6 @@ async function fetchSwagger(dispatch, getState) {
         if (!resp.ok) {
           if (resp.status === 401) {
             dispatch(invalidateSession())
-          // } else if (resp.status === 404) {
-            // dispatch(disableResourceKind(kind))
           } else {
             dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
               'Try Again', () => { dispatch(requestSwagger()) } ))
@@ -86,7 +100,7 @@ async function fetchSwagger(dispatch, getState) {
       })
 
   if ('definitions' in swagger) {
-    dispatch({
+    return dispatch({
       type: types.RECEIVE_SWAGGER,
       swagger: swagger,
     })

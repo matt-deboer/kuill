@@ -22,6 +22,7 @@ const AsyncEditorPage = Loadable({
 const mapStateToProps = function(store) {
   return { 
     resource: store.resources.resource,
+    fetching: store.requests.fetching,
     user: store.session.user,
     editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
@@ -192,10 +193,11 @@ class ClusterInfo extends React.Component {
 
     let { logs, events, props } = this
     
+    let fetching = Object.keys(props.fetching).length > 0
     let resourceInfoPage = null
     let resourceNotFound = null
 
-    if (!!this.state.resource) {
+    if (!!this.state.resource && !fetching) {
       if (this.state.resource.notFound) {
         resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...props.match.params}/>
       } else {
@@ -232,7 +234,7 @@ class ClusterInfo extends React.Component {
       {resourceInfoPage}
       {resourceNotFound}
 
-      <LoadingSpinner loading={this.props.isFetching} />
+      <LoadingSpinner loading={fetching} />
     </div>)
   }
 }))

@@ -23,6 +23,7 @@ const mapStateToProps = function(store) {
   return { 
     resource: store.resources.resource,
     resources: store.resources.resources,
+    fetching: store.requests.fetching,
     user: store.session.user,
     editor: store.resources.editor,
     events: store.resources.selectedEvents,
@@ -176,10 +177,11 @@ class AccessControlsInfo extends React.Component {
 
     let { events, props } = this
 
+    let fetching = Object.keys(props.fetching).length > 0
     let resourceInfoPage = null
     let resourceNotFound = null
 
-    if (!!this.state.resource) {
+    if (!!this.state.resource && !fetching) {
       if (this.state.resource.notFound) {
         resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
       } else {
@@ -213,7 +215,7 @@ class AccessControlsInfo extends React.Component {
       {resourceInfoPage}
       {resourceNotFound}
       
-      <LoadingSpinner loading={props.isFetching} />
+      <LoadingSpinner loading={fetching} />
     </div>)
   }
 }))

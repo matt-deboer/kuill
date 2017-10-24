@@ -10,7 +10,7 @@ export default (state = initialState, action) => {
   switch (action.type) {
     
     case types.START_FETCHING:
-      return doSetFetching(state, action.name, true)
+      return doSetFetching(state, action.name, action.request)
 
     case types.DONE_FETCHING:
       return {...state, 
@@ -23,15 +23,15 @@ export default (state = initialState, action) => {
   }
 }
 
-function doSetFetching(state, name, fetching) {
+function doSetFetching(state, name, request) {
   let newState = {...state, fetching: {...state.fetching}}
-  if (fetching) {
-    newState.fetching[name] = fetching
+  if (!!request) {
+    newState.fetching[name] = request
   } else {
     delete newState.fetching[name]
   }
 
-  if (!fetching) {
+  if (!request) {
     newState.fetchBackoff = !!newState.fetchError ? incrementBackoff(newState.fetchBackoff) : decrementBackoff(newState.fetchBackoff)
   }
 

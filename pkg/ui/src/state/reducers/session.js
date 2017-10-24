@@ -16,9 +16,6 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    
-    case types.FETCHING:
-      return {...state, isFetching: action.isFetching}
 
     case types.INITIALIZE:
       return { ...state, 
@@ -33,7 +30,7 @@ export default (state = initialState, action) => {
       return { ...state, user: null, loginMethod: null }
 
     case types.INVALIDATE:
-      return { ...state, user: null }
+      return { ...state, user: null, initialized: true }
 
     case types.PUT_PERMISSIONS:
       return doUpdatePermissions(state, action.kind, action.permissions)

@@ -115,31 +115,10 @@ class Authenticated extends React.Component {
         this.fetching = false
         if (!payload.user) {
           this.props.invalidateSession()
-        } else {
-          console.warn(`session updated: ${JSON.stringify(payload)}`)
         }
       })
     }
   }
-
-  // maintainSession = () => {
-  //   this.updateSession()
-  //   if (!this.props.user) {
-  //     this.sessionInterval && window.clearInterval(this.sessionInterval)
-  //   } else if (!this.sessionInterval) {
-  //     this.sessionInterval = window.setInterval(this.updateSession, sessionInterval)
-  //   }
-  // }
-
-  // sleepSession = () => {
-  //   this.sessionInterval && window.clearInterval(this.sessionInterval)
-  //   this.sessionInterval = null
-  // }
-
-  // keepAlive = () => {
-  //   window.onfocus = this.maintainSession
-  //   window.onblur = this.sleepSession
-  // }
 
   componentWillUnmount = () => {
     this.sessionInterval && window.clearInterval(this.sessionInterval)
@@ -180,7 +159,7 @@ class Authenticated extends React.Component {
     return (
       <div>
         <LoginDialog 
-          open={/*this.props.sessionInitialized && */!this.props.user} 
+          open={this.props.sessionInitialized && !this.props.user} 
           credsLink={this.state.credsLink} 
           loginLinks={this.state.loginLinks}
           loginError={this.state.loginError}

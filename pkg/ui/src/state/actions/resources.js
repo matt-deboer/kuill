@@ -397,7 +397,7 @@ export function removeResource(...resourcesToRemove) {
   }
 }
 
-function shouldFetchResources(getState, force) {
+async function shouldFetchResources(dispatch, getState, force) {
   let state = getState()
   let { resources, lastLoaded } = state.resources
   let { user } = state.session
@@ -407,20 +407,21 @@ function shouldFetchResources(getState, force) {
   let shouldRefresh = (!!force && (Date.now() - lastLoaded) > maxReloadInterval)
   let noResources = (!resources || Object.keys(resources).length === 0)
 
-  let shouldFetch = (!!user) && (!!kinds) && (noResources || shouldRefresh)    
+  let shouldFetch = (!!user) && (noResources || shouldRefresh)    
+
+  if (shouldFetch && !kinds) {
+    await requestKinds()(dispatch, getState)
+    kinds = getState().apimodels.kinds
+  }
 
   return shouldFetch
 }
 
 async function fetchResources(dispatch, getState, force, filter) {
   
-  if (shouldFetchResources(getState, force)) {
+  let shouldFetch = await shouldFetchResources(dispatch, getState, force)
+  if (shouldFetch) {
     let kubeKinds = getState().apimodels.kinds
-    if (!kubeKinds) {
-      await dispatch(requestKinds())
-      kubeKinds = getState().apimodels.kinds
-    }
-
     let entryFilter = (typeof filter === 'function') ?
       function(entry) { return !(entry[0] in excludedKinds) && filter(entry[1]) } : 
       function(entry) { return !(entry[0] in excludedKinds) }
@@ -449,7 +450,6 @@ async function fetchResources(dispatch, getState, force, filter) {
     requests.push(fetchThirdPartyResources(dispatch, getState))
 
     let results = await Promise.all(requests)
-
     parseResults(dispatch, getState, results)
   }
 }
