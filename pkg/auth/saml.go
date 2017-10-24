@@ -236,7 +236,7 @@ func (s *samlHandler) Metadata(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
+func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request, m *Manager) (*SessionToken, error) {
 
 	if r.Method == "GET" {
 		http.SetCookie(w, &http.Cookie{
@@ -272,7 +272,7 @@ func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*Ses
 		query.Set("target", target)
 		r.URL.RawQuery = query.Encode()
 
-		return s.sessionTokenFromAssertion(assertion)
+		return s.sessionTokenFromAssertion(assertion, m)
 
 	} else {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -280,7 +280,7 @@ func (s *samlHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*Ses
 	return nil, nil
 }
 
-func (s *samlHandler) sessionTokenFromAssertion(assertion *saml.Assertion) (*SessionToken, error) {
+func (s *samlHandler) sessionTokenFromAssertion(assertion *saml.Assertion, m *Manager) (*SessionToken, error) {
 
 	// TODO: confirm that the assertion has already been validated by this point
 	username := assertion.Subject.NameID.Value
@@ -298,7 +298,7 @@ func (s *samlHandler) sessionTokenFromAssertion(assertion *saml.Assertion) (*Ses
 			}
 		}
 	}
-	return NewSessionToken(username, groups, jwt.MapClaims{
+	return m.NewSessionToken(username, groups, jwt.MapClaims{
 		"s2i": assertion.Issuer.Value,
 	}), nil
 }

@@ -74,7 +74,7 @@ func (p *pwfileHandler) IconURL() string {
 	return ""
 }
 
-func (p *pwfileHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
+func (p *pwfileHandler) Authenticate(w http.ResponseWriter, r *http.Request, m *Manager) (*SessionToken, error) {
 	username := r.FormValue("username")
 	if len(username) == 0 {
 		username = r.URL.Query().Get("username")
@@ -89,7 +89,7 @@ func (p *pwfileHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*S
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Logged in: %s", username)
 			}
-			return NewSessionToken(username, pw[1:], nil), nil
+			return m.NewSessionToken(username, pw[1:], nil), nil
 		}
 	}
 	if log.GetLevel() >= log.DebugLevel {

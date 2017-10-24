@@ -41,7 +41,7 @@ type Authenticator interface {
 	// handlers must include a "login" handler which will be triggered
 	// GetHandlers() map[string]http.HandlerFunc
 	// LoginURL returns the initial login URL for this handler
-	Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error)
+	Authenticate(w http.ResponseWriter, r *http.Request, m *Manager) (*SessionToken, error)
 
 	LoginURL() string
 	// IconURL returns an icon URL to signify this login method; empty string implies a default can be used
@@ -80,15 +80,17 @@ type Manager struct {
 	loginMethodsResponse []byte
 	mutex                sync.Mutex
 	hmac                 []byte
+	sessionTimeout       time.Duration
 }
 
 // NewAuthManager creates a new authentication manager instance
-func NewAuthManager() (*Manager, error) {
+func NewAuthManager(sessionTimeout time.Duration) (*Manager, error) {
 
 	hmc, _ := uuid.NewV4()
 	m := &Manager{
 		authenticators: make(map[string]Authenticator),
 		hmac:           []byte(hmc.String()),
+		sessionTimeout: sessionTimeout,
 	}
 
 	m.loginMethodsResponse, _ = m.buildLoginMethodsResponse()
@@ -128,7 +130,7 @@ func (m *Manager) RegisterAuthenticator(authn Authenticator) error {
 	m.authenticators[key] = authn
 
 	var handlerFunc http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		sessionToken, err := authn.Authenticate(w, r)
+		sessionToken, err := authn.Authenticate(w, r, m)
 		if err != nil {
 			log.Error(err)
 		} else if sessionToken != nil {
@@ -194,7 +196,7 @@ func (m *Manager) respondWithUserInfo(session *SessionToken, w http.ResponseWrit
 func (m *Manager) keepSessionAlive(session *SessionToken, w http.ResponseWriter) {
 	// If the session expires in less than 1 minute, renew it
 	if session != nil && session.Valid && session.Expires() < (time.Now().Unix()-int64(time.Minute.Seconds())) {
-		session = NewSessionToken(session.User(), []string{}, session.claims)
+		session = m.NewSessionToken(session.User(), []string{}, session.claims)
 		m.writeSessionCookie(session, w)
 		if log.GetLevel() >= log.DebugLevel {
 			log.Debugf("Renewed session for %s: expires %d -> %d", session.User(), session.Expires())
@@ -257,11 +259,11 @@ func (s *SessionToken) Groups() []string {
 }
 
 // NewSessionToken generates a new auth token suitable for storing user session state
-func NewSessionToken(user string, groups []string, additionalClaims map[string]interface{}) *SessionToken {
+func (m *Manager) NewSessionToken(user string, groups []string, additionalClaims map[string]interface{}) *SessionToken {
 	csrfToken, _ := uuid.NewV4()
 	claims := jwt.MapClaims{
 		claimNotBefore: time.Now().Unix(),
-		claimExpires:   time.Now().Add(time.Minute * 15).Unix(),
+		claimExpires:   time.Now().Add(m.sessionTimeout).Unix(),
 		claimCSRFToken: csrfToken.String(),
 		claimUserID:    user,
 		claimGroups:    strings.Join(groups, ","),
