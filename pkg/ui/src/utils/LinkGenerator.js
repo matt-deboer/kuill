@@ -48,10 +48,6 @@ export default class LinkGenerator {
    */
   linkForKind(kind, selectedNamespaces) {
     this.initialize()
-    let kubeKind = this.kubeKinds[kind]
-    if (!kubeKind) {
-      return `/DNE`
-    }
     let name = kind
     if (!(name.endsWith('s'))) {
       name += 's'
@@ -60,7 +56,8 @@ export default class LinkGenerator {
     } else if (name.endsWith('eus')) {
       name = name.replace(/us$/, "i")
     }
-    let group = kubeKind.resourceGroup
+    let kubeKind = this.kubeKinds[kind]
+    let group = (kubeKind && kubeKind.resourceGroup) || 'workloads'
     let linkParams = {}
     if (group === 'cluster') {
       linkParams.view = name.toLowerCase()
