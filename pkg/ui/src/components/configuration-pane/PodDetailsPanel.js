@@ -62,7 +62,7 @@ class PodDetailsPanel extends React.Component {
   render() {
   
     let { props } = this
-    let { resource } = props
+    let { resource, linkGenerator } = props
 
     let {status, spec } = resource
 
@@ -102,7 +102,9 @@ class PodDetailsPanel extends React.Component {
               {spec.volumes &&
                 <TableRow style={styles.tableRow} displayBorder={false}>
                   <TableRowColumn style={styles.tableRowKeyCol}>Volumes:</TableRowColumn>
-                  <TableRowColumn style={styles.tableRowValCol}><Volumes volumes={spec.volumes} namespace={resource.metadata.namespace}/></TableRowColumn>
+                  <TableRowColumn style={styles.tableRowValCol}>
+                    <Volumes volumes={spec.volumes} namespace={resource.metadata.namespace} linkGenerator={linkGenerator}/>
+                  </TableRowColumn>
                 </TableRow>
               }
             </TableBody>

@@ -23,7 +23,6 @@ import { withRouter } from 'react-router-dom'
 import {Tabs, Tab} from 'material-ui/Tabs'
 
 import LoadingSpinner from './LoadingSpinner'
-import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
@@ -49,8 +48,10 @@ const AsyncLogViewer = Loadable({
 
 const mapStateToProps = function(store) {
   return {
-    pods: store.workloads.pods,
+    pods: store.resources.pods,
     accessEvaluator: store.session.accessEvaluator,
+    kinds: store.apimodels.kinds,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -123,7 +124,7 @@ class ResourceInfoPage extends React.Component {
     }
 
     if (props.resource) {
-      this.kubeKind = KubeKinds[props.resourceGroup][props.resource.kind]
+      this.kubeKind = this.props.kinds[props.resource.kind]
       let that = this
       this.props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
         that.setState({
@@ -227,7 +228,7 @@ class ResourceInfoPage extends React.Component {
   componentWillReceiveProps = (nextProps, nextState) => {
     if (!sameResource(nextProps.resource, this.props.resource)) {
       this.setState({resourceAccess: null})
-      this.kubeKind = KubeKinds[nextProps.resourceGroup][nextProps.resource.kind]
+      this.kubeKind = nextProps.kinds[nextProps.resource.kind]
       let that = this
       this.props.accessEvaluator.getObjectAccess(nextProps.resource, nextProps.resourceGroup).then((access) => {
         that.setState({
@@ -238,12 +239,12 @@ class ResourceInfoPage extends React.Component {
   }
 
   componentDidUpdate = () => {
-    this.kubeKind = !!this.props.resource && KubeKinds[this.props.resourceGroup][this.props.resource.kind]
+    this.kubeKind = !!this.props.resource && this.props.kinds[this.props.resource.kind]
   }
 
   render() {
 
-    let { resourceGroup, resource, logs } = this.props
+    let { resourceGroup, resource, logs, linkGenerator } = this.props
     let { resourceAccess } = this.state
 
     let tabs = []
@@ -254,7 +255,7 @@ class ResourceInfoPage extends React.Component {
         name: 'config',
         component: ConfigurationPane,
         icon: <IconConfiguration/>,
-        props: {resource: resource, resourceGroup: resourceGroup},
+        props: {resource: resource, resourceGroup: resourceGroup, linkGenerator: linkGenerator},
       })
     
       if (resource.kind === 'ServiceAccount') {
@@ -262,7 +263,7 @@ class ResourceInfoPage extends React.Component {
           name: 'permissions',
           component: PermissionsPane,
           icon: <IconPermissions/>,
-          props: {serviceAccount: resource, resources: this.props.resources},
+          props: {serviceAccount: resource, resources: this.props.resources, linkGenerator: linkGenerator},
         })
       }
 
@@ -271,7 +272,7 @@ class ResourceInfoPage extends React.Component {
           name: 'pod template',
           component: PodTemplatePane,
           icon: <IconPodTemplate/>,
-          props: {resource: resource},
+          props: {resource: resource, linkGenerator: linkGenerator},
         })
       }
     }
@@ -399,6 +400,7 @@ class ResourceInfoPage extends React.Component {
           resources={[this.props.resource]}
           onRequestClose={this.handleRequestCloseDelete}
           onConfirm={this.handleConfirmDelete}
+          linkGenerator={this.props.linkGenerator}
           />
        
         <ConfirmationDialog 
@@ -408,6 +410,7 @@ class ResourceInfoPage extends React.Component {
           resources={[this.props.resource]}
           onRequestClose={this.handleRequestCloseSuspend}
           onConfirm={this.handleConfirmSuspend}
+          linkGenerator={this.props.linkGenerator}
           />
 
         <ScaleDialog 

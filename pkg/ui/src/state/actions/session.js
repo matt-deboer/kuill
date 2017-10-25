@@ -1,9 +1,7 @@
-// import { addError } from './errors'
-// import { doRequest } from './requests'
-// import { defaultFetchParams } from '../../utils/request-utils'
-import { requestNamespaces } from './cluster'
+import { requestNamespaces } from './resources'
 import { requestSwagger } from './apimodels'
 import AccessEvaluator from '../../utils/AccessEvaluator'
+import LinkGenerator from '../../utils/LinkGenerator'
 
 export var types = {}
 for (let type of [
@@ -36,6 +34,10 @@ export function initializeSession(user, authMethod) {
       user: user,
       authMethod: authMethod,
       accessEvaluator: new AccessEvaluator({
+        dispatch: dispatch,
+        getState: getState,
+      }),
+      linkGenerator: new LinkGenerator({
         dispatch: dispatch,
         getState: getState,
       })

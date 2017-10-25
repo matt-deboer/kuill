@@ -4,13 +4,13 @@ import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/RaisedButton'
 import { grey300, grey800 } from 'material-ui/styles/colors'
 import { Link } from 'react-router-dom'
-import { linkForResource } from '../routes'
 
 export default class ConfirmationDialog extends React.PureComponent {
 
   render() {
 
     let { props } = this
+    let { linkGenerator } = props
 
     const actions = [
       <FlatButton
@@ -37,7 +37,7 @@ export default class ConfirmationDialog extends React.PureComponent {
         onRequestClose={props.onRequestClose}
       >
         {props.message}
-        {props.resources.map(r => <div key={r.key}><Link to={linkForResource(r)}>{r.key.replace(/\//g, ' / ')}</Link></div>)}
+        {props.resources.map(r => <div key={r.key}><Link to={linkGenerator.linkForResource(r)}>{r.key.replace(/\//g, ' / ')}</Link></div>)}
       </Dialog>
     )
   }

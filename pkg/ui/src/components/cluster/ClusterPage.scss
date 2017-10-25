@@ -17,6 +17,12 @@ table.filter-table.cluster {
     }
   }
 }
+.tabs.cluster {
+  button[tabindex] {
+    white-space: normal;
+  }
+}
+
 span.centered-percentage {
   margin-right: 30%;
 }

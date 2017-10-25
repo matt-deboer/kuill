@@ -2,20 +2,21 @@ import 'react'
 
 import * as SwaggerValidator from 'swagger-object-validator'
 import { getPathAndIndentForPosition } from '../utils/yaml-utils'
-import KubeKinds from '../kube-kinds'
 import {safeLoad as loadYamlAST} from 'yaml-ast-parser'
 
 
 export default class ManifestAutocompleter {
 
-  constructor(swagger, resourceGroup, resource) {
+  constructor(swagger, resourceGroup, resource, kubeKinds) {
     this.swagger = swagger
     this.validator = new SwaggerValidator.Handler(swagger)
     this.resourceGroup = resourceGroup
     this.resource = resource
-    this.kubeKinds = KubeKinds[this.resourceGroup]
+    this.kubeKinds = kubeKinds
     this.completions = {
-      kind: Object.keys(this.kubeKinds),
+      kind: Object.entries(this.kubeKinds)
+        .filter(([name, kind])=> kind.resourceGroup === resourceGroup)
+        .map(([name, kind])=> name),
       '.': {
         kind: {type:'string'},
         apiVersion: {type:'string'},
@@ -49,7 +50,7 @@ export default class ManifestAutocompleter {
           completions.push([c, path])
         }
       } else if (path === '.kind') {
-        for (let c of Object.keys(KubeKinds[this.resourceGroup])) {
+        for (let c of this.completions.kind) {
           completions.push([c, path])
         }
       } else if (path === '.apiVersion') {
@@ -69,14 +70,16 @@ export default class ManifestAutocompleter {
             // let part = parts[i].split(/\[/)[0]
             let [,part,arrayPos] = parts[i].match(/(\w+)(?:\[(\d+)\]|\s*)/)
             doc = this.subAST(doc, part, arrayPos)
-            let prop = def.properties[part]
-            let type = prop.type === 'array' ? (prop.items.$ref || prop.items.type) : (prop.type || prop.$ref)
-            isArray = (prop.type === 'array')
-            if (type.startsWith('#/definitions')) {
-              let defName = type.substr(14)
-              def = this.swagger.definitions[defName]
-            } else {
-              def = type
+            if (def.properties) {
+              let prop = def.properties[part]
+              let type = prop.type === 'array' ? (prop.items.$ref || prop.items.type) : (prop.type || prop.$ref)
+              isArray = (prop.type === 'array')
+              if (type.startsWith('#/definitions')) {
+                let defName = type.substr(14)
+                def = this.swagger.definitions[defName]
+              } else {
+                def = type
+              }
             }
           }
           if (def.properties) {
@@ -186,5 +189,5 @@ function getMappingValue(ast, key) {
 }
 
 function isFirstArrayElement(doc) {
-  return doc && (doc.parent.items.length === 0)
+  return doc && doc.parent && doc.parent.items && (doc.parent.items.length === 0)
 }

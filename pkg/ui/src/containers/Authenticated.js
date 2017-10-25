@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { initializeSession, invalidateSession } from '../state/actions/session'
 import LoginDialog from '../components/LoginDialog'
 import { withRouter } from 'react-router-dom'
+import VisiblePage from 'visibilityjs'
 
 const mapStateToProps = function(store) {
   return {
@@ -23,7 +24,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   }
 }
 
-const sessionInterval = 2 * 60 * 1000
+const sessionInterval = 30 * 1000
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps) (
 /** 
@@ -39,14 +40,13 @@ class Authenticated extends React.Component {
       loginLinks: [],
     }
     this.inputs = {}
-    for (let fn of ['updateSession', 'maintainSession', 'sleepSession']) {
+    for (let fn of ['updateSession']) {
       this[fn] = this[fn].bind(this)
     }
   }
 
   componentDidMount = () => {
-     console.log(`Authenticated::componentDidMount`)
-    
+     
     var that = this
     fetch("/auth/login_methods", {
       credentials: 'same-origin'
@@ -72,6 +72,8 @@ class Authenticated extends React.Component {
     })
 
     this.updateUserInfo()
+    
+    VisiblePage.every(sessionInterval, this.updateSession)
   }
 
   updateUserInfo = () => {
@@ -90,7 +92,6 @@ class Authenticated extends React.Component {
         this.fetching = false
         if (!!payload.user !== this.props.user) {
           this.props.initializeSession(payload.user)
-          this.keepAlive()
         } else if (!payload.user) {
           this.props.invalidateSession()
         }
@@ -117,25 +118,6 @@ class Authenticated extends React.Component {
         }
       })
     }
-  }
-
-  maintainSession = () => {
-    this.updateSession()
-    if (!this.props.user) {
-      this.sessionInterval && window.clearInterval(this.sessionInterval)
-    } else if (!this.sessionInterval) {
-      this.sessionInterval = window.setInterval(this.updateSession, sessionInterval)
-    }
-  }
-
-  sleepSession = () => {
-    this.sessionInterval && window.clearInterval(this.sessionInterval)
-    this.sessionInterval = null
-  }
-
-  keepAlive = () => {
-    window.onfocus = this.maintainSession
-    window.onblur = this.sleepSession
   }
 
   componentWillUnmount = () => {

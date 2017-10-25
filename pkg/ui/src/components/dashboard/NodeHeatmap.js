@@ -4,8 +4,9 @@ import { zoneLabel } from '../../utils/filter-utils'
 import UtilizationPieChart from './UtilizationPieChart'
 import HexagonChart from './HexagonChart'
 import { connect } from 'react-redux'
-import { setFilterNames } from '../../state/actions/cluster'
+import { setFilterNames } from '../../state/actions/resources'
 import { hostnameLabel } from '../../utils/filter-utils'
+import { convertUnits } from '../../converters'
 import HelpText from '../../i18n/help-text'
 import './NodeHeatmap.css'
 
@@ -25,9 +26,9 @@ const styles = {
     cursor: 'pointer',
   },
   chartBox: {
-    width: 360,
+    // width: 360,
     padding: 5,
-    marginTop: 0,
+    marginTop: -10,
     marginBottom: 0,
     marginLeft: 'auto',
     marginRight: 'auto',
@@ -38,8 +39,8 @@ const usageQuantiles = [20, 40, 60, 80, 100]
 
 const mapStateToProps = function(store) {
   return {
-    filterNames: store.cluster.filterNames,
-    resourceRevision: store.cluster.resourceRevision,
+    filterNames: store.resources.filterNames,
+    resourceRevision: store.resources.resourceRevision,
   }
 }
 
@@ -185,10 +186,23 @@ class NodeHeatmap extends React.PureComponent {
               />
           </div>
           <div className="selector">
-          <HelpText style={{position: 'absolute', bottom: 0, right: 0, marginRight: -25, marginBottom: -10}} 
+          <HelpText style={{position: 'absolute', bottom: -20, right: 25, marginRight: -25, marginBottom: -10}} 
               locale={'en'} 
               textId={`NodeHeatmap.donuts`}
               orientation={'left'}/>
+          </div>
+          <div className="total-labels" style={{bottom: 0}} >
+            <div className="cpu">out of</div>
+            <div className="cpu">out of</div>
+            <div className="cpu">out of</div>
+          </div>
+          <div className="totals" style={{bottom: 0}} >
+            <div className="cpu">
+              {convertUnits(utilization.cpu.total, 'millicores', 'cores', 1)} cores</div>
+            <div className="memory">
+              {convertUnits(utilization.memory.total, 'bytes', 'gibibytes', 1)} Gi</div>
+            <div className="disk">
+              {convertUnits(utilization.disk.total, 'bytes', 'gibibytes', 1)} Gi</div>
           </div>
           
         </div>  

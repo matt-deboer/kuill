@@ -30,8 +30,8 @@ const base64 = {
 const mapStateToProps = function(store) {
   
   return {
-    pods: store.workloads.pods,
-    resource: store.workloads.resource,
+    pods: store.resources.pods,
+    resource: store.resources.resource,
     selectedContainer: store.terminal.podContainer,
   }
 }

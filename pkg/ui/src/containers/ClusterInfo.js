@@ -1,12 +1,14 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { editResource, requestResource, applyResourceChanges } from '../state/actions/cluster'
+import { editResource, removeResource, requestResource, applyResourceChanges } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
+import { tryGoBack } from '../state/actions/location'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
+import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
@@ -19,9 +21,10 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.cluster.resource,
+    resource: store.resources.resource,
+    fetching: store.requests.fetching,
     user: store.session.user,
-    editor: store.cluster.editor,
+    editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
   }
@@ -33,7 +36,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(editResource(namespace, kind, name))
     },
     cancelEditor: function() {
-      dispatch(routerActions.goBack())
+      dispatch(tryGoBack())
     },
     onEditorApply: function(contents) {
       let { namespace, kind, name } = ownProps.match.params
@@ -45,6 +48,10 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search: newSearch,
         hash: location.hash,
       }))
+    },
+    removeResource: function(resource) {
+      dispatch(removeResource(resource))
+      dispatch(tryGoBack())
     },
     requestResource: function(namespace, kind, name) {
       dispatch(requestResource(namespace, kind, name))
@@ -124,7 +131,7 @@ class ClusterInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!!props.user && !resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params)) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
@@ -184,32 +191,50 @@ class ClusterInfo extends React.Component {
 
   render() {
 
-    let { logs, events } = this
+    let { logs, events, props } = this
+    
+    let fetching = Object.keys(props.fetching).length > 0
+    let resourceInfoPage = null
+    let resourceNotFound = null
+
+    if (!!this.state.resource && !fetching) {
+      if (this.state.resource.notFound) {
+        resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...props.match.params}/>
+      } else {
+        resourceInfoPage = 
+          
+          <ResourceInfoPage
+            removeResource={props.removeResource}
+            editResource={props.editResource}
+            viewKind={props.viewKind}
+            viewFilters={props.viewFilters}
+            selectView={props.selectView}
+            resourceGroup={'cluster'}
+            resource={this.state.resource}
+            logs={logs}
+            events={events}
+            onLogsActivated={this.onLogsActivated.bind(this)}
+            activeTab={(props.location.search || 'config').replace('?view=','')}
+            />
+      }
+    }
 
     return (<div>
       
       <AsyncEditorPage 
-        open={!!this.state.resource && !!this.state.editor.contents && this.props.location.search === '?view=edit'}
-        onEditorApply={this.props.onEditorApply}
+        open={!!this.state.resource && !!this.state.editor.contents && props.location.search === '?view=edit'}
+        onEditorApply={props.onEditorApply}
         onEditorCancel={this.onEditorCancel}
         resource={this.state.resource}
         resourceGroup={'cluster'}
         contents={this.state.editor.contents}
         />
 
-      {!!this.state.resource &&
-        <ResourceInfoPage
-          resourceGroup={'cluster'}
-          resource={this.state.resource}
-          logs={logs}
-          events={events}
-          selectView={this.props.selectView}
-          onLogsActivated={this.onLogsActivated.bind(this)}
-          activeTab={(this.props.location.search || 'config').replace('?view=','')}
-          />
-      }
-      
-      <LoadingSpinner loading={this.props.isFetching} />
+        
+      {resourceInfoPage}
+      {resourceNotFound}
+
+      <LoadingSpinner loading={fetching} />
     </div>)
   }
 }))

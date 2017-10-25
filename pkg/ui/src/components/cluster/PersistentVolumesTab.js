@@ -1,10 +1,9 @@
 
 import React from 'react'
 import { white } from 'material-ui/styles/colors'
-import { routerActions } from 'react-router-redux'
+import { viewResource } from '../../state/actions/resources'
 import { connect } from 'react-redux'
 import { toHumanizedAge } from '../../converters'
-import { linkForResource } from '../../routes'
 import FilterChip from '../FilterChip'
 import ClusterResourceTab from './ClusterResourceTab'
 
@@ -23,13 +22,14 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     viewResource: function(resourceKey, view='config') {
-      dispatch(routerActions.push(linkForResource(resourceKey,view)))
+      dispatch(viewResource(resourceKey,view))
     },
   } 
 }
@@ -49,7 +49,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          paddingLeft: '25%',
+          paddingLeft: '30%',
         },
         value: function(r) {
           return r.metadata.name
@@ -61,7 +61,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '10%',
+          width: '8%',
         },
         value: function(r) {
           return r.spec.capacity.storage
@@ -85,7 +85,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '10%',
+          width: '8%',
         },
         value: function(r) {
           return r.spec.persistentVolumeReclaimPolicy
@@ -97,7 +97,7 @@ class PersistentVolumesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '10%',
+          width: '5%',
         },
         value: function(r) {
           return r.status.phase
@@ -121,7 +121,7 @@ class PersistentVolumesTab extends React.Component {
         render: function(r) {
           let ref = r.spec.claimRef
           if (ref) {
-            return (<FilterChip key={'binding'} prefix={'PVC'} 
+            return (<FilterChip key={'binding'} prefix={'pvc'} 
             suffix={`${ref.namespace}/${ref.name}`} 
             onTouchTap={that.props.viewResource.bind(that, `${ref.kind}/${ref.namespace}/${ref.name}`, 'config')}
             />)
@@ -139,6 +139,16 @@ class PersistentVolumesTab extends React.Component {
         value: function(r) {
           return r.spec.storageClassName
         },
+        clickDisabled: true,
+        render: function(r) {
+          let sc = r.spec.storageClassName
+          if (sc) {
+            return (<FilterChip key={'storage-class'} prefix={'sc'} 
+            suffix={`${sc}`} 
+            onTouchTap={that.props.viewResource.bind(that, `StorageClass/~/${sc}`, 'config')}
+            />)
+          }
+        }
       },
       {
         id: 'age',

@@ -1,15 +1,13 @@
 import React from 'react'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
-import {blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
-import { routerActions } from 'react-router-redux'
+import { blueA400, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource } from '../../state/actions/cluster'
+import { requestResources, addFilter, removeFilter, removeResource, viewResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
-import { toHumanizedAge } from '../../converters'
-
+import FilterChip from '../FilterChip'
+import { toHumanizedAge, convertUnits } from '../../converters'
 import { withRouter } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 import IconShell from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 
@@ -20,25 +18,32 @@ import { arraysEqual } from '../../comparators'
 import { resourceStatus as resourceStatusIcons } from '../icons'
 import { compareStatuses } from '../../utils/resource-utils'
 import NodeHeatmap from '../dashboard/NodeHeatmap'
-import { hostnameLabel } from '../../utils/filter-utils'
-// import BrowserUsage from './dashboard/BrowserUsage'
-// import Data from '../data'
-import KubeKinds from '../../kube-kinds'
 import FilterBox from '../FilterBox'
 import EmptyListPage from '../EmptyListPage'
+import LoadingSpinner from '../LoadingSpinner'
+import {
+  zoneLabel,
+  regionLabel,
+  instanceTypeLabel,
+  roleLabel,
+  hostnameLabel
+} from '../../utils/filter-utils'
+
 import './NodesTab.css'
 
 import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
-    filters: store.cluster.filters,
-    filterNames: store.cluster.filterNames,
-    possibleFilters: store.cluster.possibleFilters,
-    resourceRevision: store.cluster.resourceRevision,
+    filters: store.resources.filters,
+    filterNames: store.resources.filterNames,
+    fetching: store.requests.fetching,
+    autocomplete: store.resources.autocomplete.nodes,
+    resourceRevision: store.resources.resourceRevision,
     nodeMetrics: store.metrics.node,
     metricsRevision: store.metrics.revision,
-    resources: store.cluster.resources,
+    resources: store.resources.resources,
+    kinds: store.apimodels.kinds,
   }
 }
 
@@ -51,13 +56,22 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeFilter(filterName, index))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
-    }
+    },
+    requestResources: function() {
+      dispatch(requestResources())
+    },
   } 
 }
+
+var includedLabels = {}
+includedLabels[zoneLabel]=true
+includedLabels[regionLabel]=true
+includedLabels[instanceTypeLabel]=true
+includedLabels[roleLabel]=true
 
 const styles = {
   newResourceButton: {
@@ -139,8 +153,9 @@ class NodesTab extends React.Component {
       hoveredResources: null,
     }
     this.selectedIds = {}
-    this.rows = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
-    this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.extractNodes(props.resources)
+    // this.nodes = Object.entries(props.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    // this.rows = Object.entries(this.nodes).map(([k,v])=> v).filter(v => !v.isFiltered)
     this.columns = [
       {
         id: 'status',
@@ -160,9 +175,18 @@ class NodesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: '35%',
+          width: '20%',
           paddingLeft: 20,
         },
+      },
+      {
+        id: 'labels',
+        label: 'labels',
+        headerStyle: styles.header,
+        clickDisabled: true,
+        style: { ...styles.cell,
+          width: '35%',
+        }
       },
       {
         id: 'age',
@@ -170,7 +194,7 @@ class NodesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 90,
+          width: '10%',
         }
       },
       {
@@ -180,13 +204,13 @@ class NodesTab extends React.Component {
         isNumeric: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 50,
+          width: '8%',
           textAlign: 'center',
         }
       },
       {
         id: 'containers',
-        label: 'con-tainers',
+        label: 'containers',
         sortable: true,
         isNumeric: true,
         headerStyle: {...styles.header,
@@ -195,7 +219,7 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 58,
+          width: '8%',
           textAlign: 'center',
         }
       },
@@ -210,8 +234,25 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 50,
+          width: '8%',
           textAlign: 'right',
+        },
+      },
+      {
+        id: 'cpu_total',
+        label: 'cpu total',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: '8%',
+          textAlign: 'right',
+          paddingRight: '1%',
         },
       },
       {
@@ -225,8 +266,25 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 58,
+          width: '9%',
           textAlign: 'right',
+        },
+      },
+      {
+        id: 'mem_total',
+        label: 'mem total',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: '9%',
+          textAlign: 'right',
+          paddingRight: '1%',
         },
       },
       {
@@ -240,8 +298,25 @@ class NodesTab extends React.Component {
           lineHeight: '13px',
         },
         style: { ...styles.cell,
-          width: 52,
+          width: '8%',
           textAlign: 'right',
+        },
+      },
+      {
+        id: 'disk_total',
+        label: 'disk total',
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          paddingRight: 0,
+        },
+        style: { ...styles.cell,
+          width: '8%',
+          textAlign: 'right',
+          paddingRight: '1%',
         },
       },
       {
@@ -277,13 +352,31 @@ class NodesTab extends React.Component {
     ]
   }
 
+  extractNodes = (resources) => {
+    this.nodes = Object.entries(resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    let allLabels = {}
+    this.rows = Object.entries(this.nodes).map(([k,v])=> v).filter(v => {
+      for (let key in v.metadata.labels) {
+        allLabels[key] = allLabels[key] || {}
+        allLabels[key][v.metadata.labels[key]] = true
+      }
+      return !v.isFiltered
+    })
+    this.labelsOfInterest = {}
+    for (let name in allLabels) {
+      if (Object.keys(allLabels[name]).length > 1 && (name in includedLabels)) {
+        this.labelsOfInterest[name]=true
+      }
+    }
+  }
+
   resourcesToRows = (resources) => {
     return Object.values(resources).filter(el => !el.isFiltered)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return !arraysEqual(this.props.filterNames, nextProps.filterNames)
-      || !arraysEqual(this.props.possibleFilters, nextProps.possibleFilters)
+      || !arraysEqual(this.props.autocomplete, nextProps.autocomplete)
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
@@ -320,7 +413,9 @@ class NodesTab extends React.Component {
       this.actionsClicked = true
       return false
     } else {
-      this.props.viewResource(resource)
+      if (!col.clickDisabled) {
+        this.props.viewResource(resource)
+      }
       return false
     }
   }
@@ -349,15 +444,14 @@ class NodesTab extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    // this.rows = this.resourcesToRows(nextProps.resources)
-    this.rows = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node' && !v.isFiltered)
-    this.nodes = Object.entries(nextProps.resources).map(([k,v])=> v).filter(v => v.kind === 'Node')
+    this.extractNodes(nextProps.resources)
   }
 
   renderCell = (column, row) => {
     let { nodeMetrics } = this.props
     let value = ''
     let metrics = null
+    let that = this
     switch(column) {
       case 'hostname':
         return row.metadata.labels[hostnameLabel]
@@ -365,24 +459,58 @@ class NodesTab extends React.Component {
         return row.metadata.namespace
       case 'kind':
         return row.kind
+      case 'labels':
+        return <div>
+          {Object.entries(row.metadata.labels).filter(([key, val])=> (key in this.labelsOfInterest))
+            .map(([key, val]) => {
+              let prefix = `${key.split('/').pop()}`
+              return <FilterChip key={key} prefix={prefix} suffix={val} 
+                labelStyle={{fontSize: 10}} style={{margin: '5px 5px 0 0',}}
+                onTouchTap={that.props.addFilter.bind(that, `${prefix}:${val}`)}
+              />
+            })
+          }
+        </div>
       case 'mem_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.memory.usage / metrics.memory.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'mem_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.memory.total, 'bytes', 'gibibytes')
+        } else {
+          value = 0
+        }
+        return value.toFixed(2) + ' Gi'
       case 'cpu_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.cpu.usage / metrics.cpu.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'cpu_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.cpu.total, 'millicores', 'cores')
+        }
+        return value
       case 'disk_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           metrics = nodeMetrics[row.metadata.name]
           value = Math.round(100 * metrics.disk.usage / metrics.disk.total) + '%'
         }
         return <span className="centered-percentage">{value}</span>
+      case 'disk_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          metrics = nodeMetrics[row.metadata.name]
+          value = convertUnits(metrics.disk.total, 'bytes', 'gibibytes')
+        } else {
+          value = 0
+        }
+        return value.toFixed(1) + ' Gi'
       case 'pods':
         if (nodeMetrics && row.metadata.name in nodeMetrics) { 
           value = nodeMetrics[row.metadata.name].pods.usage
@@ -418,14 +546,29 @@ class NodesTab extends React.Component {
           value = nodeMetrics[row.metadata.name].memory.ratio
         }
         return value
+      case 'mem_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          value = nodeMetrics[row.metadata.name].memory.total
+        }
+        return value
       case 'cpu_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           value = nodeMetrics[row.metadata.name].cpu.ratio
         }
         return value
+      case 'cpu_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          value = nodeMetrics[row.metadata.name].cpu.total
+        }
+        return value
       case 'disk_utilized':
         if (nodeMetrics && row.metadata.name in nodeMetrics) {
           value = nodeMetrics[row.metadata.name].disk.ratio
+        }
+        return value
+      case 'disk_total':
+        if (nodeMetrics && row.metadata.name in nodeMetrics) {
+          value = nodeMetrics[row.metadata.name].disk.total
         }
         return value
       case 'pods':
@@ -456,8 +599,9 @@ class NodesTab extends React.Component {
       <Paper style={styles.paper}>
         <NodeHeatmap nodes={this.nodes} nodeMetrics={props.nodeMetrics} resourceRevision={props.resourceRevision}/>
         
-        {this.rows.length === 0 &&
-          <EmptyListPage style={{
+        <EmptyListPage 
+          visible={this.rows.length === 0 && Object.keys(props.fetching).length === 0}
+            style={{
             top: 0,
             left: 'auto',
             marginTop: 15,
@@ -471,14 +615,15 @@ class NodesTab extends React.Component {
             backgroundSize: '300px',
           }}
           />
-        }
+
+        <LoadingSpinner loading={Object.keys(this.props.fetching).length > 0} />
 
         {this.rows.length > 0 &&
           <FilterBox
           addFilter={props.addFilter} 
           removeFilter={props.removeFilter}
           filterNames={props.filterNames}
-          possibleFilters={props.possibleFilters}
+          autocomplete={props.autocomplete}
           />
         }
 
@@ -518,7 +663,7 @@ class NodesTab extends React.Component {
         >
           {/* can we get a terminal into the kubelet itself? */}
 
-          {KubeKinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
+          {this.props.kinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'terminal') }}
             data-rh="Open Terminal...">

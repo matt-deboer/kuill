@@ -7,14 +7,14 @@ import Paper from 'material-ui/Paper'
 import { white } from 'material-ui/styles/colors'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
-import { linkForResourceKind } from '../../routes'
 import HelpText from '../../i18n/help-text'
 
 const mapStateToProps = function(store) {
   return {
+    kinds: store.apimodels.kinds,
     selectedNamespaces: store.usersettings.selectedNamespaces,
-    workloadResources: store.workloads.resources,
-    clusterResources: store.cluster.resources,
+    resources: store.resources.resources,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -28,14 +28,13 @@ class ResourceCounts extends React.PureComponent {
 
   static propTypes = {
     selectedNamespaces: PropTypes.object,
-    workloadResources: PropTypes.object,
-    clusterResources: PropTypes.object,
+    resources: PropTypes.object,
   }
 
   render() {
 
     let { props } = this
-    let { clusterResources, workloadResources, selectedNamespaces } = props
+    let { resources, selectedNamespaces, linkGenerator } = props
 
     const styles = {
       wrapper: {
@@ -84,15 +83,9 @@ class ResourceCounts extends React.PureComponent {
 
     let countsByKind = {}
     let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
-    for (let key in workloadResources) {
-      let resource = workloadResources[key]
+    for (let key in resources) {
+      let resource = resources[key]
       if (!namespacesFiltered || resource.metadata.namespace in selectedNamespaces) {
-        countsByKind[resource.kind] = (countsByKind[resource.kind] || 0) + 1
-      }
-    }
-    if (!namespacesFiltered) {
-      for (let key in clusterResources) {
-        let resource = clusterResources[key]
         countsByKind[resource.kind] = (countsByKind[resource.kind] || 0) + 1
       }
     }
@@ -108,7 +101,7 @@ class ResourceCounts extends React.PureComponent {
       } else if (name.endsWith('ss')) {
         name += 'es'
       }
-      let link = linkForResourceKind(kind, selectedNamespaces)
+      let link = linkGenerator.linkForKind(kind, selectedNamespaces)
 
       items.push(
         <div key={kind}>

@@ -4,6 +4,7 @@ import Dialog from 'material-ui/Dialog'
 import RaisedButton from 'material-ui/RaisedButton'
 import LockIcon from 'material-ui/svg-icons/action/lock'
 import Avatar from 'material-ui/Avatar'
+import AnonymousIcon from 'material-ui/svg-icons/action/perm-identity'
 import { blueA400 } from 'material-ui/styles/colors'
 // import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
@@ -51,6 +52,8 @@ function getIcon(loginMethod) {
       return <Avatar src={require('../images/pwfile.svg')} style={styles.icon}/>
     case 'saml':
       return <Avatar src={require('../images/saml.png')} style={styles.icon}/>
+    case 'anonymous':
+      return <AnonymousIcon />
     default:
       console.error(`LoginDialog::getIcon: unexpected loginMethod: ${JSON.stringify(loginMethod)}`)
   }

@@ -13,7 +13,7 @@ const mapStateToProps = function(store) {
     selectedNamespaces: store.usersettings.selectedNamespaces,
     clusterMetrics: store.metrics.cluster,
     namespaceMetrics: store.metrics.namespace,
-    countsByNamespace: store.workloads.countsByNamespace,
+    countsByNamespace: store.resources.countsByNamespace,
   }
 }
 

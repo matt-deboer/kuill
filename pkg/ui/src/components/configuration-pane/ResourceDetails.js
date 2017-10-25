@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { linkForResource } from '../../routes'
 import { toHumanizedAge } from '../../converters'
 
 let kinds = {
@@ -140,13 +139,20 @@ let kinds = {
       ]
     },
   },
+  StorageClass: {
+    getData: (resource) => {
+      return [
+        ['Created:', `${resource.metadata.creationTimestamp} (${toHumanizedAge(resource.metadata.creationTimestamp)} ago)`],
+      ]
+    },
+  },
   PersistentVolume: {
-    getData: ({status, spec, metadata }) => {
+    getData: ({status, spec, metadata }, linkGenerator) => {
       return [
           ['Status:', status.phase],
           ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
           ['Claim:', spec.claimRef ? 
-            <Link to={linkForResource(`PersistentVolumeClaim/${spec.claimRef.namespace}/${spec.claimRef.name}`)}>
+            <Link to={linkGenerator.linkForResource(`PersistentVolumeClaim/${spec.claimRef.namespace}/${spec.claimRef.name}`)}>
               {spec.claimRef.namespace + '/' + spec.claimRef.name}
             </Link>: null
           ],
@@ -187,6 +193,14 @@ let kinds = {
       data.push(["System UUID", resource.status.nodeInfo.systemUUID])
       return data
     },
+  },
+  ThirdPartyResource: {
+    getData: (resource) => {
+      return [
+        ['Description', resource.description],
+        ['Versions', resource.versions.map(v=>v.name).join(', ')],
+      ]
+    }
   },
   ServiceAccount: {
     getData: (resource) => {

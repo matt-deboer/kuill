@@ -2,24 +2,29 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {blueA400, grey200, grey600, grey700, redA700} from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
+import { requestKinds } from '../state/actions/apimodels'
 import { routerActions } from 'react-router-redux'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
 import FilterChip from './FilterChip'
 import { withRouter } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
-import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import IconAdd from 'material-ui/svg-icons/content/add'
 import Chip from 'material-ui/Chip'
 
 const mapStateToProps = function(store) {
-  return {}
+  return {
+    kinds: store.apimodels.kinds,
+  }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     createResource: function(namespace, kind, name) {
       dispatch(routerActions.push(`/workloads/new?kind=${kind}&namespace=${namespace}&name=${name}`))
+    },
+    requestKinds: function() {
+      dispatch(requestKinds())
     },
   }
 }
@@ -36,12 +41,26 @@ class ResourceNotFoundPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.kubeKind = KubeKinds[props.resourceGroup][props.kind]
+    if (!props.kinds) {
+      props.requestKinds()
+    } else {
+      this.kubeKind = this.props.kinds[props.kind]
+    }
+  }
+
+  componentWillReceiveProps = (props) => {
+    if (!this.kubeKind && props.kinds) {
+      this.kubeKind = props.kinds[props.kind]
+    }
   }
 
   render() {
 
     let { kind, namespace, name } = this.props
+
+    if (!this.kubeKind) {
+      return null
+    }
 
     return (
       <div>

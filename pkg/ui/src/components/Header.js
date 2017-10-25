@@ -30,6 +30,7 @@ const mapStateToProps = function(store) {
     errors: store.errors.errors,
     latestError: store.errors.latestError,
     location: store.routing.location,
+    editing: store.resources.editing,
   }
 }
 
@@ -137,7 +138,9 @@ class Header extends React.Component {
 
     if (props.latestError !== this.state.latestError) {
       nextState.latestError = props.latestError
-      nextState.latestErrorOpen = !!props.latestError
+      if (!props.editing) {
+        nextState.latestErrorOpen = !!props.latestError
+      }
     }
 
     if (props.location !== this.state.location) {

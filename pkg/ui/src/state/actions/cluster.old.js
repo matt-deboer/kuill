@@ -1,16 +1,18 @@
 import { invalidateSession, updatePermissionsForKind } from './session'
-import { routerActions } from 'react-router-redux'
+import { selectLogsFor } from './logs'
+import { selectTerminalFor } from './terminal'
+import { requestMetrics } from './metrics'
 import { requestSwagger } from './apimodels'
-import KubeKinds from '../../kube-kinds'
+import { routerActions } from 'react-router-redux'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
-import { watchEvents, selectEventsFor } from './events'
-import { linkForResource } from '../../routes'
+import { watchEvents, selectEventsFor, reconcileEvents } from './events'
+import { defaultFetchParams } from '../../utils/request-utils'
 import { addError } from './errors'
-import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
 import { doRequest } from './requests'
+import yaml from 'js-yaml'
 
 export var types = {}
 for (let type of [
@@ -23,20 +25,24 @@ for (let type of [
   'REMOVE_FILTER',
   'SET_FILTER_NAMES',
   'EDIT_RESOURCE',
+  'START_FETCHING',
+  'DONE_FETCHING',
   'RECEIVE_RESOURCE_CONTENTS',
+  'PUT_NAMESPACES',
   'CLEAR_EDITOR',
   'SELECT_RESOURCE',
   'SET_WATCHES',
 ]) {
-  types[type] = `access.${type}`
+  types[type] = `cluster.${type}`
 }
 
-export function replaceAll(resources, maxResourceVersion, error) {
+export const defaultFilterNames = 'namespace:default'
+
+
+export function replaceAll(resources) {
   return {
     type: types.REPLACE_ALL,
     resources: resources,
-    maxResourceVersion: maxResourceVersion,
-    error: error,
   }
 }
 
@@ -49,16 +55,19 @@ export function filterAll() {
 export function putResource(newResource) {
   return function(dispatch, getState) {
     
-    dispatch({
-      type: types.PUT_RESOURCE,
-      resource: newResource,
-    })
+    let { maxResourceVersionByKind } = getState().cluster
+    if (newResource.metadata.resourceVersion > maxResourceVersionByKind[newResource.kind] || 0) {
+      dispatch({
+        type: types.PUT_RESOURCE,
+        resource: newResource,
+      })
 
-    let { resource, resources } = getState().access
-    if (sameResource(newResource, resource)
-    || isResourceOwnedBy(resources, newResource, resource)
-    || isResourceOwnedBy(resources, resource, newResource)) {
-      dispatch(selectEventsFor(resources, resource))
+      let { resource, resources } = getState().cluster
+      if (sameResource(newResource, resource)
+      || isResourceOwnedBy(resources, newResource, resource)
+      || isResourceOwnedBy(resources, resource, newResource)) {
+        dispatch(selectEventsFor(resources, resource))
+      }
     }
   }
 }
@@ -112,20 +121,13 @@ export function removeFilter(filter, index) {
 }
 
 /**
- * Creates a new resource with the provided contents
+ * 
  */
-export function createResource(contents) {
+export function requestNamespaces() {
   return async function (dispatch, getState) {
-      let resource = null
-      await doRequest(dispatch, getState, 'createResourceFromContents', async () => {
-        resource = await createResourceFromContents(dispatch, getState, contents)
-      })
-      if (!!resource) {
-        dispatch(routerActions.push({
-          pathname: linkForResource(resource).split('?')[0],
-          search: '?view=events',
-        }))
-      }
+    doRequest(dispatch, getState, 'fetchNamespaces', async () => {
+      await fetchNamespaces(dispatch, getState)
+    })
   }
 }
 
@@ -138,7 +140,7 @@ export function createResource(contents) {
  */
 function updateFilterUrl(dispatch, getState) {
   let state = getState()
-  let newFilterNames = state.access.filterNames.slice(0)
+  let newFilterNames = state.cluster.filterNames.slice(0)
   let currentFilterNames = queryString.parse(state.routing.location.search).filters
   if (currentFilterNames && currentFilterNames.constructor !== Array) {
     currentFilterNames = [currentFilterNames]
@@ -148,11 +150,11 @@ function updateFilterUrl(dispatch, getState) {
   newFilterNames && newFilterNames.sort()
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
-    let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
-      `?${queryString.stringify({filters: state.access.filterNames})}` :
-      ''
+    let filterQuery = ('?view=nodes') + (newFilterNames && newFilterNames.length > 0 ? 
+      `&${queryString.stringify({filters: state.cluster.filterNames})}` :
+      '')
     console.log(`updateFilterUrl: pushed new location...`)
-    dispatch(routerActions.push(`/access${filterQuery}`))
+    dispatch(routerActions.push(`/cluster${filterQuery}`))
   }
 }
 
@@ -170,7 +172,7 @@ export function setFilterNames(filterNames) {
       filterNames = [filterNames]
     }
     let state = getState()
-    let currentFilterNames = state.access.filterNames.slice(0)
+    let currentFilterNames = state.cluster.filterNames.slice(0)
     currentFilterNames.sort()
     let newFilterNames = filterNames.slice(0)
     newFilterNames.sort()
@@ -231,43 +233,9 @@ export function requestResource(namespace, kind, name) {
   }
 }
 
-async function createResourceFromContents(dispatch, getState, contents) {
-  let resource = createPost(contents)
-  let { namespace } = resource.metadata
-  let api = KubeKinds.access[resource.kind]
-  let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}`
-  let body = JSON.stringify(resource)
-
-  return await fetch(url, { ...defaultFetchParams,
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: body,
-  }).then(resp => {
-    if (!resp.ok && resp.status === 401) {
-      dispatch(invalidateSession())
-    } else {
-      return resp.json()
-    }
-  }).then(json => {
-    if (!!json) {
-      if (json.code) {
-        dispatch(addError(json,'error',`${json.code} ${json.reason}; ${json.message}`))
-      } else {
-        let resource = json
-        resource.key = keyForResource(resource)
-        dispatch(putResource(resource, true))
-        return getState().access.resources[resource.key]
-      }
-    }
-  })
-}
-
 function shouldFetchResources(getState) {
   let state = getState()
-  let { isFetching, resources } = state.access
+  let { isFetching, resources } = state.cluster
   let { user } = state.session
 
   // TODO: should also check on resources last loaded time
@@ -284,19 +252,23 @@ function shouldFetchResources(getState) {
 async function fetchResources(dispatch, getState) {
   
   if (shouldFetchResources(getState)) {
-
-    let urls = Object.entries(KubeKinds.access).map(([kind, api]) => 
-      [kind, `/proxy/${api.base}/${api.plural}`])
-    let requests = urls.map(([kind, url]) => fetch(url, defaultFetchParams
+    let urls = Object.entries(KubeKinds.cluster).map(([kind, api]) => 
+      [kind, `/proxy/${api.base}/${api.plural}`, api])
+    let requests = urls.map(([kind, url, kubeKind]) => fetch(url, defaultFetchParams
       ).then(resp => {
           if (!resp.ok) {
             if (resp.status === 401) {
               dispatch(invalidateSession())
             } else if (resp.status === 403) {
+              let accessEvaluator = getState().session.accessEvaluator
+              
               dispatch(updatePermissionsForKind(kind, {
                 namespaced: true
               }))
-              return fetchResourcesByNamespace(dispatch, getState, kind)
+
+              if (accessEvaluator.isNamespaced(kind, 'cluster')) {
+                fetchResourcesByNamespace(dispatch, getState, kind)
+              }
             }
             return resp
           } else {
@@ -307,124 +279,147 @@ async function fetchResources(dispatch, getState) {
 
     let results = await Promise.all(requests)
 
-    parseResults(dispatch, getState, results)
+    parseResults(dispatch, getState, results, urls)
   }
 }
 
 async function fetchResourcesByNamespace(dispatch, getState, kind) {
   let namespaces = getState().cluster.namespaces
-  let kubeKind = KubeKinds.access[kind]
-  let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
-  let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
+  let kubeKind = KubeKinds.cluster[kind]
+  let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`])
+  let requests = urls.map(([kind,url,],index) => fetch(url, defaultFetchParams
     ).then(resp => {
       if (!resp.ok) {
         if (resp.status === 401) {
           dispatch(invalidateSession())
-        } else if (resp.status === 404) {
-          dispatch(updatePermissionsForKind(kind, {
-            disabled: true,
-          }))
         } else if (resp.status !== 403) {
+          dispatch(updatePermissionsForKind(kind, {
+            disabled: true
+          }))
           dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
             'Try Again', () => { dispatch(requestResources()) } ))
         }
         return resp
       } else {
-        let allowedNamespaces = {}
-        allowedNamespaces[ns] = true
-        dispatch(updatePermissionsForKind(kind, {
-          namespaces: allowedNamespaces,
-        }))
         return resp.json()
       }
     }
   ))
-  return Promise.all(requests)
+  let results = await Promise.all(requests)
+  
+  parseResults(dispatch, getState, results, urls)
 }
 
-function parseResults(dispatch, getState, results) {
+function parseResults(dispatch, getState, results, urls) {
   
   let resources = {}
-  
-  while (results.length) {
-    let result = results.shift()
-    
-    if (result.constructor === Array) {
-      results.push(...result)
-    } else {
-      if ('items' in result) {
-        let kind = result.kind.replace(/List$/,'')
-        var items = result.items
-        if (!!items) {
-          for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
-            var resource = items[j]
-            resource.kind = kind
-            resource.key = keyForResource(resource)
-            resources[resource.key] = resource
-          }
+
+  for (var i=0, len=results.length; i < len; ++i) {
+    var result = results[i]
+
+    if ('items' in result) {
+      let kind = result.kind.replace(/List$/,'')
+      var items = result.items
+      if (!!items) {
+        for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
+          var resource = items[j]
+          resource.kind = kind
+          resource.key = keyForResource(resource)
+          resources[resource.key] = resource
         }
-      } else if ('status' in result && result.status !== 403) {
-        let msg = `result for ${result.url} returned error code ${result.status}: "${result.message}"`
-        console.error(msg)
       }
+    } else if (result.code !== 403) {
+      let url = urls[i][1]
+      let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+      console.error(msg)
     }
   }
 
   dispatch(replaceAll(resources))
+  dispatch(reconcileEvents(resources))
   dispatch(watchEvents(resources))
+  dispatch(requestMetrics(resources))
   watchResources(dispatch, getState)
+}
+
+
+async function fetchNamespaces(dispatch, getState) {
+  
+  let url = '/namespaces'
+  let result = await fetch(url, defaultFetchParams
+  ).then(resp => {
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        dispatch(invalidateSession())
+      }
+      return resp
+    } else {
+      return resp.json()
+    }
+  })
+
+  if ('namespaces' in result) {
+    dispatch({
+      type: types.PUT_NAMESPACES,
+      namespaces: result.namespaces,
+    })
+  } else {
+    let msg = `result for ${url} returned error code ${result.code}: "${result.message}"`
+    console.error(msg)
+  }
 }
 
 function watchResources(dispatch, getState, resourceVersion) {
   
-    let accessEvaluator = getState().session.accessEvaluator
-    let watches = getState().access.watches || {}
-    var watchableNamespaces
+  let accessEvaluator = getState().session.accessEvaluator
+  let watches = getState().cluster.watches || {}
+  let maxResourceVersionByKind = getState().cluster.maxResourceVersionByKind
 
-    if (!objectEmpty(watches)) {
-      // Update/reset any existing watches
-      for (let kind in KubeKinds.access) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
+  var watchableNamespaces
 
-        if (watchableNamespaces.length > 0) {
-          let watch = watches[kind]
-          if (!!watch && watch.closed()) {
-            watch.destroy()
-            watches[kind] = new ResourceKindWatcher({
-              kind: kind,
-              dispatch: dispatch,
-              resourceVersion: resourceVersion,
-              resourceGroup: 'access',
-            })
-          }
-        }
-      }
-    } else {
-      for (let kind in KubeKinds.access) {
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'access')
-        if (watchableNamespaces.length > 0) {
-          watches[kind] = new ResourceKindWatcher({
-            kind: kind,
-            dispatch: dispatch,
-            resourceVersion: resourceVersion,
-            resourceGroup: 'access',
-          })
-        }
+  if (!objectEmpty(watches)) {
+    // Update/reset any existing watches
+    for (let kind in KubeKinds.cluster) {
+      let watch = watches[kind]
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
+      if (!!watch && watch.closed() && watchableNamespaces.length > 0) {
+        watch.destroy()
+        watches[kind] = new ResourceKindWatcher({
+          kind: kind,
+          dispatch: dispatch,
+          resourceVersion: maxResourceVersionByKind[kind] || 0,
+          resourceGroup: 'cluster',
+          namespaces: watchableNamespaces,
+        })
       }
     }
-    dispatch({
-      type: types.SET_WATCHES,
-      watches: watches,
-    })
+  } else {
+    for (let kind in KubeKinds.cluster) {
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind, 'cluster')
+      if (watchableNamespaces.length > 0) {
+        watches[kind] = new ResourceKindWatcher({
+            kind: kind,
+            dispatch: dispatch,
+            resourceVersion: maxResourceVersionByKind[kind] || 0,
+            resourceGroup: 'cluster',
+            namespaces: watchableNamespaces,
+          })
+      }
+    }
+  }
+  dispatch({
+    type: types.SET_WATCHES,
+    watches: watches,
+  })
 }
 
 
 async function fetchResource(dispatch, getState, namespace, kind, name) {
   await fetchResources(dispatch, getState)
   
-  let currentResource = getState().access.resource
+  let currentResource = getState().cluster.resource
   if (!currentResource 
-      || (currentResource.metadata.namespace || '~') !== namespace
+      || currentResource.metadata.namespace !== namespace
       || currentResource.kind !== kind
       || currentResource.metadata.name !== name) {
     
@@ -437,7 +432,22 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
   
     // TODO: this sets defaults and options for terminal and logs viewer;
     // there is probably a better way to do this
-    let { resource, resources } = getState().access
+    let { pods, resource, resources } = getState().cluster
+    if (!!pods) {
+      let podContainers = []
+      for (let name in pods) {
+        
+        let pod = pods[name]
+        if (podContainers.length === 0) {
+          dispatch(selectTerminalFor(`${name}/${pod.spec.containers[0].name}`))
+        }
+        if (!!pod.spec.initContainers) {
+          podContainers.push(...pod.spec.initContainers.map(c=>`${name}/${c.name}`))
+        }
+        podContainers.push(...pod.spec.containers.map(c=>`${name}/${c.name}`))
+      }
+      dispatch(selectLogsFor(podContainers))
+    }
     if (!!resource) {
       dispatch(selectEventsFor(resources, resource))
     }
@@ -448,20 +458,15 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
 
 async function updateResourceContents(dispatch, getState, namespace, kind, name, contents) {
   
-  let resource = getState().access.resource
-  let body = JSON.stringify(createPatch(resource, contents))
+  let resource = getState().cluster.resource
+  let body = createPatch(resource, contents)
 
   // mimic kubectl annotations so that changes applied in
   // the UI are compatible with those applied in the cli
   // @see https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md
 
-  let api = KubeKinds.access[kind]
-  let url = `/proxy/${api.base}/`
-  if (!!namespace && namespace !== '~') {
-    url += `namespaces/${namespace}/`
-  }
-  url += `${api.plural}/${name}`
-
+  let api = KubeKinds.cluster[kind]
+  let url = `/proxy/${api.base}/namespaces/${namespace}/${api.plural}/${name}`
   await fetch(url, { ...defaultFetchParams,
     headers: {
       'Accept': 'application/json',
@@ -484,6 +489,59 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
   })
 }
 
+const lastConfigAnnotation = 'kubectl.kubernetes.io/last-applied-configuration'
+
+/**
+ * Creates a valid patch body (String), compatible with `kubectl apply` functionality
+ * 
+ * @param {String} contents 
+ */
+function createPatch(resource, contents) {
+  let patch = yaml.safeLoad(contents)
+  patch.spec.$patch = 'replace'
+  patch.metadata.$patch = 'replace'
+  delete patch.kind
+  delete patch.apiVersion
+  // These are all read-only fields; TODO: either hide them in the editor, or present some
+  // UI feedback indicating that they cannot be changed
+
+  delete patch.status
+  delete patch.metadata.generation
+  delete patch.metadata.creationTimestamp
+  delete patch.metadata.resourceVersion
+  delete patch.metadata.selfLink
+  delete patch.metadata.uid
+
+  if (!!resource) {
+    patch.metadata.annotations[lastConfigAnnotation] = createLastConfigAnnotation(resource)
+  }
+  
+  return JSON.stringify(patch)
+}
+
+/**
+ * Creates the 'kubectl.kubernetes.io/last-applied-configuration' value
+ * to be added when creating a patch
+ * 
+ * @param {*} resource 
+ */
+function createLastConfigAnnotation(resource) {
+  let ann = JSON.parse(JSON.stringify(resource))
+  ann.metadata.annotations = {}
+  delete ann.isFiltered
+  if (!ann.apiVersion) {
+    ann.apiVersion = KubeKinds.cluster[resource.kind].base
+  }
+  delete ann.status
+  delete ann.metadata.generation
+  delete ann.metadata.creationTimestamp
+  delete ann.metadata.resourceVersion
+  delete ann.metadata.selfLink
+  delete ann.metadata.uid
+
+  return JSON.stringify(ann)
+}
+
 export function receiveResource(resource, contents, error) {
   return {
     type: types.RECEIVE_RESOURCE_CONTENTS,
@@ -500,6 +558,7 @@ export function clearEditor() {
   }
 }
 
+
 export function editResource(namespace, kind, name) {
   return async function (dispatch, getState) {
       doRequest(dispatch, getState, 'fetchResourceContents', async () => {
@@ -510,15 +569,14 @@ export function editResource(namespace, kind, name) {
 
 async function fetchResourceContents(dispatch, getState, namespace, kind, name) {
 
-  let api = KubeKinds.access[kind]
+  let api = KubeKinds.cluster[kind]
   await fetchResource(dispatch, getState, namespace, kind, name)
-  let resource = getState().access.resource
+  let resource = getState().cluster.resource
   let url = `/proxy/${api.base}/`
-  if (!!namespace && namespace !== '~') {
+  if (namespace && namespace !== '~') {
     url += `namespaces/${namespace}/`
   }
   url += `${api.plural}/${name}`
-  
   await fetch(url, 
       defaultFetchParams
     ).then(resp => {

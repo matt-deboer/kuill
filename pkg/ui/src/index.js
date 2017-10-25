@@ -43,7 +43,7 @@ const rootReducer = combineReducers({
   routing: routerReducer
 })
 const middleware = applyMiddleware(
-  createLogger(),
+  createLogger({level: 'info'}),
   routerMiddleware(history),
   thunk
 )

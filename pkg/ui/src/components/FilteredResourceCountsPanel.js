@@ -5,7 +5,7 @@ export default class FilteredResourceCountsPanel extends React.PureComponent {
   render() {
 
     let { props } = this
-    let { resources } = props
+    let { resources, kinds } = props
 
     const styles ={
       counts: {
@@ -30,7 +30,7 @@ export default class FilteredResourceCountsPanel extends React.PureComponent {
     let countsByKind = {}
     for (let r in resources) {
       let resource = resources[r]
-      if (!resource.isFiltered) {
+      if (!resource.isFiltered && resource.kind in kinds) {
         countsByKind[resource.kind] = (countsByKind[resource.kind] || 0) + 1
       }
     }

@@ -1,15 +1,15 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
-import { applyResourceChanges, requestResource, editResource, removeResource, scaleResource } from '../state/actions/workloads'
+import { applyResourceChanges, requestResource, editResource, removeResource, scaleResource } from '../state/actions/resources'
 import { invalidateSession } from '../state/actions/session'
+import { tryGoBack } from '../state/actions/location'
 import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
 import { sameResourceVersion, resourceMatchesParams } from '../utils/resource-utils'
-import { linkForResourceKind } from '../routes'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
@@ -21,21 +21,22 @@ const AsyncEditorPage = Loadable({
 
 const mapStateToProps = function(store) {
   return { 
-    resource: store.workloads.resource,
-    resourceNotFound: store.workloads.resourceNotFound,
-    isFetching: store.workloads.isFetching,
+    resource: store.resources.resource,
+    fetching: store.requests.fetching,
     user: store.session.user,
-    editor: store.workloads.editor,
+    editor: store.resources.editor,
     logPodContainers: store.logs.podContainers,
     events: store.events.selectedEvents,
-    resourceRevision: store.workloads.resourceRevision,
+    resourceRevision: store.resources.resourceRevision,
+    kinds: store.apimodels.kinds,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     cancelEditor: function() {
-      dispatch(routerActions.goBack())
+      dispatch(tryGoBack())
     },
     onEditorApply: function(contents) {
       let { namespace, kind, name } = ownProps.match.params
@@ -61,7 +62,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
         search = '?'+search
       }
       dispatch(routerActions.push({
-        pathname: `/${ownProps.resourceGroup}`,
+        pathname: `/workloads`,
         search: search,
       }))
     },
@@ -77,7 +78,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       if (!!namespace) {
         ns[namespace] = true
       }
-      dispatch(routerActions.push(linkForResourceKind(kind, ns)))
+      let link = ownProps.linkGenerator.linkForKind(kind, ns)
+      dispatch(routerActions.push(link))
     },
     viewFilters: function(filters) {
       let search = `?${queryString.stringify({filters: filters})}`
@@ -181,7 +183,7 @@ class WorkloadInfo extends React.Component {
   shouldComponentUpdate = (nextProps, nextState) => {
     let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
         || !sameResourceVersion(this.state.resource,nextProps.resource)
-        || this.props.isFetching !== nextProps.isFetching
+        || this.props.fetching !== nextProps.fetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
@@ -224,26 +226,30 @@ class WorkloadInfo extends React.Component {
 
     let { logs, events, props } = this
 
+    let fetching = Object.keys(props.fetching).length > 0
     let resourceInfoPage = null
     let resourceNotFound = null
-    if (!!this.state.resource) {
-      resourceInfoPage = 
-        <ResourceInfoPage
-          removeResource={props.removeResource}
-          editResource={props.editResource}
-          scaleResource={props.scaleResource}
-          viewKind={props.viewKind}
-          viewFilters={props.viewFilters}
-          selectView={props.selectView}
-          resourceGroup={'workloads'}
-          resource={this.state.resource}
-          logs={logs}
-          events={events}
-          onLogsActivated={this.onLogsActivated.bind(this)}
-          activeTab={(this.props.location.search || 'config').replace('?view=','')}
-          />
-    } else if (this.props.resourceNotFound) {
-      resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
+
+    if (!!this.state.resource && !fetching) {
+      if (this.state.resource.notFound) {
+        resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
+      } else {
+        resourceInfoPage = 
+          <ResourceInfoPage
+            removeResource={props.removeResource}
+            editResource={props.editResource}
+            scaleResource={props.scaleResource}
+            viewKind={props.viewKind}
+            viewFilters={props.viewFilters}
+            selectView={props.selectView}
+            resourceGroup={'workloads'}
+            resource={this.state.resource}
+            logs={logs}
+            events={events}
+            onLogsActivated={this.onLogsActivated.bind(this)}
+            activeTab={(this.props.location.search || 'config').replace('?view=','')}
+            />
+      }
     }
 
     return (
@@ -260,7 +266,7 @@ class WorkloadInfo extends React.Component {
         {resourceInfoPage}
         {resourceNotFound}
         
-        <LoadingSpinner loading={!this.state.resource && this.props.isFetching} />
+        <LoadingSpinner loading={fetching} />
       </div>
     )
   }

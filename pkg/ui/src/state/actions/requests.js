@@ -3,7 +3,7 @@ for (let type of [
   'START_FETCHING',
   'DONE_FETCHING',
 ]) {
-  types[type] = `logs.${type}`
+  types[type] = `requests.${type}`
 }
 
 /**
@@ -15,13 +15,20 @@ for (let type of [
  * @param {*} request 
  */
 export async function doRequest(dispatch, getState, name, request) {
-  if (getState().requests.isFetching[name]) {
-    console.warn(`doRequest called while already fetching '${name}'...`)
+  
+  let requestHandle = getState().requests.fetching[name]
+  let newRequest = !requestHandle
+  if (!requestHandle) {
+    let fetchBackoff = getState().requests.fetchBackoff[name] || 0
+    requestHandle = sleep(fetchBackoff).then(request)
+    dispatch({ type: types.START_FETCHING, name: name, request: requestHandle})
   }
-  dispatch({ type: types.START_FETCHING, request: name })
-  let fetchBackoff = getState().requests.fetchBackoff[name] || 0
-  await sleep(fetchBackoff).then(request)
-  dispatch({ type: types.DONE_FETCHING, request: name })
+
+  let result = await requestHandle
+  if (newRequest) {
+    dispatch({ type: types.DONE_FETCHING, name: name })
+  }
+  return result
 }
 
 export async function sleep (time) {

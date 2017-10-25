@@ -31,15 +31,15 @@ export default class FilterBox extends React.PureComponent {
     /**
      * The list of possible filters, used for auto-complete
      */
-    possibleFilters: PropTypes.array,
+    autocomplete: PropTypes.object,
     /**
      * function(name) called when a filter is added
      */
-    addFilter: PropTypes.function,
+    addFilter: PropTypes.func,
     /**
      * function(name, index) called when a filter is removed
      */
-    removeFilter: PropTypes.function,
+    removeFilter: PropTypes.func,
   }
 
   static defaultProps = {
@@ -47,7 +47,7 @@ export default class FilterBox extends React.PureComponent {
     floatingLabelText: 'select by filters...',
     addFilter: function() {},
     removeFilter: function() {},
-    possibleFilters: [],
+    autocomplete: {},
     removeFirstOnMax: false,
   }
 
@@ -102,7 +102,7 @@ export default class FilterBox extends React.PureComponent {
       onRequestAdd={this.handleAddFilter}
       onRequestDelete={this.handleRemoveFilter}
       name={'filters'}
-      dataSource={props.possibleFilters}
+      dataSource={Object.keys(props.autocomplete)}
       floatingLabelText={props.floatingLabelText}
       defaultValue={['namespace:default']}
       menuProps={{

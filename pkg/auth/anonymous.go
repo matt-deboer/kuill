@@ -53,6 +53,6 @@ func (a *anonymousHandler) IconURL() string {
 	return ""
 }
 
-func (a *anonymousHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
-	return NewSessionToken(a.username, a.groups, nil), nil
+func (a *anonymousHandler) Authenticate(w http.ResponseWriter, r *http.Request, m *Manager) (*SessionToken, error) {
+	return m.NewSessionToken(a.username, a.groups, nil), nil
 }

@@ -149,7 +149,7 @@ func randomBytes(len int) []byte {
 }
 
 // authCallback handles OIDC authentication callback for the app
-func (o *oidcHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*SessionToken, error) {
+func (o *oidcHandler) Authenticate(w http.ResponseWriter, r *http.Request, m *Manager) (*SessionToken, error) {
 
 	oidcCode := r.URL.Query().Get("code")
 
@@ -241,7 +241,7 @@ func (o *oidcHandler) Authenticate(w http.ResponseWriter, r *http.Request) (*Ses
 		return nil, fmt.Errorf("%s: %v", msg, err)
 	}
 
-	appToken := NewSessionToken(user, groups, jwt.MapClaims{
+	appToken := m.NewSessionToken(user, groups, jwt.MapClaims{
 		"o2a": oauth2Token.AccessToken,
 		"oid": rawIDToken,
 		"orf": oauth2Token.RefreshToken,

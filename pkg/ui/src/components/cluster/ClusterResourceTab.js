@@ -1,12 +1,10 @@
 import React from 'react'
 import {blueA400, grey200, grey300, grey500, grey600, blueA100, white } from 'material-ui/styles/colors'
-import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
-import { removeResource } from '../../state/actions/cluster'
+import { viewResource, removeResource } from '../../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from '../filter-table/FilterTable'
 
-import { linkForResource } from '../../routes'
 import IconButton from 'material-ui/IconButton'
 
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
@@ -22,8 +20,9 @@ import './ClusterResourceTab.css'
 
 const mapStateToProps = function(store) {
   return {
-    resourceRevision: store.cluster.resourceRevision,
-    resources: store.cluster.resources,
+    resourceRevision: store.resources.resourceRevision,
+    resources: store.resources.resources,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -33,7 +32,7 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       dispatch(removeResource(...resources))
     },
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
   } 
 }
@@ -362,9 +361,7 @@ class ClusterResourceTab extends React.Component {
             </Popover>
           }
 
-          {this.rows.length === 0 &&
-            <EmptyListPage />
-          }
+          <EmptyListPage visible={this.rows.length === 0}/>
       </Paper>
     )
   }

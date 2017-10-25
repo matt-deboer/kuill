@@ -358,7 +358,7 @@ async function fetchResources(dispatch, getState, force) {
             dispatch(updatePermissionsForKind(kind, {
               namespaced: true
             }))
-            return fetchResourcesByNamespace(dispatch, getState, kind)
+            return fetchResourcesByNamespace(dispatch, getState, KubeKinds.workloads[kind], kind)
           } else if (resp.status === 404) {
             dispatch(disableResourceKind(kind))
           } else {
@@ -371,6 +371,7 @@ async function fetchResources(dispatch, getState, force) {
         }
       }
     ))
+    requests.push(fetchThirdPartyResources(dispatch, getState))
 
     let results = await Promise.all(requests)
 
@@ -378,9 +379,8 @@ async function fetchResources(dispatch, getState, force) {
   }
 }
 
-async function fetchResourcesByNamespace(dispatch, getState, kind) {
+async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
   let namespaces = getState().cluster.namespaces
-  let kubeKind = KubeKinds.workloads[kind]
   let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
   let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
     ).then(resp => {
@@ -407,6 +407,59 @@ async function fetchResourcesByNamespace(dispatch, getState, kind) {
   return Promise.all(requests)
 }
 
+async function fetchThirdPartyResources(dispatch, getState) {
+  let kubeKind = KubeKinds.cluster.ThirdPartyResource
+  let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
+
+  return await fetch(tprURL, defaultFetchParams
+    ).then(resp => {
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          dispatch(invalidateSession())
+        } else if (resp.status === 404) {
+
+        } else if (resp.status !== 403) {
+          dispatch(addError(resp,'error',`Failed to fetch Third Party Resources at ${tprURL}: ${resp.statusText}`,
+            'Try Again', () => { dispatch(requestResources()) } ))
+        }
+        return resp
+      } else {
+        return resp.json()
+      }
+    }).then(json => {
+      if ('items' in json) {
+        return Promise.all(json.items.map( tpr => {
+          let parts = tpr.metadata.name.split(/[.]/g, -1)
+          let tprKind = {
+            plural: (parts[0] + (parts[0].endsWith('s') ? 'es' : 's')).replace(/[_-]/g, ''),
+            base: `apis/${parts.slice(1).join('.')}/${tpr.versions[0].name}`,
+          }
+          let kind = tpr.metadata.name
+          let url = `/proxy/${tprKind.base}/${tprKind.plural}`
+          
+          return fetch(url, defaultFetchParams
+            ).then(resp => {
+              if (!resp.ok) {
+                if (resp.status === 401) {
+                  dispatch(invalidateSession())
+                } else if (resp.status === 403) {
+                  dispatch(updatePermissionsForKind(kind, {
+                    namespaced: true
+                  }))
+                  return fetchResourcesByNamespace(dispatch, getState, tprKind, kind)
+                } else if (resp.status !== 403) {
+                  dispatch(addError(resp,'error',`Failed to fetch ${kind} at ${url}: ${resp.statusText}` ))
+                }
+                return resp
+              } else {
+                return resp.json()
+              }
+            })
+        }))
+      }
+    })
+}
+
 function parseResults(dispatch, getState, results) {
   
   let resources = {}
@@ -431,6 +484,8 @@ function parseResults(dispatch, getState, results) {
       } else if ('status' in result && result.status !== 403) {
         let msg = `result for ${result.url} returned error code ${result.status}: "${result.message}"`
         console.error(msg)
+      } else {
+        console.error(`unexpected result type ${result}`)
       }
     }
   }

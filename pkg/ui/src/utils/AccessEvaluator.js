@@ -1,5 +1,5 @@
-import Kinds from '../kube-kinds'
 import { defaultFetchParams } from './request-utils'
+import { keyForResource } from './resource-utils'
 
 export default class AccessEvaluator {
   
@@ -13,6 +13,7 @@ export default class AccessEvaluator {
 
   initialize = () => {    
     this.swagger = this.swagger || this.getState().apimodels.swagger
+    this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
     this.permissionsByKind = this.permissionsByKind || this.getState().session.permissionsByKind
   }
 
@@ -28,10 +29,9 @@ export default class AccessEvaluator {
    * and values are 'true' when the action is permitted.
    * 
    * @param {object} resource
-   * @param {string} resourceGroup
    */
-  getObjectAccess = async (resource, resourceGroup) => {
-    return this.getObjectPermissions(resource, resourceGroup)
+  getObjectAccess = async (resource) => {
+    return this.getObjectPermissions(resource)
       .then(permissions => {
         // TODO: what about StatefulSet and DaemonSet?
         let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas || resource.status.numberReady)) || -1
@@ -48,14 +48,17 @@ export default class AccessEvaluator {
       })
   }
 
-  getObjectPermissions = async (resource, resourceGroup) => {
-    
-    let kubeKind = Kinds[resourceGroup][resource.kind]
+  getObjectPermissions = async (resource) => {
+    this.initialize()
+    let kubeKind = this.kubeKinds[resource.kind]
     let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
-    let namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] = 
-        this.permissions[`${resource.kind}/${resource.metadata.namespace}`] || {}
-    let objectPerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}/${resource.metadata.name}`] =
-        this.permissions[`${resource.kind}/${resource.metadata.namespace}/${resource.metadata.name}`] || {}
+    let namespacePerms = {}
+    if (resource.metadata && resource.metadata.namespace) {
+      namespacePerms = this.permissions[`${resource.kind}/${resource.namespace}`] =
+      this.permissions[`${resource.kind}/${resource.namespace}`] || {}
+    }
+    let key = keyForResource(resource)
+    let objectPerms = this.permissions[key] = this.permissions[key] || {}
     let permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
 
     if ('get' in permissions && 
@@ -66,7 +69,7 @@ export default class AccessEvaluator {
       return permissions
     }
 
-    let results = await resolveResourcePermissions(resource, permissions, kubeKind)
+    let results = await resolveResourcePermissions(resource, permissions, kubeKind, this.kubeKinds)
     for (let result of results) {
       let allowed = result.status.allowed
       let attrs = result.spec.resourceAttributes
@@ -112,12 +115,11 @@ export default class AccessEvaluator {
    * namespaces, or the resource simply doesn't support watching
    * at any level, then [] is returned.
    * 
-   * @param {*} kind 
-   * @param {*} resourceGroup 
+   * @param {String} kind 
    */
-  getWatchableNamespaces = (kind, resourceGroup) => {
+  getWatchableNamespaces = (kind) => {
     this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
+    let kubeKind = this.kubeKinds[kind]
     let permissions = this.permissionsByKind[kind]
     let swagger = this.swagger
 
@@ -134,13 +136,13 @@ export default class AccessEvaluator {
   }
 
   /**
-   * Returns true if the item is namespaced
-   * @param {*} swagger 
-   * @param {*} kubeKind 
+   * Returns true if the kind is namespaced
+   * 
+   * @param {String} kind
    */
-  isNamespaced = (kind, resourceGroup) => {
+  isNamespaced = (kind) => {
     this.initialize()
-    let kubeKind = Kinds[resourceGroup][kind]
+    let kubeKind = this.kubeKinds[kind]
     return this.swagger && `/${kubeKind.base}/namespaces/{namespace}/${kubeKind.plural}` in this.swagger.paths
   }
 
@@ -148,7 +150,7 @@ export default class AccessEvaluator {
    * Returns true if the resource can be listed at the specified namespace
    * use '' for namespace to list at the cluster level
    */
-  canList = (kind, resourceGroup, namespace) => {
+  canList = (kind, namespace) => {
     let perms = this.forbiddenByKind[kind]
     if (perms && 'list' in perms && namespace in perms.list) {
       let forbidden = perms.list[namespace]
@@ -157,7 +159,7 @@ export default class AccessEvaluator {
   }
 }
 
-async function resolveResourcePermissions(resource, permissions, kubeKind) {
+async function resolveResourcePermissions(resource, permissions, kubeKind, kubeKinds) {
   let requests = []
   if (!('get' in permissions)) {
     requests.push(accessReview(kubeKind, 'get'))
@@ -177,17 +179,17 @@ async function resolveResourcePermissions(resource, permissions, kubeKind) {
       resource.metadata.namespace, resource.metadata.name))
   }
   if (!('logs' in permissions)) {
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', '', '', 'log'))
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'log'))
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, '', 'log'))
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, resource.metadata.name, 'log'))
   }
   if (!('exec' in permissions)) {
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', '', '', 'exec'))
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'exec'))
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, '', 'exec'))
-    requests.push(accessReview(Kinds.workloads.Pod, 'get', 
+    requests.push(accessReview(kubeKinds.Pod, 'get', 
       resource.metadata.namespace, resource.metadata.name, 'exec'))
   }
   return Promise.all(requests)

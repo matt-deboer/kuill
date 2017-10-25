@@ -44,6 +44,7 @@
     "source-map-explorer": "^1.4.0",
     "swagger-object-validator": "git://github.com/matt-deboer/swagger-object-validator.git#1.1.4-es5",
     "text-encoding-utf-8": "^1.0.1",
+    "visibilityjs": "^1.2.5",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
     "xterm": "^2.6.0",
     "yaml-ast-parser": "0.0.34"
@@ -73,7 +74,7 @@
     "dev": "npm-run-all -p test-proxy watch-css start-js",
     "build": "npm run build-css && react-scripts build",
     "build-test-proxy": "npm install ./test-proxy",
-    "test": "react-scripts test --env=jsdom", 
+    "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
@@ -82,36 +83,34 @@
   },
   "proxy": {
     "/auth": {
-      "target": "https://localhost:8888",
+      "target": "https://127.0.0.1:8888",
+      "secure": false
+    },
+    "/kinds": {
+      "target": "https://127.0.0.1:8888",
       "secure": false
     },
     "/namespaces": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/proxy": {
-      "target": "https://localhost:8888",
+      "target": "https://127.0.0.1:8888",
       "secure": false,
-      "ws": true,
-      "toProxy": true,
-      "changeOrigin": true,
-      "logLevel": "debug"
+      "logLevel": "silent",
+      "ws": true
     },
     "/metrics": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/templates": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     },
     "/version": {
-      "target": "https://localhost:8888",
-      "secure": false,
-      "ws": true
+      "target": "https://127.0.0.1:8888",
+      "secure": false
     }
   },
   "_proxy": {

@@ -21,7 +21,7 @@ const styles = {
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.cluster.resources,
+    resources: store.resources.resources,
   }
 }
 
@@ -45,8 +45,9 @@ class StorageClassesTab extends React.Component {
 
   constructor(props) {
     super(props)
-
-    this.updateVolumesByClass(props.resources)
+    this.state = {
+      volumesByClass: this.getVolumesByClass(props.resources),
+    }
     this.kind = 'StorageClass'
     let that = this
     this.columns = [
@@ -70,31 +71,31 @@ class StorageClassesTab extends React.Component {
           paddingRight: 20,
         },
         style: { ...styles.cell,
-          width: 240,
+          width: '10%',
           textAlign: 'right',
           paddingRight: 30,
         },
         value: function(r) {
-          return (that.state.volumesByClass[r.name] || []).length
+          return (that.state.volumesByClass[r.metadata.name] || []).length
         },
       },
       {
-        id: 'provisioned-capacity',
-        label: 'provisioned capacity',
+        id: 'provisioned',
+        label: 'provisioned',
         sortable: true,
         headerStyle: {...styles.header,
           paddingRight: 20,
         },
         style: { ...styles.cell,
-          width: 240,
+          width: '20%',
           textAlign: 'right',
           paddingRight: 40,
         },
         value: function(r) {
           let size = 0
-          for (let vol of (that.state.volumesByClass[r.name] || [])) {
+          for (let vol of (that.state.volumesByClass[r.metadata.name] || [])) {
             let cap = parseUnits(vol.spec.capacity.storage)
-            let total = convertUnits(cap[0], cap[1], 'gibibytes')
+            let total = convertUnits(parseInt(cap[0],10), cap[1], 'gibibytes')
             size += total
           }
           return `${size} Gi`
@@ -106,7 +107,7 @@ class StorageClassesTab extends React.Component {
         sortable: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 240,
+          width: '25%',
         },
         value: function(r) {
           return r.provisioner
@@ -131,25 +132,21 @@ class StorageClassesTab extends React.Component {
     ]
   }
 
-  updateVolumesByClass = (resources) => {
+  getVolumesByClass = (resources) => {
     let volumesByClass = {}
     Object.entries(resources).filter(([key, resource])=> resource.kind === 'PersistentVolume')
-      .map(([key, resource]) => {
+      .forEach(([key, resource]) => {
         let volumes = volumesByClass[resource.spec.storageClassName] || []
         volumes.push(resource)
         volumesByClass[resource.spec.storageClassName] = volumes
       })
-    this.setState({
-      volumesByClass: volumesByClass
-    })
+    return volumesByClass
   }
 
   componentWillReceiveProps = (props) => {
-    this.updateVolumesByClass(props.resources)
-  }
-
-  getVolumesForStorageClass = (sc) => {
-
+    this.setState({
+      volumesByClass: this.getVolumesByClass(props.resources),
+    })
   }
 
   render() {

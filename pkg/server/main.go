@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"mime"
 	"net/http"
@@ -89,6 +90,12 @@ func main() {
 			Name:   "public-url",
 			Usage:  "The public-facing URL for this app, used to compose callbacks for IDPs",
 			EnvVar: envBase + "PUBLIC_URL",
+		},
+		cli.DurationFlag{
+			Name:   "session-timeout",
+			Usage:  "The idle timeout for sessions",
+			Value:  time.Minute * 15,
+			EnvVar: envBase + "SESSION_TIMEOUT",
 		},
 		cli.StringFlag{
 			Name:   "oidc-provider",
@@ -281,9 +288,16 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		err = helpers.ServeKinds(c.String("kubeconfig"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		helpers.ServeVersion()
 
-		authManager, _ := auth.NewAuthManager()
+		sessionTimeout := c.Duration("session-timeout")
+
+		authManager, _ := auth.NewAuthManager(sessionTimeout)
 		setupAuthenticators(c, authManager)
 		setupProxy(c, authManager)
 		setupTemplates(c)

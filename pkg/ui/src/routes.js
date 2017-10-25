@@ -9,12 +9,10 @@ import Home from 'material-ui/svg-icons/action/home'
 import IconAccessControls from 'material-ui/svg-icons/hardware/security'
 import IconCluster from 'material-ui/svg-icons/maps/layers'
 import Apps from 'material-ui/svg-icons/navigation/apps'
-import KubeKinds from './kube-kinds'
-import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from './components/LoadingComponentStub'
-import { createResource as createWorkload } from './state/actions/workloads'
-import { createResource as createAccessControl } from './state/actions/access'
+import { createResource } from './state/actions/resources'
+
 
 const AsyncNewWorkload = Loadable({
   loader: () => import('./containers/NewResource'),
@@ -54,7 +52,7 @@ const routes = [
     component: AsyncNewWorkload,
     props: {
       resourceGroup: 'workloads',
-      resourceCreator: createWorkload,
+      resourceCreator: createResource,
     },
   },
   { 
@@ -87,7 +85,7 @@ const routes = [
     component: AsyncNewAccessControl,
     props: {
       resourceGroup: 'access',
-      resourceCreator: createAccessControl,
+      resourceCreator: createResource,
     },
   },
   { 
@@ -115,66 +113,3 @@ for (; stack.length > 0;) {
 
 export const menu = _menu
 export default routes
-
-/**
- * Returns a link to the specified resource, which can either be a resource object, or a [kind/namespace/name] key
- * to a resource 
- * 
- * @param {*} resource 
- * @param {*} view 
- */
-export function linkForResource(resource, view='config') {
-  var ns, name, kind
-  if (typeof resource === 'string') {
-    [ kind, ns, name ] = resource.split('/')
-  } else {
-    ns = resource.namespace || (!!resource.metadata && resource.metadata.namespace) || "~"
-    name = resource.name || resource.metadata.name
-    kind = resource.kind
-  }
-  
-  let path = "workloads"
-  for (let group in KubeKinds) {
-    if (kind in KubeKinds[group]) {
-      path = group
-      break
-    }
-  }
-  let query = view === '' ? '' : `?view=${view}`
-  return `/${path}/${ns}/${kind}/${name}${query}`
-}
-
-/**
- * Returns a link to the specified resource kind
- * 
- * @param {*} resource 
- * @param {*} view 
- */
-export function linkForResourceKind(kind, selectedNamespaces) {
-  let name = kind
-  if (!(name.endsWith('s'))) {
-    name += 's'
-  } else if (name.endsWith('ss')) {
-    name += 'es'
-  }
-  let group = 'workloads'
-  for (let g in KubeKinds) {
-    if (kind in KubeKinds[g]) {
-      group = g
-      break
-    }
-  }
-  let linkParams = {}
-  if (group === 'cluster') {
-    linkParams.view = name.toLowerCase()
-  } else {
-    linkParams.filters =[`kind:${kind}`]
-    if (selectedNamespaces && Object.keys(selectedNamespaces).length > 0) {
-      for (let ns in selectedNamespaces) {
-        linkParams.filters.push(`namespace:${ns}`)
-      }
-    }
-  }
-  let query = queryString.stringify(linkParams)
-  return `/${group}?${query}`
-}

@@ -1,16 +1,15 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { requestResources, setFilterNames } from '../state/actions/cluster'
+import { requestResources } from '../state/actions/resources'
 import ClusterPage from '../components/cluster/ClusterPage'
 import { withRouter } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const mapStateToProps = function(store) {
   return {
-    resources: store.cluster.resources,
-    filterNames: store.cluster.filterNames,
-    possibleFilters: store.cluster.possibleFilters,
-    isFetching: store.cluster.isFetching,
+    resources: store.resources.resources,
+    filterNames: store.resources.filterNames,
+    fetching: store.requests.fetching,
     user: store.session.user,
   }
 }
@@ -19,9 +18,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     requestResources: function() {
       dispatch(requestResources())
-    },
-    setFilterNames: function(filterNames) {
-      dispatch(setFilterNames(filterNames))
     },
   }
 }
@@ -43,7 +39,7 @@ class Cluster extends React.Component {
 
   render() {
     return (<div>
-      <LoadingSpinner loading={this.props.isFetching} />
+      <LoadingSpinner loading={Object.keys(this.props.fetching).length > 0} />
       <ClusterPage {...this.props} />
     </div>)
   }

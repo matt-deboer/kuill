@@ -10,7 +10,6 @@ import { grey500, grey600, grey800, white, red900, blueA400 } from 'material-ui/
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 import { resourceStatus as resourceStatusIcons } from '../icons'
-import { linkForResource } from '../../routes'
 import { eventsForResource } from '../../utils/resource-utils'
 import { toHumanizedAge } from '../../converters'
 import { Tabs, Tab } from 'material-ui/Tabs'
@@ -19,10 +18,10 @@ import './ResourceProblems.css'
 
 const mapStateToProps = function(store) {
   return {
-    workloadProblems: store.workloads.problemResources,
-    clusterProblems: store.cluster.problemResources,
+    problemResources: store.resources.problemResources,
     events: store.events.events,
     selectedNamespaces: store.usersettings.selectedNamespaces,
+    linkGenerator: store.session.linkGenerator,
   }
 }
 
@@ -30,8 +29,7 @@ export default connect(mapStateToProps) (
 class ResourceProblems extends React.PureComponent {
 
   static propTypes = {
-    workloadProblems: PropTypes.object.isRequired,
-    clusterProblems: PropTypes.object.isRequired,
+    problemResources: PropTypes.object.isRequired,
     events: PropTypes.object.isRequired,
     selectedNamespaces: PropTypes.object.isRequired,
   }
@@ -48,52 +46,43 @@ class ResourceProblems extends React.PureComponent {
 
   collectProblems = (props) => {
     
-    let { workloadProblems, clusterProblems, events, selectedNamespaces } = props
+    let { problemResources, events, selectedNamespaces } = props
     
     let namespacesFiltered = (Object.keys(selectedNamespaces).length > 0)
     let problemsByWorkload = []
-    for (let key in workloadProblems) {
-      let resource = workloadProblems[key]
+    let problemsByCluster = []
+    for (let key in problemResources) {
+      let resource = problemResources[key]
       if (!namespacesFiltered || (resource.metadata.namespace in selectedNamespaces)) {
         let selectedEvents = eventsForResource(events, resource).filter(e => {
-          return e.object.type === 'Warning' || e.object.type === 'Error'
+          return (e.object.type === 'Warning' || e.object.type === 'Error' || e.object.reason === 'NodeNotReady')
         })
         if (selectedEvents.length > 0) {
           problemsByWorkload.push({resource: resource, events: selectedEvents})
+        } else {
+          if (resource.status && resource.status.conditions.constructor === Array) {
+            resource.status.conditions.forEach((cond) => {
+              if (cond.type === 'Ready' && cond.status !== 'True') {
+                // simulate an event to mark unready status
+                problemsByCluster.push({resource: resource, events: [
+                  {
+                    object: {
+                      type: cond.reason,
+                      metadata: {
+                        uid: resource.metadata.uid,
+                      },
+                      message: cond.message,
+                      lastTimestamp: cond.lastTransitionTime,
+                    },
+                  },
+                ]})
+              }
+            })
+          }
         }
       }
     }
 
-    let problemsByCluster = []
-    for (let key in clusterProblems) {
-      let resource = clusterProblems[key]
-      let selectedEvents = eventsForResource(events, resource).filter(e => {
-        return (e.object.type === 'Warning' || e.object.type === 'Error' || e.object.reason === 'NodeNotReady')
-      })
-      if (selectedEvents.length > 0) {
-        problemsByCluster.push({resource: resource, events: selectedEvents})
-      } else {
-        if (resource.status && resource.status.conditions.constructor === Array) {
-          resource.status.conditions.forEach((cond) => {
-            if (cond.type === 'Ready' && cond.status !== 'True') {
-              // simulate an event to mark unready status
-              problemsByCluster.push({resource: resource, events: [
-                {
-                  object: {
-                    type: cond.reason,
-                    metadata: {
-                      uid: resource.metadata.uid,
-                    },
-                    message: cond.message,
-                    lastTimestamp: cond.lastTransitionTime,
-                  },
-                },
-              ]})
-            }
-          })
-        }
-      }
-    }
     let problems = {}
     if (problemsByWorkload.length > 0) {
       problems.workload = problemsByWorkload
@@ -124,6 +113,7 @@ class ResourceProblems extends React.PureComponent {
   render() {
     let problemsByWorkload = this.state.problems.workload || []
     let problemsByCluster = this.state.problems.cluster || []
+    let linkGenerator = this.props.linkGenerator
 
     const styles = {
       wrapper: {
@@ -252,7 +242,7 @@ class ResourceProblems extends React.PureComponent {
                 <div key={r.resource.key}>
                   <ListItem
                     disabled={true}
-                    primaryText={<Link to={linkForResource(r.resource)} style={styles.link}>
+                    primaryText={<Link to={linkGenerator.linkForResource(r.resource)} style={styles.link}>
                         <div style={styles.icon}>{resourceStatusIcons[r.resource.statusSummary]}</div>
                         {r.resource.key.replace(/\//g," / ")}
                       </Link>
@@ -278,7 +268,7 @@ class ResourceProblems extends React.PureComponent {
                 <div key={r.resource.key}>
                   <ListItem
                     disabled={true}
-                    primaryText={<Link to={linkForResource(r.resource)} style={styles.link}>
+                    primaryText={<Link to={linkGenerator.linkForResource(r.resource)} style={styles.link}>
                         <div style={styles.icon}>{resourceStatusIcons[r.resource.statusSummary]}</div>
                         {r.resource.key.replace(/\//g," / ")}
                       </Link>

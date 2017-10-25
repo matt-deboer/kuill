@@ -1,4 +1,4 @@
-
+// TODO can we build this up from API requests?
 let kinds = {
   workloads: {
     Deployment: {
@@ -135,6 +135,11 @@ let kinds = {
       plural: 'resourcequotas',
       abbrev: 'Rq',
     },
+    ThirdPartyResource: {
+      base: 'apis/extensions/v1beta1',
+      plural: 'thirdpartyresources',
+      abbrev: 'Tr',
+    }
   },
   access: {
     ServiceAccount: {

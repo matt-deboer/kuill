@@ -85,8 +85,7 @@ async function setEventWatches(dispatch, getState) {
 
     if (!!result && result.kind === 'EventList') {
       resourceVersion = result.metadata.resourceVersion
-      dispatch(receiveEvents(getState().workloads.resources, ...result.items))  
-      dispatch(reconcileEvents(getState().cluster.resources))  
+      dispatch(receiveEvents(getState().resources.resources, ...result.items))   
     }
 
     watch = new EventsWatcher({

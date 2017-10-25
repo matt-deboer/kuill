@@ -25,7 +25,6 @@ import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
 import { statusIcons } from './status-icons'
-import KubeKinds from '../kube-kinds'
 import KindAbbreviation from './KindAbbreviation'
 import './ResourceGroupPage.css'
 
@@ -34,6 +33,7 @@ const mapStateToProps = function(store, ownProps) {
     filters: store[ownProps.resourceGroup].filters,
     filterNames: store[ownProps.resourceGroup].filterNames,
     possibleFilters: store[ownProps.resourceGroup].possibleFilters,
+    kinds: store.apimodels.kinds,
   }
 }
 

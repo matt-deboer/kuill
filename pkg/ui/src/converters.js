@@ -111,7 +111,7 @@ export function decodeBase64(input) {
 }
 
 export function parseUnits(valueWithUnit) {
-  let parts = valueWithUnit.match(/([0-9]+)([A-Z)[iBb])/)
+  let parts = valueWithUnit.match(/([0-9]+)([A-Z][iBb])/)
   switch (parts[2]) {
     case 'Gi': case 'gibibytes':
       parts[2] = 'gibibytes'
@@ -122,11 +122,12 @@ export function parseUnits(valueWithUnit) {
     case 'Ki': case 'kibibytes':
       parts[2] = 'kibibytes'
       break
+    default:
   }
   return parts.slice(1)
 }
 
-export function convertUnits(value, baseUnit, targetUnit) {
+export function convertUnits(value, baseUnit, targetUnit, places) {
   let base = baseUnit.split('/')
   let target = targetUnit.split('/')
   
@@ -208,6 +209,9 @@ export function convertUnits(value, baseUnit, targetUnit) {
           default:
         }
       }
+    }
+    if (places !== undefined && places > -1) {
+      return v.toFixed(places)
     }
     return v
   }

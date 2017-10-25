@@ -88,6 +88,8 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
 	}
 	wsp.Director = func(incoming *http.Request, out http.Header) {
 		out.Set(usernameHeader, incoming.Header.Get(usernameHeader))
@@ -179,7 +181,7 @@ func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context) {
 		if err != nil {
 			lctx.Warnf("Error dumping request : %v", err)
 		} else {
-			lctx.Debugf("Proxying WS request for %s: %s\n%s", authContext.User(), r.URL, string(data))
+			lctx.Debugf("Proxying request for %s: %s\n%s", authContext.User(), r.URL, string(data))
 		}
 	}
 }
