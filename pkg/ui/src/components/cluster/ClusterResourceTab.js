@@ -361,9 +361,7 @@ class ClusterResourceTab extends React.Component {
             </Popover>
           }
 
-          {this.rows.length === 0 &&
-            <EmptyListPage />
-          }
+          <EmptyListPage visible={this.rows.length === 0}/>
       </Paper>
     )
   }

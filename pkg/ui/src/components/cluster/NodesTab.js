@@ -599,8 +599,9 @@ class NodesTab extends React.Component {
       <Paper style={styles.paper}>
         <NodeHeatmap nodes={this.nodes} nodeMetrics={props.nodeMetrics} resourceRevision={props.resourceRevision}/>
         
-        {this.rows.length === 0 && Object.keys(props.fetching).length === 0 &&
-          <EmptyListPage style={{
+        <EmptyListPage 
+          visible={this.rows.length === 0 && Object.keys(props.fetching).length === 0}
+            style={{
             top: 0,
             left: 'auto',
             marginTop: 15,
@@ -614,7 +615,6 @@ class NodesTab extends React.Component {
             backgroundSize: '300px',
           }}
           />
-        }
 
         <LoadingSpinner loading={Object.keys(this.props.fetching).length > 0} />
 

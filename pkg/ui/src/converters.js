@@ -127,7 +127,7 @@ export function parseUnits(valueWithUnit) {
   return parts.slice(1)
 }
 
-export function convertUnits(value, baseUnit, targetUnit) {
+export function convertUnits(value, baseUnit, targetUnit, places) {
   let base = baseUnit.split('/')
   let target = targetUnit.split('/')
   
@@ -209,6 +209,9 @@ export function convertUnits(value, baseUnit, targetUnit) {
           default:
         }
       }
+    }
+    if (places !== undefined && places > -1) {
+      return v.toFixed(places)
     }
     return v
   }

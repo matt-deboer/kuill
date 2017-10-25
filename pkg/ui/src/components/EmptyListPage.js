@@ -51,6 +51,10 @@ export default function EmptyListPage(props){
     ...props.imageStyle,
   }
 
+  if (!props.visible) {
+    return null
+  }
+
   return (
     <div 
       style={style}>
