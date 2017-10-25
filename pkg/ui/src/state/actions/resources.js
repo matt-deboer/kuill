@@ -39,6 +39,7 @@ export const maxReloadInterval = 5000
 const excludedKinds = {
   'Event': true,
   'ComponentStatus': true,
+  'ControllerRevision': true,
 }
 
 export function receiveResources(resources) {
