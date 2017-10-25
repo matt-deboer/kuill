@@ -84,7 +84,7 @@ let kinds = {
   default: {
     getData: (resource) => {
       return [
-        ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
+        ['Created:', `${resource.metadata.creationTimestamp} (${toHumanizedAge(resource.metadata.creationTimestamp)} ago)`],
       ]
     },
   },
