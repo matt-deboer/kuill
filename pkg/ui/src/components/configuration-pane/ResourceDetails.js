@@ -81,9 +81,10 @@ let kinds = {
       ]
     }
   },
-  Pod: {
-    getData: ({status, spec, metadata }) => {
+  default: {
+    getData: (resource) => {
       return [
+        ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
       ]
     },
   },

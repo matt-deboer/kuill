@@ -70,7 +70,7 @@ class ConfigurationPane extends React.Component {
   
     let { props } = this
     let { resource, linkGenerator } = props
-    let kind = ResourceDetails[resource.kind]
+    let kind = ResourceDetails[resource.kind] || ResourceDetails['default']
     let { getData } = kind
     let data = (typeof getData === 'function' && getData(resource, linkGenerator)) || []
 
