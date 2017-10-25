@@ -29,11 +29,11 @@ export default class LinkGenerator {
       kind = resource.kind
     }
     if (!this.kubeKinds) {
-      return null
+      return `#`
     }
     let kubeKind = this.kubeKinds[kind]
     if (!kubeKind) {
-      return `/DNE`
+      return `#`
     }
     let path = kubeKind.resourceGroup
     let query = view === '' ? '' : `?view=${view}`
