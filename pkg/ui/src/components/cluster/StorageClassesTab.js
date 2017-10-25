@@ -76,7 +76,7 @@ class StorageClassesTab extends React.Component {
           paddingRight: 30,
         },
         value: function(r) {
-          return (that.state.volumesByClass[r.name] || []).length
+          return (that.state.volumesByClass[r.metadata.name] || []).length
         },
       },
       {
@@ -93,9 +93,9 @@ class StorageClassesTab extends React.Component {
         },
         value: function(r) {
           let size = 0
-          for (let vol of (that.state.volumesByClass[r.name] || [])) {
+          for (let vol of (that.state.volumesByClass[r.metadata.name] || [])) {
             let cap = parseUnits(vol.spec.capacity.storage)
-            let total = convertUnits(cap[0], cap[1], 'gibibytes')
+            let total = convertUnits(parseInt(cap[0],10), cap[1], 'gibibytes')
             size += total
           }
           return `${size} Gi`
@@ -147,10 +147,6 @@ class StorageClassesTab extends React.Component {
     this.setState({
       volumesByClass: this.getVolumesByClass(props.resources),
     })
-  }
-
-  getVolumesForStorageClass = (sc) => {
-
   }
 
   render() {

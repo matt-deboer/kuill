@@ -69,6 +69,12 @@ class ClusterPage extends React.Component {
     })
 
     this.tabs.push({
+      label: 'Resource Quotas',
+      name: 'resourcequotas',
+      component: <ResourceQuotasTab />
+    })
+    
+    this.tabs.push({
       label: 'Persistent Volumes',
       name: 'persistentvolumes',
       component: <PersistentVolumesTab />,
@@ -78,12 +84,6 @@ class ClusterPage extends React.Component {
         label: 'Storage Classes',
         name: 'storageclasses',
         component: <StorageClassesTab />,
-    })
-
-    this.tabs.push({
-      label: 'Resource Quotas',
-      name: 'resourcequotas',
-      component: <ResourceQuotasTab />
     })
 
     this.tabs.push({

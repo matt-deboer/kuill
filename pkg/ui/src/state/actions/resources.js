@@ -540,26 +540,27 @@ function parseResults(dispatch, getState, results) {
   
   while (results.length) {
     let result = results.shift()
-    
-    if (result.constructor === Array) {
-      results.push(...result)
-    } else {
-      if ('items' in result) {
-        let kind = result.kind.replace(/List$/,'')
-        var items = result.items
-        if (!!items) {
-          for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
-            var resource = items[j]
-            resource.kind = kind
-            resource.key = keyForResource(resource)
-            resources[resource.key] = resource
-          }
-        }
-      } else if ('status' in result && result.status !== 403) {
-        let msg = `result for ${result.url} returned error code ${result.status}: "${result.message}"`
-        console.error(msg)
+    if (result) {
+      if (result.constructor === Array) {
+        results.push(...result)
       } else {
-        console.error(`unexpected result type ${result}`)
+        if ('items' in result) {
+          let kind = result.kind.replace(/List$/,'')
+          var items = result.items
+          if (!!items) {
+            for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
+              var resource = items[j]
+              resource.kind = kind
+              resource.key = keyForResource(resource)
+              resources[resource.key] = resource
+            }
+          }
+        } else if ('status' in result && result.status !== 403) {
+          let msg = `result for ${result.url} returned error code ${result.status}: "${result.message}"`
+          console.error(msg)
+        } else {
+          console.error(`unexpected result type ${result}`)
+        }
       }
     }
   }
