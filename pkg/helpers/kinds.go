@@ -17,7 +17,7 @@ import (
 	"github.com/ericchiang/k8s/api/unversioned"
 	"github.com/ericchiang/k8s/runtime"
 	"github.com/gogo/protobuf/proto"
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
 )
 
 var accessControls = map[string]bool{
@@ -101,18 +101,32 @@ func (k *kindLister) update() error {
 	})
 
 	for _, apiGroup := range apiGroups {
+
 		version := apiGroup.GetPreferredVersion()
+
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Processing API Group: %s ...", apiGroup.GetName())
+		}
+
 		var resources *unversioned.APIResourceList
 		var err error
 		if apiGroup.GetName() == "core" {
 			resources, err = k.coreAPIGroup()
 		} else {
 			resources, err = d.APIResources(ctx, apiGroup.GetName(), version.GetVersion())
+			if err != nil && strings.Contains(err.Error(), "406") {
+				resources, err = k.fallbackAPIGroup(version.GetGroupVersion())
+			}
 		}
+
 		if err != nil {
-			log.Warnf("Failed to get api resources for group %s; %v", apiGroup.GetName(), err)
+			log.Warnf("Failed to get api resources for group %s, version %s; %v", apiGroup.GetName(), version.GetVersion(), err)
 		} else {
 			for _, resource := range resources.GetResources() {
+				if log.GetLevel() >= log.DebugLevel {
+					log.Debugf("Processing Resource %s (for API Group: %s)...", resource.GetName(), apiGroup.GetName())
+				}
+
 				verbs := parseVerbs(resource)
 				if containsVerb(verbs, "list") {
 					kind := resource.GetKind()
@@ -139,6 +153,9 @@ func (k *kindLister) update() error {
 						}
 						kinds[kind] = k
 					}
+				} else if log.GetLevel() >= log.DebugLevel && len(verbs) == 0 {
+					log.Warnf("Skipping resource %s (for API Group: %s) with empty verbs...",
+						resource.GetName(), apiGroup.GetName())
 				}
 			}
 		}
@@ -165,10 +182,16 @@ var individualVerbsPattern = regexp.MustCompile(`(?:\\n\\x\d{2})([a-z]+)`)
 
 // this is a hack until the k8s client's protobuf is updated to include verbs
 func parseVerbs(resource *unversioned.APIResource) []string {
-	verbString := verbsFieldPattern.FindString(proto.CompactTextString(resource))
-	verbs := []string{}
-	for _, match := range individualVerbsPattern.FindAllStringSubmatch(verbString, -1) {
-		verbs = append(verbs, match[1])
+
+	var verbs []string
+	unrecognized := string(resource.XXX_unrecognized)
+	if strings.HasPrefix(unrecognized, "::") {
+		verbs = strings.Split(unrecognized[2:], ",")
+	} else {
+		verbString := verbsFieldPattern.FindString(proto.CompactTextString(resource))
+		for _, match := range individualVerbsPattern.FindAllStringSubmatch(verbString, -1) {
+			verbs = append(verbs, match[1])
+		}
 	}
 	return verbs
 }
@@ -266,4 +289,52 @@ func unmarshalPB(b []byte, obj interface{}) error {
 		return fmt.Errorf("unmarshal unknown: %v", err)
 	}
 	return proto.Unmarshal(u.Raw, message)
+}
+
+func (k *kindLister) fallbackAPIGroup(groupVersion string) (*unversioned.APIResourceList, error) {
+
+	r, err := http.NewRequest("GET", fmt.Sprintf(`%s/apis/%s`, k.client.Endpoint, groupVersion), nil)
+	if err != nil {
+		return nil, err
+	}
+	r.Header.Set("Accept", "application/json")
+	re, err := k.client.Client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer re.Body.Close()
+
+	respBody, err := ioutil.ReadAll(re.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body: %v", err)
+	}
+
+	if re.StatusCode/100 != 2 {
+		return nil, fmt.Errorf("Unexpected api response: %s", re.Status)
+	}
+	var resourceList APIResourceList
+	err = json.Unmarshal(respBody, &resourceList)
+	if err != nil {
+		return nil, err
+	}
+	uvResourceList := unversioned.APIResourceList{
+		GroupVersion: resourceList.GroupVersion,
+	}
+	for _, r := range resourceList.Resources {
+		uvResource := r.APIResource
+		uvResource.XXX_unrecognized = []byte("::" + strings.Join(r.Verbs, ","))
+		uvResourceList.Resources = append(uvResourceList.Resources, uvResource)
+	}
+
+	return &uvResourceList, nil
+}
+
+type APIResourceList struct {
+	GroupVersion *string        `json:"groupVersion"`
+	Resources    []*APIResource `json:"resources"`
+}
+
+type APIResource struct {
+	*unversioned.APIResource
+	Verbs []string `json:"verbs"`
 }
