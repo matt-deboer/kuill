@@ -36,7 +36,7 @@ for (let type of [
 }
 
 export const maxReloadInterval = 5000
-const excludedKinds = {
+export const excludedKinds = {
   'Event': true,
   'ComponentStatus': true,
   'ControllerRevision': true,
@@ -72,7 +72,7 @@ export function viewResource(resource, view='config') {
       kind = resource.kind
     }
     let kubeKind = kubeKinds[kind]
-    let path = kubeKind.resourceGroup
+    let path = (kubeKind && kubeKind.resourceGroup ) || 'workloads'
     let query = view === '' ? '' : `?view=${view}`
     dispatch(routerActions.push(`/${path}/${ns}/${kind}/${name}${query}`))
   }
