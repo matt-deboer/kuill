@@ -273,7 +273,7 @@ class WorkloadsPage extends React.Component {
     if (!this.kinds || Object.keys(this.kinds).length === 0) {
       this.kinds = kindsByResourceGroup(kinds, 'workloads')
     }
-    return Object.values(resources).filter(el => !el.isFiltered && el.kind in this.kinds)
+    return Object.values(resources).filter(el => !el.isFiltered && (el.kind in this.kinds || !(el.kind in kinds)))
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {

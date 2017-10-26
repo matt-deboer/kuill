@@ -37,9 +37,11 @@ for (let type of [
 
 export const maxReloadInterval = 5000
 export const excludedKinds = {
-  'Event': true,
+  'APIService': true,
   'ComponentStatus': true,
   'ControllerRevision': true,
+  'Event': true,
+  'Endpoints': true,
 }
 
 export function receiveResources(resources) {

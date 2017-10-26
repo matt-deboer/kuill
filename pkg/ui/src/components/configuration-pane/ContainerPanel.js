@@ -61,15 +61,19 @@ export default class ContainerPanel extends React.Component {
   render() {
   
     let { props } = this
-    let { container, namespace, initIndex, linkGenerator } = props
+    let { container, namespace, initIndex, linkGenerator, status } = props
     let initHeader = null
+    let statusHeader = null
     if (initIndex !== undefined) {
       initHeader = <span className="init-container-index">{initIndex}</span>
+    }
+    if (!!status) {
+      statusHeader = <div className="container-status">{status}</div>
     }
     return (
       <div style={styles.wrapper}>
 
-        <Subheader style={styles.subheader}>{container.name}{initHeader}</Subheader>
+        <Subheader style={styles.subheader}>{container.name}{initHeader}{statusHeader}</Subheader>
         <Table 
           wrapperStyle={{padding: 10}}
           style={styles.table} selectable={false} headerStyle={{display: 'none'}}>

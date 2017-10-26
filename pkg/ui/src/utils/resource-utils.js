@@ -381,3 +381,9 @@ export function statusForResource(resource) {
             // return status
     }
 }
+
+export function statusForContainer(cs) {
+    if (cs.ready) {
+        
+    }
+}
