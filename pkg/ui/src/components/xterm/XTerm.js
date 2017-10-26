@@ -14,6 +14,8 @@ export default class XTerm extends React.Component {
       cols: PropTypes.number,
       enabled: PropTypes.bool,
       onDestroy: PropTypes.func,
+      copyOnCtrlC: PropTypes.bool,
+      pasteOnCtrlV: PropTypes.bool,
     }
     
     static defaultProps = {
@@ -61,6 +63,16 @@ export default class XTerm extends React.Component {
       }
       if (this.props.value) {
         this.xterm.write(this.props.value)
+      }
+      if (this.props.copyOnCtrlC || this.props.pasteOnCtrlV) {
+        this.xterm.attachCustomKeydownHandler(function (ev) {
+          if (ev.ctrlKey && ev.keyCode === 67) {
+            return !this.props.copyOnCtrlC
+          } else if (ev.ctrlKey && ev.keyCode === 86) {
+            return !this.props.pasteOnCtrlV
+          }
+          return true
+        })
       }
       this.fit()
       if (!!this.tempBuffer) {

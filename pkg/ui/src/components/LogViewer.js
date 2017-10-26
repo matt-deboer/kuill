@@ -136,7 +136,8 @@ class LogViewer extends React.Component {
           {this.renderContainerMenu()}
         </Toolbar>
         <XTerm 
-          className={'logs'} 
+          className={'logs'}
+          copyOnCtrlC={true}
           style={{
             height: `${window.innerHeight - props.contentTop - 100}px`,
             backgroundColor: grey900,
