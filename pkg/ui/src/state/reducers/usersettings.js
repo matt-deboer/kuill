@@ -1,18 +1,40 @@
 import { types } from '../actions/usersettings'
 
-const initialState = {
+const userSettings = 'user_settings'
+
+const savedState = JSON.parse(localStorage.getItem(userSettings))
+const initialState = (savedState || {
   // a map[string]=> bool of namespaces currently selected
   // an empty map should be treated as ALL instead of NONE
   selectedNamespaces: {},
-}
+  // a map[string]=> bool of namespaces currently selected
+  // an empty map should be treated as ALL instead of NONE
+  selectedKinds: {},
+})
 
 export default (state = initialState, action) => {
   switch (action.type) {
     
     case types.SELECT_NAMESPACES:
-      return {...state, selectedNamespaces: action.namespaces}
+      return doSelect(state, action.namespaces, null, action.save)
+
+    case types.SELECT_KINDS:
+      return doSelect(state, null, action.kinds, action.save)
 
     default:
       return state
   }
+}
+
+function doSelect(state, namespaces, kinds, save) {
+  let newState = {
+    selectedNamespaces: namespaces || state.selectedNamespaces,
+    selectedKinds: kinds || state.selectedKinds,
+  }
+
+  if (save) {
+    localStorage.setItem(userSettings, JSON.stringify(newState))
+  }
+
+  return newState
 }

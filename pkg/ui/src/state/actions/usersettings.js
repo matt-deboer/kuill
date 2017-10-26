@@ -5,9 +5,12 @@ for (let type of [
   types[type] = `usersettings.${type}`
 }
 
-export function selectNamespaces(namespaces) {
-  return {
-    type: types.SELECT_NAMESPACES,
-    namespaces: namespaces,
+export function selectNamespaces(namespaces, save) {
+  return async function (dispatch, getState) {
+    dispatch({
+      type: types.SELECT_NAMESPACES,
+      namespaces: namespaces,
+      save: save,
+    })
   }
 }

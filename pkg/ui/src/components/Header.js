@@ -18,9 +18,11 @@ import Popover from 'material-ui/Popover'
 import Menu from 'material-ui/Menu'
 import MenuItem from 'material-ui/MenuItem'
 import IconLogout from 'material-ui/svg-icons/action/power-settings-new'
+import IconFilters from 'material-ui/svg-icons/content/filter-list'
 import { defaultFetchParams } from '../utils/request-utils'
 import Breadcrumbs from './Breadcrumbs'
 import ErrorsDialog from './ErrorsDialog'
+import FiltersDialog from './FiltersDialog'
 import Snackbar from 'material-ui/Snackbar'
 import './Header.css'
 
@@ -62,12 +64,15 @@ class Header extends React.Component {
     this.state = {
       open: false,
       profileOpen: false,
+      filtersOpen: false,
       latestErrorOpen: !!props.latestError,
       latestError: props.latestError,
       location: props.location,
     }
     this.handleLatestErrorRequestClose = this.handleLatestErrorRequestClose.bind(this)
     this.handleProfileTouchTap = this.handleProfileTouchTap.bind(this)
+    this.handleOpenFilters = this.handleOpenFilters.bind(this)
+    this.handleCloseFilters = this.handleCloseFilters.bind(this)
     this.requestVersion().then(version=> {
       this.setState({version: version})
     })
@@ -89,6 +94,18 @@ class Header extends React.Component {
 
   handleClose = () => {
     this.setState({open: false})
+  }
+
+  handleOpenFilters = () => {
+    this.setState({
+      open: false,
+      filtersOpen: true,
+      profileOpen: false,
+    })
+  }
+
+  handleCloseFilters = () => {
+    this.setState({filtersOpen: false})
   }
 
   handleProfileTouchTap = (event) => {
@@ -125,7 +142,9 @@ class Header extends React.Component {
   handleLogout = () => {
     this.props.invalidateSession()
     this.setState({
-      profileOpen: false
+      profileOpen: false,
+      filtersOpen: false,
+      open: false,
     })
   }
 
@@ -161,6 +180,7 @@ class Header extends React.Component {
       || nextState.latestErrorOpen !== this.state.latestErrorOpen
       || nextState.previousLocation !== this.state.previousLocation
       || nextState.profileOpen !== this.state.profileOpen
+      || nextState.filtersOpen !== this.state.filtersOpen
   }
 
   render() {
@@ -268,8 +288,25 @@ class Header extends React.Component {
                     data-rh-at={'bottom'}
                     data-rh-cls={'menu-button-rh'}
                   />
-                </Link>)}
+                </Link>)
+            }
+            {false &&
+            <ToolbarSeparator className="separator-bar"/>
+            }
+            {false &&
+            <RaisedButton
+              label={'Filters'}
+              icon={<IconFilters/>}
+              className={'menu-button'}
+              labelStyle={styles.menuButtonLabel}
+              data-rh={'Filters'}
+              data-rh-at={'bottom'}
+              data-rh-cls={'menu-button-rh'}
+              onTouchTap={this.handleOpenFilters}
+            />
+            }
             
+
             {props.location.pathname !== '/' &&
               <ToolbarSeparator className="separator-bar"/>
             }
@@ -330,6 +367,8 @@ class Header extends React.Component {
         </Toolbar>
       }>
         <ErrorsDialog open={this.state.open}/>
+
+        <FiltersDialog open={this.state.filtersOpen} handleClose={this.handleCloseFilters}/>
 
         <Snackbar
           className="error-bar"
