@@ -8,6 +8,7 @@ import { white } from 'material-ui/styles/colors'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 import HelpText from '../../i18n/help-text'
+import { excludedKinds } from '../../state/actions/resources'
 
 const mapStateToProps = function(store) {
   return {
@@ -91,8 +92,10 @@ class ResourceCounts extends React.PureComponent {
     }
 
     let items = []
-    for (let kind in countsByKind) {
-      if (kind === 'Endpoints' || kind === 'ReplicaSet') {
+    let kinds = Object.keys(countsByKind)
+    kinds.sort()
+    for (let kind of kinds) {
+      if (kind in excludedKinds) {
         continue
       }
       let name = kind
