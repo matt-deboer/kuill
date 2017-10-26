@@ -233,11 +233,9 @@ class ResourceProblems extends React.PureComponent {
           onChange={this.handleChangeTab}
           tabItemContainerStyle={styles.tabs}
           inkBarStyle={styles.tabsInkBar}
-          style={{paddingBottom: 16}}
-          className={'list-contents'}
         >
           <Tab className="tab" label={`Workloads (${problemsByWorkload.length})`} value="workload" style={problemsByWorkload.length === 0 ? styles.tabDisabledStyle : styles.tabStyle}>
-            <List>
+            <List className={'list-contents'} style={{height: 'calc(100vh - 595px)'}}>
               {problemsByWorkload.map(r =>
                 <div key={r.resource.key}>
                   <ListItem
@@ -263,7 +261,7 @@ class ResourceProblems extends React.PureComponent {
             </List>
           </Tab>
           <Tab className="tab" label={`Cluster (${problemsByCluster.length})`} value="cluster" style={problemsByCluster.length === 0 ? styles.tabDisabledStyle : styles.tabStyle}>
-            <List>
+            <List className={'list-contents'} style={{height: 'calc(100vh - 595px)'}}>
               {problemsByCluster.map(r =>
                 <div key={r.resource.key}>
                   <ListItem

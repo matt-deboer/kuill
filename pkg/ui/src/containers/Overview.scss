@@ -3,7 +3,7 @@
   .list-contents {
     overflow-y: auto;
     overflow-x: hidden;
-    height: calc(100vh - 565px) !important;
+    height: calc(100vh - 565px);
     &::-webkit-scrollbar-track {
       -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
       box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -34,13 +34,12 @@
     position: absolute;
     z-index: 1;
     bottom: 1px;
-    margin-right: 10px;
+    margin-right: 22px;
     margin-left: 10px;
     left: 0;
     right: 0;
     pointer-events: none;
     background-image: linear-gradient(to bottom, transparent, rgba(80,80,80, 1) 60%);
     height: 20px;
-    // max-width: 33.333%;
   }
 }
