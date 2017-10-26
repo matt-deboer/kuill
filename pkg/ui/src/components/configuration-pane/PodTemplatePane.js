@@ -142,7 +142,10 @@ class PodTemplatePane extends React.Component {
                   }
                   {resource.spec.template.spec.containers.map(container => {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
-                      <ContainerPanel key={container.name} container={container} namespace={resource.metadata.namespace}/>
+                      <ContainerPanel key={container.name} container={container} 
+                        namespace={resource.metadata.namespace}
+                        linkGenerator={linkGenerator}
+                        />
                     </div>
                   })}
                 </div>

@@ -384,6 +384,10 @@ export function statusForResource(resource) {
 
 export function statusForContainer(cs) {
     if (cs.ready) {
-        
+        return 'ok'
+    } else if (cs.state.waiting) {
+        if (cs.state.waiting.reason === 'ContainerCreating') {
+            return 'scaling up'
+        }
     }
 }

@@ -90,11 +90,13 @@ class ConfigurationPane extends React.Component {
               />
               <CardText>
                 <div className="row" style={{marginLeft: 0, marginRight: 0, marginBottom: 10}}>
-                  {resource.spec.containers.map(container => {
+                  {resource.spec.containers.map((container, index) => {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
                       <ContainerPanel container={container} 
                         namespace={resource.metadata.namespace}
-                        linkGenerator={linkGenerator}/>
+                        linkGenerator={linkGenerator}
+                        status={resource.status.containerStatuses[index]}
+                        />
                     </div>
                   })}
                 </div>

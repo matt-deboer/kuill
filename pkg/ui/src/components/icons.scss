@@ -11,6 +11,20 @@
   left: 0;
   margin-top: -3px;
   margin-left: -3px;
+
+  &.down {
+    -webkit-animation: reverse-spin 2s linear infinite;
+    animation: reverse-spin 2s linear infinite;
+  }
+
+  &.small {
+    border: 2px solid rgba(250,250,250,0.8);
+    border-radius: 50%;
+    border-top: 2px solid rgb(85, 137, 241);
+    width: 16px;
+    height: 16px;
+  }
+
 }
 
 @-webkit-keyframes spin {
@@ -21,4 +35,14 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@-webkit-keyframes reverse-spin {
+  0% { -webkit-transform: rotate(360deg); }
+  100% { -webkit-transform: rotate(0deg); }
+}
+
+@keyframes reverse-spin {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
 }

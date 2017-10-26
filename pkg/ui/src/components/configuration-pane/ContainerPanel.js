@@ -10,6 +10,8 @@ import Subheader from 'material-ui/Subheader'
 import StringArrayExpander from './StringArrayExpander'
 import EnvironmentExpander from './EnvironmentExpander'
 import GenericExpanderButton from './GenericExpanderButton'
+import { statusForContainer } from '../../utils/resource-utils'
+import { containerStatus as containerStatusIcons } from '../icons'
 import yaml from 'js-yaml'
 
 import './ContainerPanel.css'
@@ -19,6 +21,7 @@ const styles = {
   wrapper: {
     border: '1px solid rgba(0,0,0,0.1)',
     backgroundColor: 'rgba(30, 30, 30, 0.15)',
+    position: 'relative'
   },
   subheader: {
     backgroundColor: '#004d99'/*rgb(13, 64, 109)'/*grey500*/,
@@ -68,7 +71,13 @@ export default class ContainerPanel extends React.Component {
       initHeader = <span className="init-container-index">{initIndex}</span>
     }
     if (!!status) {
-      statusHeader = <div className="container-status">{status}</div>
+      statusHeader = <div className="container-status" style={{
+          position: 'absolute',
+          right: 10,
+          top: 2,
+        }}>
+          {containerStatusIcons[statusForContainer(status)]}
+        </div>
     }
     return (
       <div style={styles.wrapper}>
@@ -102,7 +111,8 @@ export default class ContainerPanel extends React.Component {
               <TableRow style={styles.tableRow} displayBorder={false}>
                 <TableRowColumn style={styles.tableRowKeyCol}>Env:</TableRowColumn>
                 <TableRowColumn style={styles.tableRowValCol}>
-                  <EnvironmentExpander data={container.env} title={'env'} namespace={namespace} linkGenerator={linkGenerator}/>
+                  <EnvironmentExpander data={container.env} title={'env'} namespace={namespace} 
+                    linkGenerator={linkGenerator}/>
                 </TableRowColumn>
               </TableRow>
             }
