@@ -1,5 +1,5 @@
 import React from 'react'
-import { grey200, grey500, grey800 } from 'material-ui/styles/colors'
+import { grey200, grey500 } from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
