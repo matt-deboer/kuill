@@ -344,6 +344,7 @@ class TerminalViewer extends React.Component {
             padding: '10px 10px 15px 10px',
             fontSize: '12px',
           }}
+          pasteOnCtrlV={true}
           enabled={this.state.terminalOpen}
           options={{
             cursorBlink: true,
