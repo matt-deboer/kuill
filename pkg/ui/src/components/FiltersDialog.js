@@ -1,6 +1,5 @@
 import React from 'react'
-import { grey200, grey300, grey500, grey700, grey800 } from 'material-ui/styles/colors'
-import { typography } from 'material-ui/styles'
+import { grey200, grey500, grey800 } from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
@@ -42,51 +41,24 @@ class FiltersDialog extends React.Component {
   render() {
 
     const styles = {
-      appBar: {
-        position: 'fixed',
-        top: 0,
-        overflow: 'hidden',
-        maxHeight: 57,
-        width: '100%',
-        paddingLeft: 40,
-        paddingRight: 30,
-        backgroundColor: grey800,
-      },
-      menu: {
-        backgroundColor: 'transparent',
-        color: grey200,
-        fontSize: 18,
-        fontWeight: 600,
-      },
-      menuButton: {
-        marginLeft: 0,
-        backgroundColor: grey700,
-        marginRight: 10,
-      },
-      menuButtonLabel: {
-        textTransform: 'none',
-        color: grey300,
-      },
-      iconsRightContainer: {
-        marginLeft: 20
-      },
       headers: {
         padding: 0,
         fontSize: 15,
+        color: 'rgb(255,245,225)',
       },
-      name: {
-        fontSize: '18px',
-        color: typography.textFullWhite,
-        lineHeight: '58px',
-        backgroundColor: grey800,
-        height: 56,
-        overflow: 'none',
-      },
-      avatar: {
-        marginRight: 10,
+      headerRow: {
+        backgroundColor: 'rgb(125,120,120)',
       },
       message: {
         whiteSpace: 'pre-wrap',
+      },
+      table: {
+        backgroundColor: 'rgb(200,200,200)',
+      },
+      tableWrapper: {
+        overflowX: 'hidden',
+        border: '1px solid rgba(0,0,0,0.2)',
+        margin: '10px -10px 0',
       }
     }
 
@@ -104,8 +76,8 @@ class FiltersDialog extends React.Component {
       <RaisedButton
         label="Apply"
         primary={true}
-        hoverColor={grey500}
         onTouchTap={this.applyChanges}
+        backgroundColor={'rgb(30, 136, 229)'}
       />,
     ]
 
@@ -118,7 +90,18 @@ class FiltersDialog extends React.Component {
 
     return (
       <Dialog
-        title={<div><IconFilters/>Filters</div>}
+        title={<div style={{position: 'relative'}}>
+          <IconFilters style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              margin: 16,
+              height: 28,
+              width: 28,
+              color: 'rgba(255,255,255,0.5)',
+            }}/>
+          <div style={{paddingLeft: 24}}>Filters</div>
+        </div>}
         titleStyle={{
           backgroundColor: 'rgb(66, 66, 66)', 
           color: grey200, 
@@ -127,7 +110,7 @@ class FiltersDialog extends React.Component {
         }}
         actions={actions}
         modal={false}
-        bodyStyle={{backgroundColor: 'rgba(0, 0, 0, 0.2)'}}
+        bodyStyle={{backgroundColor: 'rgba(0, 0, 0, 0.4)', paddingBottom: 10}}
         open={this.props.open}
         onRequestClose={this.props.handleClose}
         autoScrollBodyContent={true}
@@ -135,15 +118,14 @@ class FiltersDialog extends React.Component {
 
         <div className="row">
           <div className="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-            {/* <Subheader>Show Namespaces:</Subheader> */}
             <Table fixedHeader={true} height={'50vh'} multiSelectable={true} selectable={true} 
-              style={{ border: '0', margin: '10px 0px 0 -15px'}} wrapperStyle={{overflowX: 'hidden'}}>
+              style={styles.table} wrapperStyle={{...styles.tableWrapper,marginLeft: -10}}>
               <TableHeader
                 displaySelectAll={true}
                 adjustForCheckbox={true}
                 enableSelectAll={true}
               >
-                <TableRow>
+                <TableRow style={styles.headerRow}>
                   <TableHeaderColumn style={styles.headers}>Show These Namespaces:</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
@@ -159,15 +141,14 @@ class FiltersDialog extends React.Component {
             </Table>
           </div>
           <div className="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-            {/* <Subheader>Show Resource Kinds:</Subheader> */}
             <Table fixedHeader={true} height={'50vh'} multiSelectable={true} selectable={true} 
-              style={{ border: '0', margin: '10px -15px 0 0px'}} wrapperStyle={{overflowX: 'hidden'}}>
+              style={styles.table} wrapperStyle={styles.tableWrapper}>
               <TableHeader
                 displaySelectAll={true}
                 adjustForCheckbox={true}
                 enableSelectAll={true}
               >
-              <TableRow>
+              <TableRow style={styles.headerRow}>
                   <TableHeaderColumn style={styles.headers}>Show These Resource Kinds:</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
