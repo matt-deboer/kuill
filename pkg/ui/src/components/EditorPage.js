@@ -63,7 +63,8 @@ const styles = {
   latestError: {
     color: 'white',
     position: 'absolute',
-    width: '50%',
+    maxWidth: '80%',
+    minWidth: '50%',
     background: '#960000',
     zIndex: 1,
     bottom: 120,
@@ -133,12 +134,6 @@ class EditorPage extends React.Component {
     this.contents = contents
     this.editor.setValue(contents)
     this.validateOnChange()
-  }
-
-  componentDidUpdate = () => {
-    // if (!this.props.open) {
-      // this.props.deactivateEditor()
-    // }
   }
 
   componentWillReceiveProps = (props) => {
@@ -319,7 +314,7 @@ class EditorPage extends React.Component {
             onTouchTap={this.handleClearError}>
             <ClearError/>
           </IconButton> 
-          {this.props.latestError.message}
+          {this.state.latestError.message}
         </div>
       )
     }
