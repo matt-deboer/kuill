@@ -187,8 +187,8 @@ function registerOwned(state, resource) {
 
       }
       if (!resolved) {
-        state.unnresolvedOwnership[ownerKey] = state.unnresolvedOwnership[ownerKey] || []
-        state.unnresolvedOwnership[ownerKey].push(resource)
+        state.unresolvedOwnership[ownerKey] = state.unresolvedOwnership[ownerKey] || []
+        state.unresolvedOwnership[ownerKey].push(resource)
       }
     }
   }
