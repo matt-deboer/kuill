@@ -384,7 +384,6 @@ function doReceiveResources(state, resources, kubeKinds) {
     problemResources: {},
     lastLoaded: Date.now(),
     podsByNode: {},
-    namespaces: {},
     countsByKind: {},
     unresolvedOwnership: {},
   }
