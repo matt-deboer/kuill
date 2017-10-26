@@ -458,7 +458,7 @@ async function fetchResources(dispatch, getState, force, filter) {
 }
 
 async function fetchResourcesByNamespace(dispatch, getState, kind, kubeKind) {
-  let namespaces = getState().cluster.namespaces
+  let namespaces = getState().resources.namespaces
   let urls = namespaces.map(ns => [kind, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
   let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
     ).then(resp => {
