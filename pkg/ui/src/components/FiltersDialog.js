@@ -1,5 +1,5 @@
 import React from 'react'
-import { grey200, grey300, grey500 } from 'material-ui/styles/colors'
+import { grey200, grey300 } from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
@@ -157,7 +157,6 @@ class FiltersDialog extends React.Component {
     const actions = [
       <FlatButton
         label="Cancel"
-        labelStyle={{color: 'rgb(180,180,180)'}}
         hoverColor={grey300}
         onTouchTap={props.handleClose}
         labelStyle={{
