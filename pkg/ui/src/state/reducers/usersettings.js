@@ -16,10 +16,10 @@ export default (state = initialState, action) => {
   switch (action.type) {
     
     case types.SELECT_NAMESPACES:
-      return doSelect(state, action.namespaces, null, action.save)
+      return doSelect(state, action.namespaces)
 
-    case types.SELECT_KINDS:
-      return doSelect(state, null, action.kinds, action.save)
+    case types.PUT_SETTINGS:
+      return doSelect(state, action.namespaces, action.kinds, action.save)
 
     default:
       return state

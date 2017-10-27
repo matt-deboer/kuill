@@ -1,0 +1,34 @@
+.filters-dialog {
+  .namespaces, .kinds {
+    &>div>div:nth-child(1) > table {
+      input + div {
+        svg {
+          fill: rgba(255,255,255,0.9) !important;
+        }
+      }
+
+      tr > th:first-child {
+        height: 40px !important;
+      }
+
+    }
+    &>div>div:nth-child(2) > table {
+      input + div {
+        svg {
+          fill: rgba(0,0,0,0.5) !important;
+        }
+      }
+
+      tr > td:first-child {
+        height: 36px !important;
+      }
+    }
+  }
+
+  .persist {
+    svg {
+      fill: rgba(255,255,255,0.9) !important;
+    }
+  }
+
+}
