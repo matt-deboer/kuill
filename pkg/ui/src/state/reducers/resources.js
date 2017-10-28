@@ -5,7 +5,7 @@ import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource, sameResource } from '../../utils/resource-utils'
-import { applyFiltersToResource, splitFilter } from '../../utils/filter-utils'
+import { applyFilters, splitFilter } from '../../utils/filter-utils'
 import { removeReadOnlyFields } from '../../utils/request-utils'
 
 const initialState = {
@@ -154,9 +154,7 @@ function doFilterAll(state, resources) {
   let newState = { ...state, resources: { ...resources }}
   
   visitResources(newState.resources, function(resource) {
-    if (!applyFiltersToResource(newState.globalFilters, resource)) {
-      applyFiltersToResource(newState.filters, resource)
-    }
+    applyFilters(newState.globalFilters, newState.filters, resource)
   })
 
   return newState
@@ -304,7 +302,7 @@ function doFilterResource(newState, resource) {
   if (newState.resource && newState.resource.key === resource.key) {
     newState.resource = resource
   }
-  applyFiltersToResource(newState.filters, resource)
+  applyFilters(newState.globalFilters, newState.filters, resource)
   return newState
 }
 
@@ -405,9 +403,7 @@ function doReceiveResources(state, resources, kubeKinds) {
     registerOwned(newState, resource)
     updateProblemResources(newState, resource)
     updateAutocomplete(newState.autocomplete, resource, resourceGroup)
-    if (!applyFiltersToResource(newState.globalFilters, resource)) {
-      applyFiltersToResource(newState.filters, resource)
-    }
+    applyFilters(newState.globalFilters, newState.filters, resource)
     updateVersionByKind(newState, resource)
     updatePodCount(newState, resource)
     updateResourceCounts(newState, resource)

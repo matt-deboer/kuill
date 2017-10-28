@@ -4,6 +4,13 @@ export const instanceTypeLabel = 'beta.kubernetes.io/instance-type'
 export const roleLabel = 'kubernetes.io/role'
 export const hostnameLabel = 'kubernetes.io/hostname'
 
+
+export function applyFilters(globalFilters, dynamicFilters, resource) {
+  if (!applyFiltersToResource(globalFilters, resource)) {
+    applyFiltersToResource(dynamicFilters, resource)
+  }
+}
+
 /**
  * Applies the provided filters to the resource, modifying
  * the 'isFiltered' attribute of the resource accordingly.
@@ -13,7 +20,7 @@ export const hostnameLabel = 'kubernetes.io/hostname'
  * @param {*} filters the filters to apply
  * @param {*} resource the resource to update
  */
-export function applyFiltersToResource(filters, resource) {
+function applyFiltersToResource(filters, resource) {
   
   resource.isFiltered = Object.keys(filters).length > 0
   for (var field in filters) {
