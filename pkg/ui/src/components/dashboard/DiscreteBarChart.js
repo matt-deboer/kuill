@@ -47,59 +47,6 @@ export default class DiscreteBarChart extends React.PureComponent {
   }
 
   render() {
-
-    // let items =[
-    //   {
-    //     name: 'kube-system',
-    //     value: 40,
-    //   },
-    //   {
-    //     name: 'demo',
-    //     value: 50,
-    //   },
-    //   {
-    //     name: 'default',
-    //     value: 30,
-    //   },
-    //   {
-    //     name: 'monitoring',
-    //     value: 60,
-    //   },
-    //   // {
-    //   //   name: 'default2',
-    //   //   value: 30,
-    //   // },
-    //   // {
-    //   //   name: 'monitoring2',
-    //   //   value: 60,
-    //   // },
-    //   // {
-    //   //   name: 'default3',
-    //   //   value: 30,
-    //   // },
-    //   // {
-    //   //   name: 'monitoring3',
-    //   //   value: 60,
-    //   // },
-    //   // {
-    //   //   name: 'default4',
-    //   //   value: 30,
-    //   // },
-    //   // {
-    //   //   name: 'monitoring4',
-    //   //   value: 60,
-    //   // },
-    //   // {
-    //   //   name: 'default5',
-    //   //   value: 30,
-    //   // },
-    //   // {
-    //   //   name: 'monitoring5',
-    //   //   value: 60,
-    //   // },
-    // ]
-    // return this.renderChart(items)
-
     let { items, min, max, buckets, colorRange } = this.props
 
     if (this.props.items) {
