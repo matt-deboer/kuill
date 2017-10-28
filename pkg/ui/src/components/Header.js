@@ -290,10 +290,8 @@ class Header extends React.Component {
                   />
                 </Link>)
             }
-            {false &&
+
             <ToolbarSeparator className="separator-bar"/>
-            }
-            {false &&
             <RaisedButton
               label={'Filters'}
               icon={<IconFilters/>}
@@ -304,8 +302,6 @@ class Header extends React.Component {
               data-rh-cls={'menu-button-rh'}
               onTouchTap={this.handleOpenFilters}
             />
-            }
-            
 
             {props.location.pathname !== '/' &&
               <ToolbarSeparator className="separator-bar"/>
@@ -368,7 +364,8 @@ class Header extends React.Component {
       }>
         <ErrorsDialog open={this.state.open}/>
 
-        <FiltersDialog open={this.state.filtersOpen} handleClose={this.handleCloseFilters}/>
+        <FiltersDialog open={this.state.filtersOpen && this.props.user} 
+          handleClose={this.handleCloseFilters}/>
 
         <Snackbar
           className="error-bar"

@@ -1,3 +1,5 @@
+import { applyGlobalFilters } from './resources'
+
 export var types = {}
 for (let type of [
   'SELECT_NAMESPACES',
@@ -14,10 +16,15 @@ export function selectNamespaces(namespaces) {
 }
 
 export function updateSettings(namespaces, kinds, save) {
-  return {
-    type: types.PUT_SETTINGS,
-    namespaces: namespaces,
-    kinds: kinds,
-    save: save,
+  return function(dispatch, getState) {
+    
+    dispatch({
+      type: types.PUT_SETTINGS,
+      namespaces: namespaces,
+      kinds: kinds,
+      save: save,
+    })
+
+    dispatch(applyGlobalFilters(namespaces, kinds))
   }
 }

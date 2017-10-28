@@ -11,10 +11,15 @@ import { removeReadOnlyFields } from '../../utils/request-utils'
 const initialState = {
   // the filter names in string form
   filterNames:[],
-  // filters are store as a nested set of maps:
+  // filters are stored as a nested set of maps:
   //  map[key] => map[value] => true
   // TODO: consider leveraging the filter mechanism from kubernetes-ui/filters
   filters: {},
+  // globalFilters are stored as above; globalFilters are controlled
+  // by usersettings, and are not displayed in the url or in the FilterBox;
+  // also, kinds/namespaces filtered by globalFilters should not appear in
+  // the autocomplete results
+  globalFilters: {},
   autocomplete: {
     workloads: {},
     nodes: {},
@@ -104,6 +109,9 @@ export default (state = initialState, action) => {
     case types.REMOVE_FILTER:
       return doRemoveFilter(state, action.filter, action.index)
     
+    case types.PUT_GLOBAL_FILTERS:
+      return doSetGlobalFilters(state, action.namespaces, action.kinds)
+
     case types.PUT_NAMESPACES:
       return {...state, namespaces: action.namespaces}
 
@@ -146,7 +154,9 @@ function doFilterAll(state, resources) {
   let newState = { ...state, resources: { ...resources }}
   
   visitResources(newState.resources, function(resource) {
-    applyFiltersToResource(newState.filters, resource)
+    if (!applyFiltersToResource(newState.globalFilters, resource)) {
+      applyFiltersToResource(newState.filters, resource)
+    }
   })
 
   return newState
@@ -395,7 +405,9 @@ function doReceiveResources(state, resources, kubeKinds) {
     registerOwned(newState, resource)
     updateProblemResources(newState, resource)
     updateAutocomplete(newState.autocomplete, resource, resourceGroup)
-    applyFiltersToResource(newState.filters, resource)
+    if (!applyFiltersToResource(newState.globalFilters, resource)) {
+      applyFiltersToResource(newState.filters, resource)
+    }
     updateVersionByKind(newState, resource)
     updatePodCount(newState, resource)
     updateResourceCounts(newState, resource)
@@ -544,6 +556,20 @@ function doSetFilterNames(state, filterNames) {
   return doFilterAll({ ...state,
     filterNames: newFilterNames,
     filters: newFilters,
+  }, state.resources)
+}
+
+
+function doSetGlobalFilters(state, selectedNamespaces, selectedKinds) {
+  let globalFilters = {}
+  if (Object.keys(selectedNamespaces).length > 0) {
+    globalFilters['namespace'] = {...selectedNamespaces}
+  }
+  if (Object.keys(selectedKinds).length > 0) {
+    globalFilters['kind'] = {...selectedKinds}
+  }
+  return doFilterAll({...state,
+    globalFilters  
   }, state.resources)
 }
 

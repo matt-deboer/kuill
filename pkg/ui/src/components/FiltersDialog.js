@@ -5,7 +5,6 @@ import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 import RaisedButton from 'material-ui/FlatButton'
 import Checkbox from 'material-ui/Checkbox'
-import IconFilters from 'material-ui/svg-icons/content/filter-list'
 import {
   Table,
   TableBody,
@@ -186,16 +185,7 @@ class FiltersDialog extends React.Component {
       <Dialog
         className="filters-dialog"
         title={<div style={{position: 'relative'}}>
-          <IconFilters style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              margin: 16,
-              height: 28,
-              width: 28,
-              color: 'rgba(255,255,255,0.5)',
-            }}/>
-          <div style={{paddingLeft: 24}}>Filters</div>
+          <div>Filters</div>
           <Checkbox
             label="Persist"
             className={'persist'}
@@ -208,8 +198,10 @@ class FiltersDialog extends React.Component {
         </div>}
         titleStyle={{
           backgroundColor: 'rgb(66, 66, 66)', 
-          color: grey200, 
-          padding: '12px 24px',
+          color: grey200,
+          height: 32,
+          fontSize: 18,
+          padding: '8px 24px',
           borderBottom: '4px solid rgb(41, 121, 255)',
         }}
         actions={actions}

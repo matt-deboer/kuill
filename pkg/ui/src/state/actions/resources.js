@@ -31,6 +31,7 @@ for (let type of [
   'SET_WATCHES',
   'DISABLE_KIND',
   'PUT_NAMESPACES',
+  'PUT_GLOBAL_FILTERS',
 ]) {
   types[type] = `resources.${type}`
 }
@@ -114,6 +115,14 @@ export function putResource(newResource, isNew) {
         selectAllForResource(dispatch, resources, resource, pods)
       }
     }
+  }
+}
+
+export function applyGlobalFilters(namespaces, kinds) {
+  return {
+    type: types.PUT_GLOBAL_FILTERS,
+    namespaces: namespaces,
+    kinds: kinds,
   }
 }
 
@@ -326,7 +335,7 @@ export function requestResources(force, filter) {
     if (!getState().apimodels.swagger) {
       await requestSwagger()(dispatch, getState)
     } 
-    
+
     doRequest(dispatch, getState, 'resources', async () => {
         await fetchResources(dispatch, getState, force, filter)
       })
@@ -424,6 +433,13 @@ async function fetchResources(dispatch, getState, force, filter) {
   
   let shouldFetch = await shouldFetchResources(dispatch, getState, force)
   if (shouldFetch) {
+    let usersettings = getState().usersettings
+    dispatch({
+      type: types.PUT_GLOBAL_FILTERS,
+      namespaces: usersettings.selectedNamespaces,
+      kinds: usersettings.selectedKinds,
+    })
+    
     let kubeKinds = getState().apimodels.kinds
     let entryFilter = (typeof filter === 'function') ?
       function(entry) { return !(entry[0] in excludedKinds) && filter(entry[1]) } : 

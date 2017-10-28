@@ -13,6 +13,7 @@ import { excludedKinds } from '../../state/actions/resources'
 const mapStateToProps = function(store) {
   return {
     kinds: store.apimodels.kinds,
+    selectedKinds: store.usersettings.selectedKinds,
     selectedNamespaces: store.usersettings.selectedNamespaces,
     resources: store.resources.resources,
     linkGenerator: store.session.linkGenerator,
@@ -35,7 +36,7 @@ class ResourceCounts extends React.PureComponent {
   render() {
 
     let { props } = this
-    let { resources, selectedNamespaces, linkGenerator } = props
+    let { resources, selectedNamespaces, selectedKinds, linkGenerator } = props
 
     const styles = {
       wrapper: {
@@ -93,9 +94,10 @@ class ResourceCounts extends React.PureComponent {
 
     let items = []
     let kinds = Object.keys(countsByKind)
+    let allKinds = Object.keys(selectedKinds).length === 0
     kinds.sort()
     for (let kind of kinds) {
-      if (kind in excludedKinds) {
+      if (kind in excludedKinds || (!allKinds && !(kind in selectedKinds))) {
         continue
       }
       let name = kind

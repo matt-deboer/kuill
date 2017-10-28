@@ -6,7 +6,9 @@ export const hostnameLabel = 'kubernetes.io/hostname'
 
 /**
  * Applies the provided filters to the resource, modifying
- * the 'isFiltered' attribute of the resource accordingly
+ * the 'isFiltered' attribute of the resource accordingly.
+ *
+ * Returns 'true' if the resource was filtered.
  * 
  * @param {*} filters the filters to apply
  * @param {*} resource the resource to update
@@ -101,16 +103,14 @@ export function applyFiltersToResource(filters, resource) {
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
       match = true
     } else if ( `!${resource.metadata[field]}` ) {
-      resource.isFiltered = true
-      return
+      return resource.isFiltered = true
     }
 
     if (match) {
       resource.isFiltered = false
     } else {
       // at least one filter field did not match; exit
-      resource.isFiltered = true
-      return
+      return resource.isFiltered = true
     }
   }
 }
