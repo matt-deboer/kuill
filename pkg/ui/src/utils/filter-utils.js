@@ -11,6 +11,10 @@ export function applyFilters(globalFilters, dynamicFilters, resource) {
   }
 }
 
+function isNamespaced(resource) {
+  return resource.metadata.namespace && resource.metadata.namespace !== '~'
+}
+
 /**
  * Applies the provided filters to the resource, modifying
  * the 'isFiltered' attribute of the resource accordingly.
@@ -105,6 +109,12 @@ function applyFiltersToResource(filters, resource) {
       // for (let v of values) {
         
       // }
+    } else if (field === 'namespace') {
+      if (isNamespaced(resource) && !(resource.metadata.namespace in values)) {
+        return resource.isFiltered = true
+      } else {
+        match = true
+      }
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
