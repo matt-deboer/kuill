@@ -11,45 +11,6 @@ export default class InfoBox extends React.PureComponent {
     let {color, title, total, units, Icon} = this.props    
     let data = {}
     
-    if ('usage' in this.props && total > 0) {
-      data.usage = this.props.usage
-      data.utilization = Math.round(100 * this.props.usage / total)
-      data.total = total
-    }
-    
-    if ('limitsUsage' in this.props && this.props.limitsTotal > 0) {
-      data.limitsUsage = this.props.limitsUsage
-      data.limitsTotal = this.props.limitsTotal
-      data.limitsUtilization = Math.round(100 * data.limitsUsage / data.limitsTotal)
-      if (!('utilization' in data)) {
-        data.usage = data.limitsUsage
-        data.total = data.limitsTotal
-        data.utilization = data.limitsUtilization
-      }
-    }
-
-    if ('requestsUsage' in this.props && this.props.requestsTotal > 0) {
-      data.requestsUsage = this.props.requestsUsage
-      data.requestsTotal = this.props.requestsTotal
-      data.requestsUtilization = Math.round(100 * data.requestsUsage / data.requestsTotal)
-      if (!('utilization' in data)) {
-        data.usage = data.requestsUsage
-        data.total = data.requestsTotal
-        data.utilization = data.requestsUtilization
-      }
-    }
-
-    let [ , newUnits] = fixUnits(data.total, units)
-    if (newUnits !== units) {
-      // data.total = newTotal
-      for (let v in data) {
-        data[v] = convertUnits(data[v], units, newUnits)
-      }
-      units = newUnits
-    }
-    data.total = fixPrecision(data.total)
-    data.usage = fixPrecision(data.usage)
-
     const styles = {
       wrapper: {
         backgroundColor: 'rgb(77,77,77)',
@@ -148,6 +109,48 @@ export default class InfoBox extends React.PureComponent {
         borderBottom: '1px solid rgba(33,33,33,1)',
       }
     }
+
+    if (!!total) {
+      data.total = total
+    }
+
+    if ('usage' in this.props && total > 0) {
+      data.usage = this.props.usage
+      data.utilization = Math.round(100 * this.props.usage / total)
+    }
+    
+    if ('limitsUsage' in this.props && this.props.limitsTotal > 0) {
+      data.limitsUsage = this.props.limitsUsage
+      data.limitsTotal = this.props.limitsTotal
+      data.limitsUtilization = Math.round(100 * data.limitsUsage / data.limitsTotal)
+      if (!('utilization' in data)) {
+        data.usage = data.limitsUsage
+        data.total = data.limitsTotal
+        data.utilization = data.limitsUtilization
+      }
+    }
+
+    if ('requestsUsage' in this.props && this.props.requestsTotal > 0) {
+      data.requestsUsage = this.props.requestsUsage
+      data.requestsTotal = this.props.requestsTotal
+      data.requestsUtilization = Math.round(100 * data.requestsUsage / data.requestsTotal)
+      if (!('utilization' in data)) {
+        data.usage = data.requestsUsage
+        data.total = data.requestsTotal
+        data.utilization = data.requestsUtilization
+      }
+    }
+
+    let [ , newUnits] = fixUnits(data.total, units)
+    if (newUnits !== units) {
+      // data.total = newTotal
+      for (let v in data) {
+        data[v] = convertUnits(data[v], units, newUnits)
+      }
+      units = newUnits
+    }
+    data.total = fixPrecision(data.total)
+    data.usage = fixPrecision(data.usage)
 
     return (
       <Paper style={styles.wrapper} className={'infobox'}>        
