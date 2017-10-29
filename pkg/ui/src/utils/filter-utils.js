@@ -4,10 +4,19 @@ export const instanceTypeLabel = 'beta.kubernetes.io/instance-type'
 export const roleLabel = 'kubernetes.io/role'
 export const hostnameLabel = 'kubernetes.io/hostname'
 
-
+/**
+ * Applies the global and dynamic filters to the provided resource.
+ * Returns `true` if the item was globally filtered.
+ * 
+ * @param {*} globalFilters 
+ * @param {*} dynamicFilters 
+ * @param {*} resource 
+ */
 export function applyFilters(globalFilters, dynamicFilters, resource) {
   if (!applyFiltersToResource(globalFilters, resource)) {
     applyFiltersToResource(dynamicFilters, resource)
+  } else {
+    return true
   }
 }
 

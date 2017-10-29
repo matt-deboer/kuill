@@ -202,8 +202,9 @@ function registerOwned(state, resource) {
   }
 }
 
-function updateAutocomplete(autocomplete, resource, group) {
+function updateAutocomplete(state, resource, group) {
 
+  let autocomplete = state.autocomplete
   let autocompleteGroup = group
   if (resource.kind === 'Node') {
     autocompleteGroup = 'nodes'
@@ -274,11 +275,10 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
   }
   let newState = {...state}
   let kubeKind = kubeKinds[resource.kind]
-  let resourceGroup = (kubeKind && kubeKind.resourceGroup) || 'workloads'
+  let resourceGroup = kubeKind.resourceGroup
   resource.statusSummary = statusForResource(resource)
   registerOwned(newState, resource)
   updateProblemResources(newState, resource)
-  updateAutocomplete(newState.autocomplete, resource, resourceGroup)
   updateVersionByKind(newState, resource)
   if (isNew) {
     updateResourceCounts(newState, resource)
@@ -293,16 +293,17 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     newState = doSelectResource(newState, 
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
-  return doFilterResource(newState, resource)
-}
 
-function doFilterResource(newState, resource) {
   newState.resources = {...newState.resources}
   newState.resources[resource.key] = resource
   if (newState.resource && newState.resource.key === resource.key) {
     newState.resource = resource
   }
-  applyFilters(newState.globalFilters, newState.filters, resource)
+
+  if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
+    updateAutocomplete(newState, resource)
+  }
+
   return newState
 }
 
@@ -402,8 +403,9 @@ function doReceiveResources(state, resources, kubeKinds) {
     let resourceGroup = (kubeKind && kubeKind.resourceGroup) || 'workloads'
     registerOwned(newState, resource)
     updateProblemResources(newState, resource)
-    updateAutocomplete(newState.autocomplete, resource, resourceGroup)
-    applyFilters(newState.globalFilters, newState.filters, resource)
+    if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
+      updateAutocomplete(newState, resource, resourceGroup)
+    }
     updateVersionByKind(newState, resource)
     updatePodCount(newState, resource)
     updateResourceCounts(newState, resource)
@@ -556,7 +558,7 @@ function doSetFilterNames(state, filterNames) {
 }
 
 
-function doSetGlobalFilters(state, selectedNamespaces, selectedKinds) {
+function doSetGlobalFilters(state, selectedNamespaces, selectedKinds, kubeKinds) {
   let globalFilters = {}
   if (Object.keys(selectedNamespaces).length > 0) {
     globalFilters['namespace'] = {...selectedNamespaces}
@@ -564,9 +566,27 @@ function doSetGlobalFilters(state, selectedNamespaces, selectedKinds) {
   if (Object.keys(selectedKinds).length > 0) {
     globalFilters['kind'] = {...selectedKinds}
   }
-  return doFilterAll({...state,
-    globalFilters  
-  }, state.resources)
+
+  let newState = { ...state, 
+    resources: { ...state.resources },
+    globalFilters: globalFilters,
+    autocomplete: {
+      workloads: {},
+      nodes: {},
+      access: {},
+      subjects: {},
+    },
+  }
+  
+  visitResources(newState.resources, function(resource) {
+    if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
+      let kubeKind = kubeKinds[resource.kind]
+      let resourceGroup = kubeKind.resourceGroup
+      updateAutocomplete(newState, resource, resourceGroup)
+    }
+  })
+
+  return newState
 }
 
 /**

@@ -119,10 +119,14 @@ export function putResource(newResource, isNew) {
 }
 
 export function applyGlobalFilters(namespaces, kinds) {
-  return {
-    type: types.PUT_GLOBAL_FILTERS,
-    namespaces: namespaces,
-    kinds: kinds,
+  return function(dispatch, getState) {
+    let kubeKinds = getState().apimodels.kinds
+    dispatch({
+      type: types.PUT_GLOBAL_FILTERS,
+      namespaces: namespaces,
+      kinds: kinds,
+      kubeKinds: kubeKinds,
+    })
   }
 }
 
