@@ -301,7 +301,7 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
   }
 
   if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
-    updateAutocomplete(newState, resource)
+    updateAutocomplete(newState, resource, resourceGroup)
   }
 
   return newState
