@@ -13,6 +13,7 @@ import sizeMe from 'react-sizeme'
 import FilterChip from '../FilterChip'
 import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
+import { viewResource } from '../../state/actions/resources'
 import './PodTemplatePane.css'
 
 const mapStateToProps = function(store) {
@@ -25,11 +26,11 @@ const mapStateToProps = function(store) {
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
     viewResource: function(resource, view='config') {
-      dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(resource,view)))
+      dispatch(viewResource(resource,view))
     },
     viewPermissions: function(subject) {
       if (subject.kind === 'ServiceAccount') {
-        dispatch(routerActions.push(ownProps.linkGenerator.linkForResource(subject,'config')))
+        dispatch(viewResource(subject,'config'))
       } else {
         dispatch(routerActions.push(`/access?view=subjects&subject=${subject.kind}:${subject.name}`))
       }
