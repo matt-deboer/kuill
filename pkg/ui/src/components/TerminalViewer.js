@@ -52,6 +52,9 @@ const uncheckedIcon = <IconUnchecked style={{height: 18, width: 18, fill: grey30
 const expandIcon = <IconExpand style={{height: 18, width: 18, marginLeft: 0, marginRight: 0}} />
 
 const styles = {
+  checkbox: {
+
+  },
   label: {
     paddingLeft: 5,
     lineHeight: '24px',
@@ -313,8 +316,8 @@ class TerminalViewer extends React.Component {
               inputStyle={{color: grey100, fontSize: 15, backgroundColor: grey800,}}
               ref={(ref) => { this.commandInput=ref }}
               defaultValue={'/bin/sh'}
-              underlineStyle={{bottom: 2}}
-              underlineFocusStyle={{bottom: 2}}
+              underlineStyle={{bottom: 2, borderWidth: 0}}
+              underlineFocusStyle={{bottom: 2, borderWidth: 2}}
             />
           </ToolbarGroup>
         </Toolbar>
