@@ -1,0 +1,12 @@
+table.filter-table.pods {
+  tr {
+		
+    th {
+      input:not(:checked) + div {
+        svg {
+          fill: rgba(255,255,255,0.9) !important;
+        }
+      }
+    }
+  }
+}
