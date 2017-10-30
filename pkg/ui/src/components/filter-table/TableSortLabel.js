@@ -113,6 +113,7 @@ export default class TableSortLabel extends React.Component {
     return (
       <TableHeaderColumn style={props.style} key={props.key}>
         <FlatButton
+          style={{height: 40}}
           label={props.text || "&nbsp;"}
           labelPosition={'before'}
           labelStyle={styles.label}

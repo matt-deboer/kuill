@@ -144,6 +144,10 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
     return stats
   }
 
+  if ('disk' in stats && clusterMetrics) {
+    stats.disk.total = clusterMetrics.disk.total
+  }
+
   for (let s in stats) {
     let stat = stats[s]
     stat.ratio = stat.total === 0 ? 0 : (stat.usage / stat.total)
@@ -163,6 +167,8 @@ export function calculateMetrics(clusterMetrics, namespaceMetrics, selectedNames
       stat.units = statUnit.targetUnit
     }
   }
+  
+
   return stats
 }
 

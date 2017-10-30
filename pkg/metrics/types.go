@@ -4,6 +4,7 @@ package metrics
 type Summaries struct {
 	Namespace map[string]*Summary `json:"namespace"`
 	Node      map[string]*Summary `json:"node"`
+	Pod       map[string]*Summary `json:"pod"`
 	Cluster   *Summary            `json:"cluster"`
 }
 

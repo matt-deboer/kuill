@@ -4,6 +4,7 @@ const initialState = {
   cluster: null,
   namespace: null,
   node: null,
+  pod: null,
   revision: 0,
 }
 
@@ -30,6 +31,7 @@ function doComputeMetrics(state, metrics) {
       namespace: metrics.namespace,
       node: metrics.node, 
       cluster: metrics.cluster,
+      pod: metrics.pod,
       revision: state.revision + 1,
     }
   }

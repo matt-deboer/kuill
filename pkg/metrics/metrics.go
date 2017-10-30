@@ -92,6 +92,7 @@ func (m *Provider) summarize() *Summaries {
 	summary := &Summaries{
 		Namespace: make(map[string]*Summary),
 		Node:      make(map[string]*Summary),
+		Pod:       make(map[string]*Summary),
 	}
 	aggregates := make(map[string]uint64)
 	namespaces := make(map[string]bool)
@@ -101,24 +102,24 @@ func (m *Provider) summarize() *Summaries {
 		nodeSummary := m.readNodeSummary(fmt.Sprintf("%s/api/v1/proxy/nodes/%s:10255/stats/summary", m.client.Endpoint, nodeName))
 		if nodeSummary != nil {
 
-			convertedSummary := convertSummary(nodeSummary, node)
+			convertedSummary, convertedByNs := convertSummary(nodeSummary, node, summary)
 			// aggregate at the cluster level
-			// aggregates["Cluster:usageCoreNanoSeconds"] += nodeSummary.Node.CPU.UsageCoreNanoSeconds
-
 			aggregates["Cluster:totalMillicores"] += convertedSummary.CPU.Total
 			aggregates["Cluster:memTotalBytes"] += convertedSummary.Memory.Total
-
 			aggregates["Cluster:usageNanoCores"] += nodeSummary.Node.CPU.UsageNanoCores
-			// aggregates["Cluster:memAvailableBytes"] += nodeSummary.Node.Memory.AvailableBytes
 			aggregates["Cluster:memUsageBytes"] += nodeSummary.Node.Memory.UsageBytes
-			// aggregates["Cluster:memRSSBytes"] += nodeSummary.Node.Memory.RSSBytes
-			// aggregates["Cluster:memWorkingSetBytes"] += nodeSummary.Node.Memory.WorkingSetBytes
 			aggregates["Cluster:networkTxBytes"] += nodeSummary.Node.Network.TxBytes
 			aggregates["Cluster:networkRxBytes"] += nodeSummary.Node.Network.RxBytes
 			aggregates["Cluster:networkSeconds"] += uint64(nodeSummary.Node.Network.Time.Sub(nodeSummary.Node.StartTime).Seconds())
 			aggregates["Cluster:fsCapacityBytes"] += nodeSummary.Node.Fs.CapacityBytes
 			aggregates["Cluster:fsUsedBytes"] += nodeSummary.Node.Fs.UsedBytes
+
 			// aggregate at the namespace level
+			for ns, nsStat := range convertedByNs {
+				aggregates["Namespace:"+ns+":fsUsedBytes"] += nsStat.Disk.Usage
+				aggregates["Namespace:"+ns+":fsCapacityBytes"] += nsStat.Disk.Total
+			}
+
 			for _, podStats := range nodeSummary.Pods {
 				ns := podStats.PodRef.Namespace
 				aggregates["Namespace:"+ns+":pods"]++
@@ -131,7 +132,6 @@ func (m *Provider) summarize() *Summaries {
 					aggregates["Namespace:"+ns+":volCapacityBytes"] += volStats.CapacityBytes
 					aggregates["Namespace:"+ns+":volUsedBytes"] += volStats.UsedBytes
 				}
-
 				for _, c := range podStats.Containers {
 					aggregates["Namespace:"+ns+":containers"]++
 					aggregates["Cluster:containers"]++
@@ -181,16 +181,27 @@ func safeGet(ref *uint64) uint64 {
 	return 0
 }
 
-func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node) *Summary {
+func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *Summaries) (*Summary, map[string]*Summary) {
 
+	summaryByNs := make(map[string]*Summary)
 	networkSeconds := uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Unix())
 	volCapacityBytes := uint64(0)
 	volUsageBytes := uint64(0)
 	for _, podStats := range summary.Pods {
-		for _, volStats := range podStats.VolumeStats {
-			volUsageBytes += volStats.CapacityBytes
-			volCapacityBytes += volStats.UsedBytes
+
+		podSummary := convertPodSummary(podStats)
+		podKey := fmt.Sprintf("%s/%s", podStats.PodRef.Namespace, podStats.PodRef.Name)
+		summaries.Pod[podKey] = podSummary
+		nsSummary, ok := summaryByNs[podStats.PodRef.Namespace]
+		if !ok {
+			nsSummary = &Summary{Disk: &SummaryStat{Units: "bytes"}}
+			summaryByNs[podStats.PodRef.Namespace] = nsSummary
 		}
+		nsSummary.Disk.Usage += podSummary.Disk.Usage
+		nsSummary.Disk.Total += podSummary.Disk.Total
+
+		volUsageBytes += podSummary.Volumes.Usage
+		volCapacityBytes += podSummary.Volumes.Total
 	}
 
 	totalCPUCores, err := strconv.Atoi(*node.Status.Allocatable["cpu"].String_)
@@ -249,7 +260,44 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node) *Summary {
 		Containers: &SummaryStat{
 			Usage: 0,
 		},
+	}, summaryByNs
+}
+
+func convertPodSummary(pod PodStats) *Summary {
+
+	networkSeconds := uint64(pod.Network.Time.Unix() - pod.StartTime.Unix())
+	summary := &Summary{
+		CPU:     &SummaryStat{Units: "millicores"},
+		Memory:  &SummaryStat{Units: "bytes"},
+		Volumes: &SummaryStat{Units: "bytes"},
+		Disk:    &SummaryStat{Units: "bytes"},
+		NetRx: newSummaryStat(
+			pod.Network.RxBytes/networkSeconds,
+			1,
+			"bytes/sec"),
+		NetTx: newSummaryStat(
+			pod.Network.TxBytes/networkSeconds,
+			1,
+			"bytes/sec"),
+		Pods: &SummaryStat{
+			Usage: 1,
+		},
+		Containers: &SummaryStat{
+			Usage: uint64(len(pod.Containers)),
+		},
 	}
+
+	for _, volStats := range pod.VolumeStats {
+		summary.Volumes.Usage += volStats.CapacityBytes
+		summary.Volumes.Total += volStats.UsedBytes
+	}
+
+	for _, container := range pod.Containers {
+		summary.CPU.Usage += container.CPU.UsageNanoCores / 1000000
+		summary.Memory.Usage += container.Memory.UsageBytes
+		summary.Disk.Usage += container.Rootfs.UsedBytes
+	}
+	return summary
 }
 
 func makeSummary(prefix string, aggregates map[string]uint64) *Summary {

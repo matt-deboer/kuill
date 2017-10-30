@@ -15,7 +15,7 @@ import IconMore from 'material-ui/svg-icons/navigation/more-horiz'
 import Paper from 'material-ui/Paper'
 
 import { arraysEqual } from '../comparators'
-import { toHumanizedAge } from '../converters'
+import { toHumanizedAge, convertUnits } from '../converters'
 import { resourceStatus as resourceStatusIcons } from './icons'
 import { compareStatuses, kindsByResourceGroup } from '../utils/resource-utils'
 
@@ -26,7 +26,7 @@ import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import RowActionMenu from './RowActionMenu'
 import './WorkloadsPage.css'
 
-import Perf from 'react-addons-perf'
+// import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
@@ -36,7 +36,9 @@ const mapStateToProps = function(store) {
     accessEvaluator: store.session.accessEvaluator,
     kinds: store.apimodels.kinds,
     linkGenerator: store.session.linkGenerator,
+    podMetrics: store.metrics.pod,
     resourceRevision: store.resources.resourceRevision,
+    metricsRevision: store.metrics.revision,
   }
 }
 
@@ -223,13 +225,65 @@ class WorkloadsPage extends React.Component {
         }
       },
       {
+        id: 'cpu_utilized',
+        label: <div><span>cpu</span><br/><span>used</span></div>,
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          padding: 0,
+        },
+        style: { ...styles.cell,
+          width: '7%',
+          textAlign: 'right',
+          paddingRight: '2%',
+        },
+      },
+      {
+        id: 'mem_utilized',
+        label: <div><span>Gi mem</span><br/><span>used</span></div>,
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          padding: 0,
+        },
+        style: { ...styles.cell,
+          width: '7%',
+          textAlign: 'right',
+          paddingRight: '2%',
+        },
+      },
+      {
+        id: 'disk_utilized',
+        label: <div><span>Gi disk</span><br/><span>used</span></div>,
+        sortable: true,
+        isNumeric: true,
+        headerStyle: {...styles.header,
+          textAlign: 'center',
+          whiteSpace: 'normal',
+          lineHeight: '13px',
+          padding: 0,
+        },
+        style: { ...styles.cell,
+          width: '7%',
+          textAlign: 'right',
+          paddingRight: '2%',
+        },
+      },
+      {
         id: 'pods',
         label: 'pods',
         sortable: true,
         isNumeric: true,
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 80,
+          width: '7%',
+          paddingLeft: '1%'
         }
       },
       {
@@ -237,10 +291,10 @@ class WorkloadsPage extends React.Component {
         label: 'status',
         headerStyle: styles.header,
         style: { ...styles.cell,
-          width: 65,
+          width: '7%',
           verticalAlign: 'middle',
           textAlign: 'center',
-          paddingLeft: 30,
+          paddingLeft: '1%',
         },
         sortable: true,
         comparator: compareStatuses,
@@ -253,13 +307,16 @@ class WorkloadsPage extends React.Component {
           textAlign: 'center',
         },
         style: { ...styles.cell,
-          width: 90,
+          width: '10%',
+          textAlign: 'center',
         }
       },
       {
         id: 'actions',
         label: 'actions ',
-        headerStyle: styles.header,
+        headerStyle: {...styles.header,
+          paddingLeft: 0,
+        },
         style: { ...styles.cell,
           width: 55,
           lineHeight: '50px',
@@ -267,6 +324,14 @@ class WorkloadsPage extends React.Component {
         className: 'resource-actions',
       },
     ]
+    for (let fn of [
+      'renderCell',
+      'getCellValue',
+      'handleRowSelection',
+      'handleCellClick',
+    ]) {
+      this[fn] = this[fn].bind(this)
+    }
   }
 
   resourcesToRows = (resources, kinds) => {
@@ -280,6 +345,7 @@ class WorkloadsPage extends React.Component {
     return !arraysEqual(this.props.filterNames, nextProps.filterNames)
       || !arraysEqual(this.props.autocomplete, nextProps.autocomplete)
       || this.props.resourceRevision !== nextProps.resourceRevision
+      || this.props.metricsRevision !== nextProps.metricsRevision
       || this.state.actionsOpen !== nextState.actionsOpen
       || this.state.hoveredRow !== nextState.hoveredRow
       || this.props.resources !== nextProps.resources
@@ -287,7 +353,6 @@ class WorkloadsPage extends React.Component {
       || this.state.suspendOpen !== nextState.suspendOpen
       || this.state.scaleOpen !== nextState.scaleOpen
       || this.props.kinds !== nextProps.kinds
-      
   }
 
   handleActionsRequestClose = () => {
@@ -436,16 +501,16 @@ class WorkloadsPage extends React.Component {
     this.actionsClicked = false
   }
 
-  componentWillUpdate = () => {
-    setTimeout(() => {
-      Perf.start()
-    }, 0)
-  }
+  // componentWillUpdate = () => {
+  //   setTimeout(() => {
+  //     Perf.start()
+  //   }, 0)
+  // }
 
   componentDidUpdate = () => {
-    Perf.stop()
-    let m = Perf.getLastMeasurements()
-    Perf.printWasted(m)
+    // Perf.stop()
+    // let m = Perf.getLastMeasurements()
+    // Perf.printWasted(m)
 
     if (!this.state.actionsOpen) {
       this.actionsClicked = false
@@ -458,6 +523,7 @@ class WorkloadsPage extends React.Component {
   }
 
   renderCell = (column, row) => {
+    let { podMetrics } = this.props
     switch(column) {
       case 'name':
         return row.metadata.name
@@ -480,12 +546,100 @@ class WorkloadsPage extends React.Component {
         } else {
           return ''
         }
+      case 'cpu_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.cpu.usage, 'millicores', 'cores', 2)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.cpu.usage, 'millicores', 'cores')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(2)
+          }
+        }
+        return ''
+      case 'mem_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.memory.usage, 'bytes', 'gibibytes', 1)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.memory.usage, 'bytes', 'gibibytes')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(1)
+          }
+        }
+        return ''
+      case 'disk_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.disk.usage, 'bytes', 'gibibytes', 1)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.disk.usage, 'bytes', 'gibibytes')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(1)
+          }
+        }
+        return ''
       default:
         return ''
     }
   }
 
   getCellValue = (column, row) => {
+    let { podMetrics } = this.props
     switch(column) {
       case 'id':
         return row.key
@@ -507,6 +661,93 @@ class WorkloadsPage extends React.Component {
         } else {
           return -1
         }
+      case 'cpu_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.cpu.usage, 'millicores', 'cores', 2)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.cpu.usage, 'millicores', 'cores')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(2)
+          }
+        }
+        return -1
+      case 'mem_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.memory.usage, 'bytes', 'gibibytes', 1)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.memory.usage, 'bytes', 'gibibytes')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(1)
+          }
+        }
+        return -1
+      case 'disk_utilized':
+        if (podMetrics) {
+          if (row.kind === 'Pod') {
+            let podKey = `${row.metadata.namespace}/${row.metadata.name}`
+            let podStats = podMetrics[podKey]
+            if (!!podStats) {
+              return convertUnits(podStats.disk.usage, 'bytes', 'gibibytes', 1)
+            }
+          } else if (row.owned) {
+            let total = 0
+            let count = 0
+            let owned = Object.values(row.owned)
+            while (owned.length) {
+              let r = owned.shift()
+              if (r.owned) {
+                owned.push(...Object.values(r.owned))
+              } else {
+                let podKey = `${r.metadata.namespace}/${r.metadata.name}`
+                let podStats = podMetrics[podKey]
+                if (!!podStats) {
+                  total += convertUnits(podStats.disk.usage, 'bytes', 'gibibytes')
+                  count++
+                }
+              }
+            }
+            return (total / count).toFixed(1)
+          }
+        }
+        return -1
       default:
         return ''
     }
@@ -533,8 +774,9 @@ class WorkloadsPage extends React.Component {
           data={this.rows}
           height={'calc(100vh - 350px)'}
           multiSelectable={true}
-          onRowSelection={this.handleRowSelection.bind(this)}
-          onCellClick={this.handleCellClick.bind(this)}
+          revision={`${props.resourceRevision}-${props.metricsRevision}`}
+          onRowSelection={this.handleRowSelection}
+          onCellClick={this.handleCellClick}
           hoveredRow={this.state.hoveredRow}
           onRenderCell={this.renderCell}
           getCellValue={this.getCellValue}
