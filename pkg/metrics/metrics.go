@@ -293,9 +293,15 @@ func convertPodSummary(pod PodStats) *Summary {
 	}
 
 	for _, container := range pod.Containers {
-		summary.CPU.Usage += container.CPU.UsageNanoCores / 1000000
-		summary.Memory.Usage += container.Memory.UsageBytes
-		summary.Disk.Usage += container.Rootfs.UsedBytes
+		if container.CPU != nil {
+			summary.CPU.Usage += container.CPU.UsageNanoCores / 1000000
+		}
+		if container.Memory != nil {
+			summary.Memory.Usage += container.Memory.UsageBytes
+		}
+		if container.Rootfs != nil {
+			summary.Disk.Usage += container.Rootfs.UsedBytes
+		}
 	}
 	return summary
 }
