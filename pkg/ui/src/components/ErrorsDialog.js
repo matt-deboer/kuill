@@ -41,26 +41,13 @@ const errorIcons = {
 export default connect(mapStateToProps, mapDispatchToProps) (
 class ErrorsDialog extends React.Component {
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      open: props.open,
-    }
-  }
-
   handleClose = () => {
-    this.setState({open: false})
-  }
-
-  componentWillReceiveProps = (props) => {
-    this.setState({
-      open: props.open,
-    })
+    this.props.handleClose && this.props.handleClose()
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
-    return nextState.open !== this.state.open
-      || (this.state.open && nextProps.errors.length !== this.props.errors.length)
+    return nextProps.errors.length !== this.props.errors.length
+      || nextProps.open !== this.props.open
   }
 
   render() {
@@ -133,7 +120,7 @@ class ErrorsDialog extends React.Component {
         titleStyle={{backgroundColor: red900, color: grey200}}
         actions={actions}
         modal={false}
-        open={this.state.open}
+        open={this.props.open}
         onRequestClose={this.handleClose}
         autoScrollBodyContent={true}
       >

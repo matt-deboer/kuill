@@ -362,7 +362,7 @@ class Header extends React.Component {
           </ToolbarGroup>
         </Toolbar>
       }>
-        <ErrorsDialog open={this.state.open}/>
+        <ErrorsDialog open={this.state.open} handleClose={this.handleClose}/>
 
         <FiltersDialog open={this.state.filtersOpen && this.props.user} 
           handleClose={this.handleCloseFilters}/>
