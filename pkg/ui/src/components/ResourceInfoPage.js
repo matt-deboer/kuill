@@ -8,11 +8,13 @@ import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
 import PermissionsPane from './configuration-pane/PermissionsPane'
 import PodTemplatePane from './configuration-pane/PodTemplatePane'
+import PodsPane from './configuration-pane/PodsPane'
 import EventViewer from './EventViewer'
 
 import IconConfiguration from 'material-ui/svg-icons/action/list'
 import IconPermissions from 'material-ui/svg-icons/communication/vpn-key'
 import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
+import IconPods from 'material-ui/svg-icons/action/group-work'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEvents from 'material-ui/svg-icons/action/event'
@@ -22,7 +24,6 @@ import { withRouter } from 'react-router-dom'
 
 import {Tabs, Tab} from 'material-ui/Tabs'
 
-import LoadingSpinner from './LoadingSpinner'
 import KindAbbreviation from './KindAbbreviation'
 
 import { resourceStatus as resourceStatusIcons } from './icons'
@@ -275,6 +276,15 @@ class ResourceInfoPage extends React.Component {
           props: {resource: resource, linkGenerator: linkGenerator},
         })
       }
+
+      if (resource.kind === 'Node') {
+        tabs.push({
+          name: 'pods',
+          component: PodsPane,
+          icon: <IconPods/>,
+          props: {node: resource},
+        })
+      }
     }
 
     // TODO: this may also require a separate permissions check
@@ -315,7 +325,6 @@ class ResourceInfoPage extends React.Component {
    
     return (
       <div>
-        <LoadingSpinner hidden={!this.props.resource}/>
 
         <Card className="resource-info" style={styles.card} >
           <CardHeader
