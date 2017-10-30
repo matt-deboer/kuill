@@ -161,7 +161,7 @@ class WorkloadInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!!props.user && !resourceMatchesParams(props.resource, params) && !props.resourceNotFound) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params)) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
@@ -177,26 +177,25 @@ class WorkloadInfo extends React.Component {
         editor: props.editor,
       })
     }
+    this.ensureResource(props)
   }
 
   // TODO: consider removing this entirely...
   shouldComponentUpdate = (nextProps, nextState) => {
     let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
         || !sameResourceVersion(this.state.resource,nextProps.resource)
-        || this.props.fetching !== nextProps.fetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
-        || this.props.resourceNotFound !== nextProps.resourceNotFound
     )
     return shouldUpdate
   }
 
-  componentDidUpdate = () => {
-    this.ensureResource(this.props)
-    this.watchLogs()
-  }
+  // componentDidUpdate = () => {
+  //   this.ensureResource(this.props)
+  //   this.watchLogs()
+  // }
 
   componentWillUnmount = () => {
     for (let key in this.logFollowers) {

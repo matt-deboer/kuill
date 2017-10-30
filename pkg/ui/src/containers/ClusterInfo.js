@@ -9,7 +9,7 @@ import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
-import { sameResource, resourceMatchesParams } from '../utils/resource-utils'
+import { sameResourceVersion, sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
 
@@ -92,38 +92,6 @@ class ClusterInfo extends React.Component {
     this.logs = new LogFollower.Buffer()
 
     this.ensureResource(props)
-    this.watchLogs()
-  }
-
-  watchLogs = () => {
-    let { props } = this
-    if (!!this.state.resource && !!props.logPodContainers) {
-      let oldFollowers = this.logFollowers
-      this.logFollowers = {}
-      for (let key of props.logPodContainers) {
-        let lf = oldFollowers[key]
-        let [pod, cnt] = key.split('/')
-        if (lf) {
-          this.logFollowers[key] = lf
-          delete oldFollowers[key]
-        } else {
-          // Add new follower
-          this.logFollowers[key] = new LogFollower({
-            logs: this.logs,
-            namespace: this.state.resource.metadata.namespace,
-            pod: pod,
-            container: cnt,
-            dispatch: props.dispatch,
-          })
-        }
-      }
-      
-      for (let key in oldFollowers) {
-        // clean up no-longer-selected followers
-        let lf = oldFollowers[key]
-        lf && lf.destroy()
-      }
-    } 
   }
 
   ensureResource = (props) => {
@@ -138,31 +106,24 @@ class ClusterInfo extends React.Component {
 
   componentWillReceiveProps = (props) => {
     
-    if (!sameResource(props.resource, this.state.resource) || (props.editor.contents !== this.props.editor.contents)) {
+    if (!sameResourceVersion(this.state.resource,props.resource)
+      || (props.editor.contents !== this.props.editor.contents)
+      || (props.resource && this.state.resource && props.resource.metadata.resourceVersion )
+    ) {
       this.setState({
         resource: props.resource,
         editor: props.editor,
       })
     }
+    this.ensureResource(props)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return !sameResource(this.state.resource, nextProps.resource)
-        || this.props.isFetching !== nextProps.isFetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
-  }
-
-  componentDidMount = () => {
-    this.ensureResource(this.props)
-    this.watchLogs()
-  }
-
-  componentDidUpdate = () => {
-    // this.ensureResource(this.props)
-    // this.watchLogs()
   }
 
   componentWillUnmount = () => {
