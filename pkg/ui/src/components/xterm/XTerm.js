@@ -65,7 +65,7 @@ export default class XTerm extends React.Component {
         this.xterm.write(this.props.value)
       }
       if (this.props.copyOnCtrlC || this.props.pasteOnCtrlV) {
-        this.xterm.attachCustomKeydownHandler(function (ev) {
+        this.xterm.attachCustomKeyEventHandler(function (ev) {
           if (ev.ctrlKey && ev.keyCode === 67) {
             return !this.props.copyOnCtrlC
           } else if (ev.ctrlKey && ev.keyCode === 86) {
