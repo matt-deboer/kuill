@@ -449,17 +449,19 @@ async function fetchResources(dispatch, getState, force, filter) {
       function(entry) { return !(entry[0] in excludedKinds) && filter(entry[1]) } : 
       function(entry) { return !(entry[0] in excludedKinds) }
 
-    let urls = Object.entries(kubeKinds).filter(entryFilter).map(entry => [entry[0], `/proxy/${entry[1].base}/${entry[1].plural}`])
-    let requests = urls.map(([kind,url],index) => fetch(url, defaultFetchParams
+    let urls = Object.entries(kubeKinds).filter(entryFilter).map(entry => [entry[1], `/proxy/${entry[1].base}/${entry[1].plural}`])
+    let requests = urls.map(([kubeKind,url],index) => fetch(url, defaultFetchParams
       ).then(resp => {
         if (!resp.ok) {
           if (resp.status === 401) {
             dispatch(invalidateSession())
           } else if (resp.status === 403) {
-            dispatch(updatePermissionsForKind(kind, {
-              namespaced: true
-            }))
-            return fetchResourcesByNamespace(dispatch, getState, kubeKinds[kind])
+            if (kubeKind.namespaced) {
+              dispatch(updatePermissionsForKind(kubeKind.name, {
+                namespaced: true
+              }))
+              return fetchResourcesByNamespace(dispatch, getState, kubeKind)
+            }
           } else if (resp.status !== 404) {
             dispatch(addError(resp,'error',`Failed to fetch ${url}: ${resp.statusText}`,
               'Try Again', () => { dispatch(requestResources()) } ))
@@ -470,7 +472,6 @@ async function fetchResources(dispatch, getState, force, filter) {
         }
       }
     ))
-    requests.push(fetchThirdPartyResources(dispatch, getState))
 
     let results = await Promise.all(requests)
     parseResults(dispatch, getState, results)
@@ -479,6 +480,11 @@ async function fetchResources(dispatch, getState, force, filter) {
 
 async function fetchResourcesByNamespace(dispatch, getState, kubeKind) {
   let namespaces = getState().resources.namespaces
+  if (!namespaces) {
+    await dispatch(requestNamespaces())
+    namespaces = getState().resources.namespaces
+  }
+
   let urls = namespaces.map(ns => [kubeKind.name, `/proxy/${kubeKind.base}/namespaces/${ns}/${kubeKind.plural}`, ns])
   let requests = urls.map(([kind,url,ns],index) => fetch(url, defaultFetchParams
     ).then(resp => {
@@ -501,60 +507,6 @@ async function fetchResourcesByNamespace(dispatch, getState, kubeKind) {
     }
   ))
   return Promise.all(requests)
-}
-
-async function fetchThirdPartyResources(dispatch, getState) {
-  let kubeKinds = getState().apimodels.kinds
-  let kubeKind = kubeKinds.ThirdPartyResource
-  let tprURL = `/proxy/${kubeKind.base}/${kubeKind.plural}`
-
-  return await fetch(tprURL, defaultFetchParams
-    ).then(resp => {
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          dispatch(invalidateSession())
-        } else if (resp.status === 404) {
-
-        } else if (resp.status !== 403) {
-          dispatch(addError(resp,'error',`Failed to fetch Third Party Resources at ${tprURL}: ${resp.statusText}`,
-            'Try Again', () => { dispatch(requestResources()) } ))
-        }
-        return resp
-      } else {
-        return resp.json()
-      }
-    }).then(json => {
-      if ('items' in json) {
-        return Promise.all(json.items.map( tpr => {
-          let parts = tpr.metadata.name.split(/[.]/g, -1)
-          let tprKind = {
-            plural: (parts[0] + (parts[0].endsWith('s') ? 'es' : 's')).replace(/[_-]/g, ''),
-            base: `apis/${parts.slice(1).join('.')}/${tpr.versions[0].name}`,
-          }
-          let kind = tpr.metadata.name
-          let url = `/proxy/${tprKind.base}/${tprKind.plural}`
-          
-          return fetch(url, defaultFetchParams
-            ).then(resp => {
-              if (!resp.ok) {
-                if (resp.status === 401) {
-                  dispatch(invalidateSession())
-                } else if (resp.status === 403) {
-                  dispatch(updatePermissionsForKind(kind, {
-                    namespaced: true
-                  }))
-                  return fetchResourcesByNamespace(dispatch, getState, tprKind, kind)
-                } else if (resp.status !== 403) {
-                  dispatch(addError(resp,'error',`Failed to fetch ${kind} at ${url}: ${resp.statusText}` ))
-                }
-                return resp
-              } else {
-                return resp.json()
-              }
-            })
-        }))
-      }
-    })
 }
 
 function parseResults(dispatch, getState, results) {
@@ -598,44 +550,26 @@ function parseResults(dispatch, getState, results) {
 
 function watchResources(dispatch, getState) {
   
-    let accessEvaluator = getState().session.accessEvaluator
-    let watches = getState().resources.watches || {}
-    let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
-    let kubeKinds = getState().apimodels.kinds
-    var watchableNamespaces
+  let accessEvaluator = getState().session.accessEvaluator
+  let watches = getState().resources.watches || {}
+  let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
+  let kubeKinds = getState().apimodels.kinds
+  var watchableNamespaces
 
-    if (!objectEmpty(watches)) {
-      // Update/reset any existing watches
-      for (let kind in kubeKinds) {
-        if (kind in excludedKinds) {
-          continue
-        }
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
-        if (watchableNamespaces.length > 0) {
-          let watch = watches[kind]
-          if (!!watch && watch.closed()) {
-            watch.destroy()
-            watches[kind] = new ResourceKindWatcher({
-              kubeKinds: kubeKinds,
-              kind: kind,
-              dispatch: dispatch,
-              resourceVersion: maxResourceVersionByKind[kind] || 0,
-              resourceGroup: 'workloads',
-              namespaces: watchableNamespaces,
-            })
-          }
-        }
+  if (!objectEmpty(watches)) {
+    // Update/reset any existing watches
+    for (let kind in kubeKinds) {
+      if (kind in excludedKinds) {
+        continue
       }
-    } else {
-      for (let kind in kubeKinds) {
-        if (kind in excludedKinds) {
-          continue
-        }
-        watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
-        if (watchableNamespaces.length > 0) {
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
+      if (watchableNamespaces.length > 0) {
+        let watch = watches[kind]
+        if (!!watch && watch.closed()) {
+          watch.destroy()
           watches[kind] = new ResourceKindWatcher({
             kubeKinds: kubeKinds,
-            kind: kind, 
+            kind: kind,
             dispatch: dispatch,
             resourceVersion: maxResourceVersionByKind[kind] || 0,
             resourceGroup: 'workloads',
@@ -644,10 +578,28 @@ function watchResources(dispatch, getState) {
         }
       }
     }
-    dispatch({
-      type: types.SET_WATCHES,
-      watches: watches,
-    })
+  } else {
+    for (let kind in kubeKinds) {
+      if (kind in excludedKinds) {
+        continue
+      }
+      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
+      if (watchableNamespaces.length > 0) {
+        watches[kind] = new ResourceKindWatcher({
+          kubeKinds: kubeKinds,
+          kind: kind, 
+          dispatch: dispatch,
+          resourceVersion: maxResourceVersionByKind[kind] || 0,
+          resourceGroup: 'workloads',
+          namespaces: watchableNamespaces,
+        })
+      }
+    }
+  }
+  dispatch({
+    type: types.SET_WATCHES,
+    watches: watches,
+  })
 }
 
 
