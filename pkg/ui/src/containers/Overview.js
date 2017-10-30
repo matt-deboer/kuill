@@ -113,7 +113,6 @@ class Overview extends React.Component {
         height: 185,
       },
       summaryStatsBox: {
-        // background: 'rgb(66,66,66)',
         margin: 0,
         paddingTop: 15,
         paddingBottom: 0,
@@ -125,11 +124,7 @@ class Overview extends React.Component {
     }
 
     let { namespaceMetrics, clusterMetrics, selectedNamespaces, quotasByNamespace } = this.props
-
     let stats = calculateMetrics(clusterMetrics, namespaceMetrics, selectedNamespaces, quotasByNamespace)
-
-    // nm.summary.netTx.usage += p.network.txBytes
-    // nm.summary.netTx.duration += duration
 
     let { props } = this
     return (
