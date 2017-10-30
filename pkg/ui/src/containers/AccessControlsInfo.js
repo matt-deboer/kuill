@@ -215,7 +215,7 @@ class AccessControlsInfo extends React.Component {
       {resourceInfoPage}
       {resourceNotFound}
       
-      <LoadingSpinner loading={fetching} />
+      <LoadingSpinner loading={fetching && (!this.state.resource || this.state.resource.notFound)} />
     </div>)
   }
 }))
