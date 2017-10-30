@@ -7,11 +7,14 @@ import { getResourceCellValue, renderResourceCell } from '../../utils/resource-c
 import sizeMe from 'react-sizeme'
 import { connect } from 'react-redux'
 import FilterTable from '../filter-table/FilterTable'
+import RowActionMenu from '../RowActionMenu'
+import ConfirmationDialog from '../ConfirmationDialog'
 import './PodsPane.css'
 
 const mapStateToProps = function(store) {
   return {
     resources: store.resources.resources,
+    accessEvaluator: store.session.accessEvaluator,
     linkGenerator: store.session.linkGenerator,
     podsRevision: store.resources.maxResourceVersionByKind.Pod,
     podMetrics: store.metrics.pod,
@@ -29,8 +32,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     requestMetrics: function() {
       dispatch(requestMetrics())
     },
-    removeResource: function(pod) {
-      dispatch(removeResource(pod))
+    removeResource: function(...resources) {
+      dispatch(removeResource(...resources))
     },
   } 
 }
@@ -63,7 +66,12 @@ class PodsPane extends React.Component {
     super(props)
     this.state = {
       nodeName: props.node.metadata.name,
-      pods: this.resolvePods(props.resources, props.node.metadata.name)
+      pods: this.resolvePods(props.resources, props.node.metadata.name),
+      actionsOpen: false,
+      deleteOpen: false,
+      hoveredRow: -1,
+      hoveredResources: null,
+      selectedResources: [],
     }
     this.selectedIds = {}
     this.columns = [
@@ -193,10 +201,24 @@ class PodsPane extends React.Component {
     return getResourceCellValue(column, row, this.props.podMetrics)
   }
 
+  componentDidUpdate = () => {
+    if (!this.state.actionsOpen) {
+      this.actionsClicked = false
+    }
+  }
+
+  handleActionsRequestClose = () => {
+    this.setState({
+      actionsOpen: false,
+      hoveredRow: -1,
+      hoveredResource: null,
+    })
+  }
+
   handleCellClick = (rowId, colId, resource, col) => {
     this.actionsClicked = false
     if (col.id === 'actions') {
-      let trs = document.getElementsByClassName('workloads filter-table')[1].children[0].children
+      let trs = document.getElementsByClassName('pods filter-table')[1].children[0].children
       let that = this
       this.props.accessEvaluator.getObjectAccess(resource, 'workloads').then((access) => {
         that.setState({
@@ -226,6 +248,39 @@ class PodsPane extends React.Component {
     }
   }
 
+  handleDelete = (resource) => {
+    let resources = []
+    if (resource) {
+      resources.push(resource)
+    } else if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
+      for (let id in this.selectedIds) {
+        resources.push(this.props.resources[id])
+      }
+    }
+
+    this.setState({
+      selectedResources: resources,
+      deleteOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleRequestCloseDelete = () => {
+    this.setState({
+      deleteOpen: false,
+      selectedResources: [],
+    })
+  }
+
+  handleConfirmDelete = () => {
+    this.setState({
+      selectedResources: [],
+      deleteOpen: false,
+    })
+    this.props.removeResource(...this.state.selectedResources)
+    this.handleRowSelection({})
+  }
+
   resolvePods = (resources, nodeName) => {
     let pods = []
     if (!!resources) {
@@ -250,6 +305,7 @@ class PodsPane extends React.Component {
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return nextProps.podsRevision !== this.props.podsRevision
+        || nextState.actionsOpen !== this.state.actionsOpen
   }
 
   render() {
@@ -257,26 +313,53 @@ class PodsPane extends React.Component {
     let { props } = this
 
     return (
-      <FilterTable
-        className={'pods'}
-        columns={this.columns}
-        data={this.state.pods}
-        height={'calc(100vh - 419px)'}
-        multiSelectable={true}
-        revision={`${props.resourceRevision}-${props.metricsRevision}`}
-        onRowSelection={this.handleRowSelection}
-        onCellClick={this.handleCellClick}
-        hoveredRow={this.state.hoveredRow}
-        onRenderCell={this.renderCell}
-        getCellValue={this.getCellValue}
-        selectedIds={this.selectedIds}
-        stripedRows={false}
-        iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
-        iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
-        width={'calc(100vw - 60px)'}
-        wrapperStyle={{overflowX: 'hidden', overflowY: 'auto'}}
-        headerStyle={{backgroundColor: 'rgba(185, 162, 131, 0.85)', color: 'white'}}
+      <div>
+        <FilterTable
+          className={'pods'}
+          columns={this.columns}
+          data={this.state.pods}
+          height={'calc(100vh - 419px)'}
+          multiSelectable={true}
+          revision={`${props.resourceRevision}-${props.metricsRevision}`}
+          onRowSelection={this.handleRowSelection}
+          onCellClick={this.handleCellClick}
+          hoveredRow={this.state.hoveredRow}
+          onRenderCell={this.renderCell}
+          getCellValue={this.getCellValue}
+          selectedIds={this.selectedIds}
+          stripedRows={false}
+          iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
+          iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
+          width={'calc(100vw - 60px)'}
+          wrapperStyle={{overflowX: 'hidden', overflowY: 'auto'}}
+          headerStyle={{backgroundColor: 'rgba(185, 162, 131, 0.85)', color: 'white'}}
+          />
+        
+      <RowActionMenu
+        open={!!this.state.hoveredResource}
+        handlers={{
+          logs: ()=> { this.props.viewResource(this.state.hoveredResource,'logs') },
+          term: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
+          edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
+          delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+          close: this.handleActionsRequestClose,
+        }}
+        access={this.state.hoveredResourceAccess}
+        anchorEl={this.state.actionsAnchor}
         />
+
+      <ConfirmationDialog 
+        open={this.state.deleteOpen}
+        title={'Delete Resource(s):'}
+        message={`Are you sure you want to delete the following ` +
+          `${this.state.selectedResources.length > 1 ? this.state.selectedResources.length + ' ' : ''}` +
+          `resource${this.state.selectedResources.length > 1 ? 's':''}?`}
+        resources={this.state.selectedResources}
+        onRequestClose={this.handleRequestCloseDelete}
+        onConfirm={this.handleConfirmDelete}
+        linkGenerator={this.props.linkGenerator}
+        />
+    </div>
     )
   }
 
