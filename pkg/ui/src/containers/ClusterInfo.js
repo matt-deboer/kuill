@@ -195,7 +195,7 @@ class ClusterInfo extends React.Component {
       {resourceInfoPage}
       {resourceNotFound}
 
-      <LoadingSpinner loading={fetching && (!this.state.resource || this.state.resource.notFound)} />
+      <LoadingSpinner loading={!this.state.resource || (this.state.resource.notFound && fetching)} />
     </div>)
   }
 }))
