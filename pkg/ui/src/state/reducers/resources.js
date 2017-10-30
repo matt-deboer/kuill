@@ -110,7 +110,7 @@ export default (state = initialState, action) => {
       return doRemoveFilter(state, action.filter, action.index)
     
     case types.PUT_GLOBAL_FILTERS:
-      return doSetGlobalFilters(state, action.namespaces, action.kinds)
+      return doSetGlobalFilters(state, action.namespaces, action.kinds, action.kubeKinds)
 
     case types.PUT_NAMESPACES:
       return {...state, namespaces: action.namespaces}
