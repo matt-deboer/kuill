@@ -17,7 +17,7 @@ const orderIcons = {
 export default class TableSortLabel extends React.Component {
   
   static propTypes = {
-    text: PropTypes.string.isRequired,
+    text: PropTypes.any.isRequired,
     active: PropTypes.bool,
     order: PropTypes.oneOf(['asc','desc']),
     onRequestSort: PropTypes.func,
