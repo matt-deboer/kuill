@@ -306,6 +306,7 @@ class PodsPane extends React.Component {
   shouldComponentUpdate = (nextProps, nextState) => {
     return nextProps.podsRevision !== this.props.podsRevision
         || nextState.actionsOpen !== this.state.actionsOpen
+        || nextProps.contentTop !== this.props.contentTop
   }
 
   render() {
@@ -318,7 +319,7 @@ class PodsPane extends React.Component {
           className={'pods'}
           columns={this.columns}
           data={this.state.pods}
-          height={'calc(100vh - 419px)'}
+          height={`calc(100vh - ${props.contentTop + 89}px)`}
           multiSelectable={true}
           revision={`${props.resourceRevision}-${props.metricsRevision}`}
           onRowSelection={this.handleRowSelection}
