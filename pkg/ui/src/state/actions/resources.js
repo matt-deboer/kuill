@@ -192,8 +192,12 @@ function updateFilterUrl(dispatch, getState) {
   newFilterNames && newFilterNames.sort()
   
   if (!arraysEqual(newFilterNames, currentFilterNames)) {
-    query.filters = newFilterNames
-    let filterQuery = newFilterNames && newFilterNames.length > 0 ? 
+    if (newFilterNames.length > 0) {
+      query.filters = newFilterNames
+    } else {
+      delete query.filters
+    }
+    let filterQuery = Object.keys(query).length > 0 ? 
       `?${queryString.stringify(query)}` :
       ''
     dispatch(routerActions.push(`${path}${filterQuery}`))

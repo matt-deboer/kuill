@@ -231,6 +231,8 @@ class WorkloadInfo extends React.Component {
     let fetching = Object.keys(props.fetching).length > 0
     let resourceInfoPage = null
     let resourceNotFound = null
+    let query = queryString.parse(this.props.location.search)
+    let activeTab = query.view || 'config'
 
     if (!!this.state.resource) {
       if (this.state.resource.notFound && !fetching) {
@@ -249,7 +251,7 @@ class WorkloadInfo extends React.Component {
             logs={logs}
             events={events}
             onLogsActivated={this.onLogsActivated.bind(this)}
-            activeTab={(this.props.location.search || 'config').replace('?view=','')}
+            activeTab={activeTab}
             />
       }
     }

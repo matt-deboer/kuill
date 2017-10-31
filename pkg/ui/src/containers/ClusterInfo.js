@@ -8,6 +8,7 @@ import { withRouter } from 'react-router-dom'
 import ResourceInfoPage from '../components/ResourceInfoPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
+import queryString from 'query-string'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import { sameResourceVersion, sameResource, resourceMatchesParams } from '../utils/resource-utils'
 import Loadable from 'react-loadable'
@@ -157,6 +158,8 @@ class ClusterInfo extends React.Component {
     let fetching = Object.keys(props.fetching).length > 0
     let resourceInfoPage = null
     let resourceNotFound = null
+    let query = queryString.parse(this.props.location.search)
+    let activeTab = query.view || 'config'
 
     if (!!this.state.resource) {
       if (this.state.resource.notFound && !fetching) {
@@ -175,7 +178,7 @@ class ClusterInfo extends React.Component {
             logs={logs}
             events={events}
             onLogsActivated={this.onLogsActivated.bind(this)}
-            activeTab={(props.location.search || 'config').replace('?view=','')}
+            activeTab={activeTab}
             />
       }
     }
