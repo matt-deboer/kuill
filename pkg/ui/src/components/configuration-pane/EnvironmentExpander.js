@@ -16,7 +16,6 @@ const rowHeight = 22
 const styles = {
   table: {
     backgroundColor: 'transparent',
-    // border: '1px solid rgba(0,0,0,0.05)',
     padding: 10,
     paddingLeft: 16,
     tableLayout: 'inherit',
@@ -39,7 +38,6 @@ const styles = {
     paddingLeft: 10,
     height: rowHeight,
     overflow: 'visible',
-    // borderLeft: '1px solid rgba(0,0,0,0.05)',
   },
   expander: {
     padding: 0,
