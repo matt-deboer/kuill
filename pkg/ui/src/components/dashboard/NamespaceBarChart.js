@@ -50,8 +50,6 @@ const styles = {
   },
 }
 
-// const usageQuantiles = [20, 40, 60, 80, 100]
-
 export default connect(mapStateToProps, mapDispatchToProps) (
 class NamespaceBarChart extends React.PureComponent {
 
