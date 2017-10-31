@@ -178,6 +178,7 @@ class WorkloadInfo extends React.Component {
       })
     }
     this.ensureResource(props)
+    this.watchLogs()
   }
 
   // TODO: consider removing this entirely...
@@ -188,6 +189,8 @@ class WorkloadInfo extends React.Component {
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
+        || this.props.logPodContainers !== nextProps.logPodContainers
+
     )
     return shouldUpdate
   }
