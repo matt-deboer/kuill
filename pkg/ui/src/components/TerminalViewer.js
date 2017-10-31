@@ -52,9 +52,6 @@ const uncheckedIcon = <IconUnchecked style={{height: 18, width: 18, fill: grey30
 const expandIcon = <IconExpand style={{height: 18, width: 18, marginLeft: 0, marginRight: 0}} />
 
 const styles = {
-  checkbox: {
-
-  },
   label: {
     paddingLeft: 5,
     lineHeight: '24px',
