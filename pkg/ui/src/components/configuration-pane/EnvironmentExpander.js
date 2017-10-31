@@ -6,7 +6,9 @@ import {
   TableRow,
   TableRowColumn,
 } from 'material-ui/Table'
+import Checkbox from 'material-ui/Checkbox'
 import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
 import GenericExpanderButton from './GenericExpanderButton'
 import './ContainerPanel.css'
 
@@ -44,34 +46,83 @@ const styles = {
     height: 24,
     width: 24,
   },
+  checkbox: {
+    width: 120,
+    marginLeft: 15,
+    position: 'absolute',
+    right: 0,
+    top: 5,
+  },
+  checkboxLabel: {
+    marginLeft: -10,
+    color: grey800,
+    width: '100%',
+  },
+  checkboxIcon: {
+    color: grey800,
+    fill: grey800,
+  },
 }
 
-export default class StringArrayExpander extends React.PureComponent {
+const mapStateToProps = function(store) {
+  return {
+    resources: store.resources.resources,
+    linkGenerator: store.session.linkGenerator,
+  }
+}
 
-  renderEnvValue = (env, linkGenerator) => {
+export default connect(mapStateToProps) (
+class StringArrayExpander extends React.PureComponent {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      resolveRefs: true,
+    }
+  }
+
+  toggleResolveRefs = () => {
+    this.setState({
+      resolveRefs: !this.state.resolveRefs,
+    })
+  }
+
+  renderEnvValue = (env, linkGenerator, resources, resolve) => {
     let { namespace } = this.props
     if ('value' in env) {
       return <span className="quoted-string">{env.value}</span>
     } else if ('valueFrom' in env) {
       let valueFrom = env.valueFrom
       if ('secretKeyRef' in valueFrom) {
-        return (
-        <div>
-          <span className="env-ref-type">secretKeyRef</span>&nbsp;:&nbsp; 
-          <Link to={linkGenerator.linkForResource(`Secret/${namespace}/${valueFrom.secretKeyRef.name}`)}>
-            {valueFrom.secretKeyRef.name}
-          </Link> : <span className="env-ref-key">{valueFrom.secretKeyRef.key}</span>
-        </div>
-        )
+        let refKey = `Secret/${namespace}/${valueFrom.secretKeyRef.name}`
+        if (resolve && !!resources[refKey]) {
+          let ref = resources[refKey]
+          return <span className="quoted-string">{ref.data.key}</span>
+        } else {
+          return (
+            <div>
+              <span className="env-ref-type">secretKeyRef</span>&nbsp;:&nbsp; 
+              <Link to={linkGenerator.linkForResource(refKey)}>
+                {valueFrom.secretKeyRef.name}
+              </Link> : <span className="env-ref-key">{valueFrom.secretKeyRef.key}</span>
+            </div>
+          )
+        }
       } else if ('configMapKeyRef' in valueFrom) {
-        return (
-        <div>
-          <span className="env-ref-type">configMapKeyRef</span>&nbsp;:&nbsp; 
-          <Link to={linkGenerator.linkForResource(`ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`)}>
-            {valueFrom.configMapKeyRef.name}
-          </Link> : <span className="env-ref-key">{valueFrom.configMapKeyRef.key}</span>
-        </div>
-        )
+        let refKey = `ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`
+        if (resolve && !!resources[refKey]) {
+          let ref = resources[refKey]
+          return <span className="quoted-string">{ref.data.key}</span>
+        } else {
+          return (
+            <div>
+              <span className="env-ref-type">configMapKeyRef</span>&nbsp;:&nbsp; 
+              <Link to={linkGenerator.linkForResource(refKey)}>
+                {valueFrom.configMapKeyRef.name}
+              </Link> : <span className="env-ref-key">{valueFrom.configMapKeyRef.key}</span>
+            </div>
+          )
+        }
       } else if ('fieldRef' in valueFrom) {
         return (
         <div>
@@ -86,11 +137,21 @@ export default class StringArrayExpander extends React.PureComponent {
   render() {
   
     let { props } = this
-    let { data, title, linkGenerator } = props
+    let { data, title, linkGenerator, resources } = props
     
     return (
         <GenericExpanderButton
-          title={title}
+          title={<div>
+            {title}<Checkbox
+              className={`resolve-env-refs-check`}
+              label="resolve refs"
+              checked={this.state.resolveRefs}
+              onCheck={this.toggleResolveRefs}
+              style={styles.checkbox}
+              labelStyle={styles.checkboxLabel}
+              iconStyle={styles.checkboxIcon}
+            />
+          </div>}
           contents={
             <div>
             <Table style={styles.table} selectable={false} headerStyle={{display: 'none'}}>
@@ -98,7 +159,9 @@ export default class StringArrayExpander extends React.PureComponent {
                 {data.map((env) =>
                   <TableRow key={env.name} style={styles.tableRow} displayBorder={false}>
                       <TableRowColumn style={styles.tableRowKeyCol}>{env.name}</TableRowColumn>
-                      <TableRowColumn style={styles.envRowVal}>{this.renderEnvValue(env, linkGenerator)}</TableRowColumn>
+                      <TableRowColumn style={styles.envRowVal}>
+                        {this.renderEnvValue(env, linkGenerator, resources, this.state.resolveRefs)}
+                      </TableRowColumn>
                   </TableRow>
                 )}
               </TableBody>
@@ -107,4 +170,4 @@ export default class StringArrayExpander extends React.PureComponent {
           }/>
       )
   }
-}
+})
