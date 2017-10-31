@@ -314,7 +314,8 @@ class PodsPane extends React.PureComponent {
           continue
         }
         let pod = resources[key]
-        if (pod.spec.nodeName === nodeName) {
+        
+        if (!pod.isFiltered && pod.spec.nodeName === nodeName) {
           pods.push(pod)
         }
       }
@@ -323,7 +324,9 @@ class PodsPane extends React.PureComponent {
   }
 
   componentWillReceiveProps = (props) => {
-    if (props.maxResourceVersionByKind.Pod !== this.props.maxResourceVersionByKind.Pod) {
+    if (props.maxResourceVersionByKind.Pod !== this.props.maxResourceVersionByKind.Pod
+      || props.filterNames !== this.props.filterNames
+    ) {
       this.setState({
         pods: this.resolvePods(props.resources, this.state.nodeName)
       })
@@ -335,6 +338,7 @@ class PodsPane extends React.PureComponent {
         || nextState.actionsOpen !== this.state.actionsOpen
         || nextProps.contentTop !== this.props.contentTop
         || nextState.pods !== this.state.pods
+        || nextProps.filterNames !== this.props.filterNames
   }
 
   render() {
