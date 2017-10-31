@@ -18,7 +18,7 @@ import { selectLogsFor } from '../state/actions/logs'
 import sizeMe from 'react-sizeme'
 import XTerm from './xterm/XTerm'
 import lcs from 'longest-common-subsequence'
-import './LogViewer.scss'
+import './LogViewer.css'
 
 const mapStateToProps = function(store) {
   
@@ -111,6 +111,7 @@ class LogViewer extends React.Component {
       containersOpen: false,
       selectedContainers: props.selectedContainers,
       filterErrorText: null,
+      filterCheckDisabled: true,
     }
     this.logs = props.logs
   }
@@ -154,6 +155,16 @@ class LogViewer extends React.Component {
     } else if (this.state.filterErrorText) {
       this.setState({
         filterErrorText: null,
+        filterCheckDisabled: !this.filterLogsInput.input.value
+      })
+    }
+  }
+
+  handleFilterKeyUp = (event) => {
+    if (!!this.filterLogsInput.input.value === this.state.filterCheckDisabled) {
+      this.setState({
+        filterCheckDisabled: !this.filterLogsInput.input.value,
+        filterChecked: this.state.filterChecked && !!this.filterLogsInput.input.value,
       })
     }
   }
@@ -311,6 +322,7 @@ class LogViewer extends React.Component {
             if (ref) {
               this.filterLogsInput=ref 
               this.filterLogsInput.input.onkeydown = this.handleFilterKeydown
+              this.filterLogsInput.input.onkeyup = this.handleFilterKeyUp
             }
           }}
           errorText={this.state.filterErrorText}
@@ -319,12 +331,16 @@ class LogViewer extends React.Component {
 
         />
         <Checkbox
+          className={`filter-check${this.state.filterCheckDisabled ? ' disabled':''}`}
           label="filter"
+          disabled={this.state.filterCheckDisabled}
           checked={this.state.filterChecked}
           onCheck={this.toggleFilter}
           style={styles.checkbox}
           labelStyle={styles.checkboxLabel}
           iconStyle={styles.checkboxIcon}
+          data-rh={'Only output new log lines containing the filter text will be displayed'}
+          data-rh-at={'left'}
         />
       </ToolbarGroup>
     )

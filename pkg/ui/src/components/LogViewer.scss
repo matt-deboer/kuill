@@ -23,3 +23,10 @@
         }
     }
 }
+
+.filter-check.disabled {
+    svg, label {
+        fill: rgb(79, 79, 79) !important;
+        color: rgb(79, 79, 79) !important;
+    }
+}
