@@ -66,7 +66,6 @@ class PodsPane extends React.Component {
     super(props)
     this.state = {
       nodeName: props.node.metadata.name,
-      pods: this.resolvePods(props.resources, props.node.metadata.name),
       actionsOpen: false,
       deleteOpen: false,
       hoveredRow: -1,
@@ -190,7 +189,12 @@ class PodsPane extends React.Component {
     ]) {
       this[fn] = this[fn].bind(this)
     }
-    props.requestResources()
+  }
+
+  componentDidMount = () => {
+    this.setState({
+      pods: this.resolvePods(this.props.resources, this.props.node.metadata.name),
+    })
   }
 
   renderCell = (column, row) => {
