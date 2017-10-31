@@ -307,15 +307,17 @@ class TerminalViewer extends React.Component {
               </Menu>
             </Popover>
             <span style={styles.label}>command:</span>
-            <TextField
-              id={'command'}
-              style={{height: 24, marginTop: 0, width: 'auto', }}
-              inputStyle={{color: grey100, fontSize: 15, backgroundColor: grey800,}}
-              ref={(ref) => { this.commandInput=ref }}
-              defaultValue={'/bin/sh'}
-              underlineStyle={{bottom: 2, borderWidth: 0}}
-              underlineFocusStyle={{bottom: 2, borderWidth: 2}}
-            />
+            <div style={{backgroundColor: grey800, width: 'auto', padding: '0 5px'}}>
+              <TextField
+                id={'command'}
+                style={{height: 24, marginTop: 0, width: '100%'}}
+                inputStyle={{color: grey100, fontSize: 15,}}
+                ref={(ref) => { this.commandInput=ref }}
+                defaultValue={'/bin/sh'}
+                underlineStyle={{bottom: 2, borderWidth: 0}}
+                underlineFocusStyle={{bottom: 2, borderWidth: 2}}
+              />
+            </div>
           </ToolbarGroup>
         </Toolbar>
         <div style={{

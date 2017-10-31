@@ -314,22 +314,24 @@ class LogViewer extends React.Component {
           </Menu>
         </Popover>
         <IconSearch style={{color: grey500, height: 40, width: 40, marginRight: 10}}/>
-        <TextField
-          id={'filter-logs'}
-          style={{height: 24, marginTop: 0, width: '35%', }}
-          inputStyle={{color: grey100, fontSize: 15, backgroundColor: grey800,}}
-          ref={(ref) => {
-            if (ref) {
-              this.filterLogsInput=ref 
-              this.filterLogsInput.input.onkeydown = this.handleFilterKeydown
-              this.filterLogsInput.input.onkeyup = this.handleFilterKeyUp
-            }
-          }}
-          errorText={this.state.filterErrorText}
-          underlineStyle={{bottom: 2, borderWidth: 0}}
-          underlineFocusStyle={{bottom: 2, borderWidth: 2}}
+        <div style={{backgroundColor: grey800, padding: '0 3px', width: '35%'}}>
+          <TextField
+            id={'filter-logs'}
+            style={{height: 24, marginTop: 0, width: '100%'}}
+            inputStyle={{color: grey100, fontSize: 15,}}
+            ref={(ref) => {
+              if (ref) {
+                this.filterLogsInput=ref 
+                this.filterLogsInput.input.onkeydown = this.handleFilterKeydown
+                this.filterLogsInput.input.onkeyup = this.handleFilterKeyUp
+              }
+            }}
+            errorText={this.state.filterErrorText}
+            underlineStyle={{bottom: 2, borderWidth: 0}}
+            underlineFocusStyle={{bottom: 2, borderWidth: 2}}
 
-        />
+          />
+        </div>
         <Checkbox
           className={`filter-check${this.state.filterCheckDisabled ? ' disabled':''}`}
           label="filter"
