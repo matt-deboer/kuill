@@ -187,7 +187,7 @@ class FiltersDialog extends React.Component {
         title={<div style={{position: 'relative'}}>
           <div>Filters</div>
           <Checkbox
-            label="Persist"
+            label="Remember"
             className={'persist'}
             checked={this.state.save}
             onCheck={this.updateCheckSave}
