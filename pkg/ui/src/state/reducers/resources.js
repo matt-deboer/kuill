@@ -25,6 +25,7 @@ const initialState = {
     nodes: {},
     access: {},
     subjects: {},
+    pods: {},
   },
   // the currently selected resource
   resource: null,
@@ -215,6 +216,9 @@ function updateAutocomplete(state, resource, group) {
   switch(autocompleteGroup) {
     case 'workloads':
       updateWorkloadsAutocomplete(autocomplete.workloads, resource)
+      if (resource.kind === 'Pod') {
+        updatePodsAutocomplete(autocomplete.pods, resource)
+      }
       break
     case 'nodes':
       updateNodesAutocomplete(autocomplete.nodes, resource)
@@ -239,6 +243,16 @@ function updateWorkloadsAutocomplete(possible, resource) {
   if (resource.kind === 'Pod') {
     possible[`node:${resource.spec.nodeName}`]=true
   }
+}
+
+function updatePodsAutocomplete(possible, resource) {
+  if (resource.metadata && resource.metadata.namespace) {
+    possible[`namespace:${resource.metadata.namespace}`]=true
+  }
+  if (resource.metadata.labels && 'app' in resource.metadata.labels) {
+    possible[`app:${resource.metadata.labels.app}`]=true
+  }
+  possible[`status:${resource.statusSummary}`]=true
 }
 
 function updateNodesAutocomplete(possible, resource) {
@@ -575,6 +589,7 @@ function doSetGlobalFilters(state, selectedNamespaces, selectedKinds, kubeKinds)
       nodes: {},
       access: {},
       subjects: {},
+      pods: {},
     },
   }
   

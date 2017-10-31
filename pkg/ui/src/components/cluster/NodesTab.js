@@ -35,7 +35,6 @@ import Perf from 'react-addons-perf'
 
 const mapStateToProps = function(store) {
   return {
-    filters: store.resources.filters,
     filterNames: store.resources.filterNames,
     fetching: store.requests.fetching,
     autocomplete: store.resources.autocomplete.nodes,
@@ -661,7 +660,6 @@ class NodesTab extends React.Component {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
         >
-          {/* can we get a terminal into the kubelet itself? */}
 
           {this.props.kinds.cluster[this.state.hoveredResource.kind].hasTerminal &&
           <FloatingActionButton mini={true} style={styles.miniButton}
@@ -671,7 +669,6 @@ class NodesTab extends React.Component {
           </FloatingActionButton>
           }
 
-          {/* TODO: need to check whether this resource can actually be edited by the user */}
           <FloatingActionButton mini={true} style={styles.miniButton}
             onTouchTap={()=> { this.props.viewResource(this.state.hoveredResource,'edit') }}
             data-rh="Edit...">

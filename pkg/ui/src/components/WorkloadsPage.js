@@ -22,6 +22,7 @@ import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
 import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import RowActionMenu from './RowActionMenu'
+import MultiResourceActionButton from './MultiResourceActionButton'
 import './WorkloadsPage.css'
 
 // import Perf from 'react-addons-perf'
@@ -629,25 +630,3 @@ class WorkloadsPage extends React.Component {
     )
   }
 })))
-
-class MultiResourceActionButton extends React.Component {
-  
-  constructor(props) {
-    super(props);
-    this.state = {
-      disabled: props.disabled,
-    }
-  }
-
-  setDisabled = (disabled) => {
-    this.setState({disabled: disabled})
-  }
-
-  render() {
-    let { props } = this
-    return <FloatingActionButton {...props} disabled={this.state.disabled}>
-       {props.children}
-      </FloatingActionButton>
-  }
-
-}

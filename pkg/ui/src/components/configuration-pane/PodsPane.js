@@ -1,15 +1,19 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { removeResource, requestResources, viewResource } from '../../state/actions/resources'
+import { removeResource, requestResources, viewResource, addFilter, removeFilter } from '../../state/actions/resources'
+import { red900 } from 'material-ui/styles/colors'
 import { requestMetrics } from '../../state/actions/metrics'
 import { compareStatuses } from '../../utils/resource-utils'
 import { objectEmpty } from '../../comparators'
 import { getResourceCellValue, renderResourceCell } from '../../utils/resource-column-utils'
 import sizeMe from 'react-sizeme'
 import { connect } from 'react-redux'
+import IconDelete from 'material-ui/svg-icons/action/delete'
+import FilterBox from '../FilterBox'
 import FilterTable from '../filter-table/FilterTable'
 import RowActionMenu from '../RowActionMenu'
 import ConfirmationDialog from '../ConfirmationDialog'
+import MultiResourceActionButton from '../MultiResourceActionButton'
 import './PodsPane.css'
 
 const mapStateToProps = function(store) {
@@ -19,6 +23,8 @@ const mapStateToProps = function(store) {
     linkGenerator: store.session.linkGenerator,
     maxResourceVersionByKind: store.resources.maxResourceVersionByKind,
     podMetrics: store.metrics.pod,
+    filterNames: store.resources.filterNames,
+    autocomplete: store.resources.autocomplete.pods,
   }
 }
 
@@ -36,6 +42,12 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
     },
+    addFilter: function(filterName) {
+      dispatch(addFilter(filterName))
+    },
+    removeFilter: function(filterName, index) {
+      dispatch(removeFilter(filterName, index))
+    },
   } 
 }
 
@@ -49,6 +61,14 @@ const styles = {
   cell: {
     paddingLeft: 2,
     paddingRight: 2,
+  },
+  deleteResourceButton: {
+    margin: 0,
+    top: 20,
+    right: 40,
+    bottom: 'auto',
+    left: 'auto',
+    position: 'absolute',
   },
 }
 
@@ -175,6 +195,7 @@ class PodsPane extends React.PureComponent {
         label: 'actions ',
         headerStyle: {...styles.header,
           paddingLeft: 0,
+          paddingRight: 10,
         },
         style: { ...styles.cell,
           width: 55,
@@ -249,7 +270,6 @@ class PodsPane extends React.PureComponent {
       this.selectedIds = selectedIds
       this.deleteEnabled = !objectEmpty(selectedIds)
       this.deleteButton.setDisabled(!this.deleteEnabled)
-      this.suspendButton.setDisabled(!this.suspendEnabled)
     }
   }
 
@@ -322,12 +342,30 @@ class PodsPane extends React.PureComponent {
     let { props } = this
 
     return (
-      <div>
+      <div style={{padding: '0 15px'}}>
+        <FilterBox
+          addFilter={props.addFilter} 
+          removeFilter={props.removeFilter}
+          filterNames={props.filterNames}
+          autocomplete={props.autocomplete}
+          />
+
+        <MultiResourceActionButton backgroundColor={red900} 
+          mini={true} 
+          style={styles.deleteResourceButton} 
+          disabled={!this.deleteEnabled}
+          onTouchTap={this.handleDelete}
+          ref={(ref)=>{this.deleteButton = ref}}
+          data-rh={'Delete Selected...'}
+          data-rh-at={'bottom'}>
+            <IconDelete/>
+        </MultiResourceActionButton>
+
         <FilterTable
           className={'pods'}
           columns={this.columns}
           data={this.state.pods}
-          height={`calc(100vh - ${props.contentTop + 89}px)`}
+          height={`calc(100vh - ${props.contentTop + 177}px)`}
           multiSelectable={true}
           revision={`${props.resourceRevision}-${props.metricsRevision}`}
           onRowSelection={this.handleRowSelection}
@@ -340,7 +378,7 @@ class PodsPane extends React.PureComponent {
           iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
           iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
           width={'calc(100vw - 60px)'}
-          wrapperStyle={{overflowX: 'hidden', overflowY: 'auto'}}
+          wrapperStyle={{marginLeft: -15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
           headerStyle={{backgroundColor: 'rgba(185, 162, 131, 0.85)', color: 'white'}}
           />
         

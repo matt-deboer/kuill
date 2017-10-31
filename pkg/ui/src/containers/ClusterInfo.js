@@ -158,8 +158,8 @@ class ClusterInfo extends React.Component {
     let resourceInfoPage = null
     let resourceNotFound = null
 
-    if (!!this.state.resource && !fetching) {
-      if (this.state.resource.notFound) {
+    if (!!this.state.resource) {
+      if (this.state.resource.notFound && !fetching) {
         resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...props.match.params}/>
       } else {
         resourceInfoPage = 

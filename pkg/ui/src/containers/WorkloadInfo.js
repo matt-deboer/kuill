@@ -232,8 +232,8 @@ class WorkloadInfo extends React.Component {
     let resourceInfoPage = null
     let resourceNotFound = null
 
-    if (!!this.state.resource && !fetching) {
-      if (this.state.resource.notFound) {
+    if (!!this.state.resource) {
+      if (this.state.resource.notFound && !fetching) {
         resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
       } else {
         resourceInfoPage = 
