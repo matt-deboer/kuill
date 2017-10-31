@@ -10,6 +10,7 @@ const initialState = (savedState || {
   // a map[string]=> bool of namespaces currently selected
   // an empty map should be treated as ALL instead of NONE
   selectedKinds: {},
+  revision: 0,
 })
 
 export default (state = initialState, action) => {
@@ -30,6 +31,7 @@ function doSelect(state, namespaces, kinds, save) {
   let newState = {
     selectedNamespaces: namespaces || state.selectedNamespaces,
     selectedKinds: kinds || state.selectedKinds,
+    revision: state.revision+1,
   }
 
   if (save) {

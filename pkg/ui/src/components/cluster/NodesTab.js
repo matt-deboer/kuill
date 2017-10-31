@@ -43,6 +43,8 @@ const mapStateToProps = function(store) {
     metricsRevision: store.metrics.revision,
     resources: store.resources.resources,
     kinds: store.apimodels.kinds,
+    podsByNode: store.resources.podsByNode,
+    settingsRevision: store.usersettings.revision,
   }
 }
 
@@ -382,6 +384,8 @@ class NodesTab extends React.Component {
       || this.props.nodeMetrics !== nextProps.nodeMetrics
       || this.props.resourceRevision !== nextProps.resourceRevision
       || this.props.metricsRevision !== nextProps.metricsRevision
+      || this.props.podsByNode !== nextProps.podsByNode
+      || this.props.settingsRevision !== nextProps.settingsRevision
   }
 
   handleActionsRequestClose = () => {
@@ -447,7 +451,8 @@ class NodesTab extends React.Component {
   }
 
   renderCell = (column, row) => {
-    let { nodeMetrics } = this.props
+    let { nodeMetrics, podsByNode } = this.props
+    let nodeName = row.metadata.name
     let value = ''
     let metrics = null
     let that = this
@@ -511,13 +516,25 @@ class NodesTab extends React.Component {
         }
         return value.toFixed(1) + ' Gi'
       case 'pods':
-        if (nodeMetrics && row.metadata.name in nodeMetrics) { 
-          value = nodeMetrics[row.metadata.name].pods.usage
+        value = 0
+        if (podsByNode && nodeName in podsByNode) {
+          for (let podKey in podsByNode[nodeName]) {
+            let pod = podsByNode[nodeName][podKey]
+            if (!pod.isFiltered) {
+              value++
+            }
+          }
         }
         return value
       case 'containers':
-        if (nodeMetrics && row.metadata.name in nodeMetrics) { 
-          value = nodeMetrics[row.metadata.name].containers.usage
+        value = 0
+        if (podsByNode && nodeName in podsByNode) {
+          for (let podKey in podsByNode[nodeName]) {
+            let pod = podsByNode[nodeName][podKey]
+            if (!pod.isFiltered) {
+              value += pod.spec.containers.length
+            }
+          }
         }
         return value
       // case 'actions':
@@ -533,7 +550,8 @@ class NodesTab extends React.Component {
   }
 
   getCellValue = (column, row) => {
-    let { nodeMetrics } = this.props
+    let { nodeMetrics, podsByNode } = this.props
+    let nodeName = row.metadata.name
     let value = -1
     switch(column) {
       case 'id':
@@ -571,13 +589,25 @@ class NodesTab extends React.Component {
         }
         return value
       case 'pods':
-        if (nodeMetrics && row.metadata.name in nodeMetrics) {
-          value = nodeMetrics[row.metadata.name].pods.usage
+        value = 0
+        if (podsByNode && nodeName in podsByNode) {
+          for (let podKey in podsByNode[nodeName]) {
+            let pod = podsByNode[nodeName][podKey]
+            if (!pod.isFiltered) {
+              value++
+            }
+          }
         }
         return value
       case 'containers':
-        if (nodeMetrics && row.metadata.name in nodeMetrics) {
-          value = nodeMetrics[row.metadata.name].containers.usage
+        value = 0
+        if (podsByNode && nodeName in podsByNode) {
+          for (let podKey in podsByNode[nodeName]) {
+            let pod = podsByNode[nodeName][podKey]
+            if (!pod.isFiltered) {
+              value += pod.spec.containers.length
+            }
+          }
         }
         return value
       case 'kind':
@@ -643,7 +673,7 @@ class NodesTab extends React.Component {
             iconStyle={{fill: 'rgba(255,255,255,0.9)'}}
             iconInactiveStyle={{fill: 'rgba(255,255,255,0.5)'}}
             width={'calc(100vw - 50px)'}
-            revision={props.resourceRevision + props.metricsRevision + props.filterNames.length}
+            revision={props.resourceRevision + props.metricsRevision + props.filterNames.length + props.settingsRevision}
             wrapperStyle={{marginLeft: - 15, marginRight: -15, overflowX: 'hidden', overflowY: 'auto'}}
             headerStyle={{backgroundColor: 'rgb(66, 77, 99)', color: 'white'}}
             />
