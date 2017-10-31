@@ -178,7 +178,7 @@ class LogViewer extends React.Component {
   pushLogs = (e) => {
     if (!this.state.filterChecked 
       || (this.filterLogsInput && this.filterLogsInput.input.value
-        && e.toLowerCase().indexOf(this.filterLogsInput.input.value) != -1)
+        && e.toLowerCase().indexOf(this.filterLogsInput.input.value) !== -1)
       ) {
 
       this.term.writeln(e)
