@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { removeResource, requestResources, viewResource } from '../../state/actions/resources'
 import { requestMetrics } from '../../state/actions/metrics'
 import { compareStatuses } from '../../utils/resource-utils'
+import { objectEmpty } from '../../comparators'
 import { getResourceCellValue, renderResourceCell } from '../../utils/resource-column-utils'
 import sizeMe from 'react-sizeme'
 import { connect } from 'react-redux'
@@ -16,7 +17,7 @@ const mapStateToProps = function(store) {
     resources: store.resources.resources,
     accessEvaluator: store.session.accessEvaluator,
     linkGenerator: store.session.linkGenerator,
-    podsRevision: store.resources.maxResourceVersionByKind.Pod,
+    maxResourceVersionByKind: store.resources.maxResourceVersionByKind,
     podMetrics: store.metrics.pod,
   }
 }
@@ -53,7 +54,7 @@ const styles = {
 
 export default sizeMe({ monitorHeight: true, monitorWidth: true }) (
 connect(mapStateToProps, mapDispatchToProps) (
-class PodsPane extends React.Component {
+class PodsPane extends React.PureComponent {
   
   static propTypes = {
     node: PropTypes.object.isRequired,
@@ -71,6 +72,7 @@ class PodsPane extends React.Component {
       hoveredRow: -1,
       hoveredResources: null,
       selectedResources: [],
+      pods: [],
     }
     this.selectedIds = {}
     this.columns = [
@@ -245,8 +247,7 @@ class PodsPane extends React.Component {
   handleRowSelection = (selectedIds) => {
     if (!this.actionsClicked) {
       this.selectedIds = selectedIds
-      this.deleteEnabled = this.canDelete(selectedIds)
-      this.suspendEnabled = this.canSuspend(selectedIds)
+      this.deleteEnabled = !objectEmpty(selectedIds)
       this.deleteButton.setDisabled(!this.deleteEnabled)
       this.suspendButton.setDisabled(!this.suspendEnabled)
     }
@@ -302,15 +303,18 @@ class PodsPane extends React.Component {
   }
 
   componentWillReceiveProps = (props) => {
-    this.setState({
-      pods: this.resolvePods(props.resources, this.state.nodeName)
-    })
+    if (props.maxResourceVersionByKind.Pod !== this.props.maxResourceVersionByKind.Pod) {
+      this.setState({
+        pods: this.resolvePods(props.resources, this.state.nodeName)
+      })
+    }
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
-    return nextProps.podsRevision !== this.props.podsRevision
+    return nextProps.maxResourceVersionByKind.Pod !== this.props.maxResourceVersionByKind.Pod
         || nextState.actionsOpen !== this.state.actionsOpen
         || nextProps.contentTop !== this.props.contentTop
+        || nextState.pods !== this.state.pods
   }
 
   render() {

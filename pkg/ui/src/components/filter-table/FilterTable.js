@@ -80,7 +80,7 @@ export default class FilterTable extends React.PureComponent {
     this.columnIndexbyId = columnIndexbyId
     let orderBy = (this.state && this.state.orderBy) || props.initialOrderBy
     let order = (this.state && this.state.order) || props.initialOrder
-    let data = props.data.slice(0)
+    let data = (props.data || []).slice(0)
     let sort = props.onRequestSort || this.defaultSort
     if (orderBy && order) {
       sort(props.columns[columnIndexbyId[orderBy]], order, data)

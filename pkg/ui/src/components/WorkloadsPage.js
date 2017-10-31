@@ -13,8 +13,8 @@ import IconDelete from 'material-ui/svg-icons/action/delete'
 import IconSuspend from 'material-ui/svg-icons/content/block'
 import Paper from 'material-ui/Paper'
 
-import { arraysEqual } from '../comparators'
-import { compareStatuses, kindsByResourceGroup } from '../utils/resource-utils'
+import { arraysEqual, objectEmpty } from '../comparators'
+import { compareStatuses, kindsByResourceGroup, anySelectedWithReplicas } from '../utils/resource-utils'
 import { getResourceCellValue, renderResourceCell } from '../utils/resource-column-utils'
 
 import FilterBox from './FilterBox'
@@ -364,24 +364,11 @@ class WorkloadsPage extends React.Component {
   handleRowSelection = (selectedIds) => {
     if (!this.actionsClicked) {
       this.selectedIds = selectedIds
-      this.deleteEnabled = this.canDelete(selectedIds)
-      this.suspendEnabled = this.canSuspend(selectedIds)
+      this.deleteEnabled = !objectEmpty(selectedIds)
+      this.suspendEnabled = anySelectedWithReplicas(selectedIds, this.props.resources)
       this.deleteButton.setDisabled(!this.deleteEnabled)
       this.suspendButton.setDisabled(!this.suspendEnabled)
     }
-  }
-
-  canSuspend = (selectedIds) => {
-    for (let id in selectedIds) {
-      if ('spec' in this.props.resources[id] && !!this.props.resources[id].spec.replicas) {
-        return true
-      }
-    }
-    return false
-  }
-
-  canDelete = (selectedIds) => {
-    return Object.keys(selectedIds).length > 0
   }
 
   handleCellClick = (rowId, colId, resource, col) => {

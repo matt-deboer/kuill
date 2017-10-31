@@ -132,6 +132,22 @@ function stripLastSegment(name) {
     return ''
 }
 
+/**
+ * Returns 'true' if any of the resource ids passed has replicas
+ * 
+ * @param {*} selectedIds a hash where keys are resource ids
+ * @param {*} resources the resources hash
+ */
+export function anySelectedWithReplicas(selectedIds, resources) {
+    for (let id in selectedIds) {
+      let r = resources[id]
+      if ('spec' in r && (!!r.spec.replicas || !!r.spec.readyReplicas)) {
+        return true
+      }
+    }
+    return false
+}
+
 var statuses = {
     'ok': 1,
     'none': 2,
