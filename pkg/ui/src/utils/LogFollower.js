@@ -5,34 +5,38 @@ import { addError } from '../state/actions/errors'
 const colorCodes = [153,215,230,147,14,10,11,159,255].map(val => `\x1B[38;5;${val}m`)
 const logSuffix = `\x1B[0m`
 
+
+class LogBuffer extends Array {
+  constructor(maxSize=2500) {
+    super(0)
+    this._maxSize = maxSize
+    this._colorIndex = 0
+  }
+
+  push = (e) => {
+    // if an 'onPush' is defined, and it returns false, don't
+    // add the element to the array
+    if (typeof this.onPush === 'function') {
+      if (!this.onPush(e)) {
+        return
+      }
+    }
+    let size = Array.prototype.push.call(this, e)
+    if (size >= this._maxSize) {
+      this.splice(0, size - this._maxSize)
+    }
+  }
+
+  nextColor = () => {
+    this._colorIndex = (this._colorIndex + 1) % colorCodes.length
+    return colorCodes[this._colorIndex]
+  }
+}
+
+
 export default class LogFollower {
 
-  // Buffer allows for appending received log lines before
-  // the on-screen view component is ready to receive them;
-  // until the onPush method is defined, 'push' works normally
-  static Buffer = function(maxSize=2500) {
-    let buffer = []
-    buffer._maxSize = maxSize
-    buffer.push = function(e) {
-      // if an 'onPush' is defined, and it returns false, don't
-      // add the element to the array
-      if (typeof buffer.onPush === 'function') {
-        if (!buffer.onPush(e)) {
-          return
-        }
-      }
-      let size = Array.prototype.push.call(buffer, e)
-      if (size >= buffer._maxSize) {
-        buffer.splice(0, size - buffer._maxSize)
-      }
-    }
-    buffer._colorIndex = 0
-    buffer.nextColor = function() {
-      buffer._colorIndex = (buffer._colorIndex + 1) % colorCodes.length
-      return colorCodes[buffer._colorIndex]
-    }
-    return buffer
-  }
+  static Buffer = LogBuffer
 
   constructor(props) {
 

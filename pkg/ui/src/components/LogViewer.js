@@ -2,13 +2,16 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { grey100, grey300, grey500, grey900, grey800} from 'material-ui/styles/colors'
 import {Toolbar, ToolbarGroup} from 'material-ui/Toolbar'
+import Checkbox from 'material-ui/Checkbox'
 import Menu from 'material-ui/Menu'
 import MenuItem from 'material-ui/MenuItem'
 import IconExpand from 'material-ui/svg-icons/navigation/more-vert'
 import IconChevronRight from 'material-ui/svg-icons/navigation/chevron-right'
 import IconChecked from 'material-ui/svg-icons/toggle/check-box'
 import IconUnchecked from 'material-ui/svg-icons/toggle/check-box-outline-blank'
+import IconSearch from 'material-ui/svg-icons/action/search'
 import FlatButton from 'material-ui/FlatButton'
+import TextField from 'material-ui/TextField'
 import Popover from 'material-ui/Popover'
 import { connect } from 'react-redux'
 import { selectLogsFor } from '../state/actions/logs'
@@ -16,7 +19,6 @@ import sizeMe from 'react-sizeme'
 import XTerm from './xterm/XTerm'
 import lcs from 'longest-common-subsequence'
 import './LogViewer.scss'
-
 
 const mapStateToProps = function(store) {
   
@@ -38,6 +40,18 @@ const checkedIcon = <IconChecked style={{height: 18, width: 18, fill: grey300}}/
 const uncheckedIcon = <IconUnchecked style={{height: 18, width: 18, fill: grey300}}/>
 
 const styles = {
+  checkbox: {
+    width: '10%',
+    marginLeft: 15,
+  },
+  checkboxLabel: {
+    marginLeft: -15,
+    color: grey500,
+  },
+  checkboxIcon: {
+    color: grey500,
+    fill: grey500,
+  },
   label: {
     paddingLeft: 16,
     lineHeight: '24px',
@@ -96,6 +110,7 @@ class LogViewer extends React.Component {
       podsOpen: false,
       containersOpen: false,
       selectedContainers: props.selectedContainers,
+      filterErrorText: null,
     }
     this.logs = props.logs
   }
@@ -113,7 +128,6 @@ class LogViewer extends React.Component {
     let {props} = this
     if (value.length > 0) {
       props.selectLogsFor(value)
-      console.log(`menu changed => ${value}`)
     }
   }
 
@@ -121,6 +135,44 @@ class LogViewer extends React.Component {
     let state = {}
     state[`${type}Open`] = false
     this.setState(state)
+  }
+
+  handleFilterKeydown = (event) => {
+    let keyCode = ('which' in event) ? event.which : event.keyCode
+    if (keyCode === 13) {
+      let result
+      if (event.shiftKey) {
+        result = this.term.getXTerm().findPrevious(this.filterLogsInput.input.value)
+      } else {
+        result = this.term.getXTerm().findNext(this.filterLogsInput.input.value)
+      }
+      if (!result) {
+        this.setState({
+          filterErrorText: 'not found',
+        })
+      }
+    } else if (this.state.filterErrorText) {
+      this.setState({
+        filterErrorText: null,
+      })
+    }
+  }
+
+  toggleFilter = () => {
+    this.setState({
+      filterChecked: !this.state.filterChecked,
+    })
+  }
+
+  pushLogs = (e) => {
+    if (!this.state.filterChecked 
+      || (this.filterLogsInput && this.filterLogsInput.input.value
+        && e.toLowerCase().indexOf(this.filterLogsInput.input.value) != -1)
+      ) {
+
+      this.term.writeln(e)
+    }
+    return true
   }
 
   componentDidUpdate = () => {
@@ -132,7 +184,7 @@ class LogViewer extends React.Component {
     let { props } = this
     return (
       <div style={{paddingBottom: 10, backgroundColor: grey900}}>
-        <Toolbar style={{height: '36px', padding: 6, backgroundColor: grey900, margin: 0}}>
+        <Toolbar style={{height: '36px', padding: '6px 10px', backgroundColor: grey900, margin: 0}}>
           {this.renderContainerMenu()}
         </Toolbar>
         <XTerm 
@@ -163,10 +215,7 @@ class LogViewer extends React.Component {
                 this.term.writeln(line)
               }
               this.logs.length = 0
-              this.logs.onPush = function(e) {
-                ref.writeln(e)
-                return true
-              }
+              this.logs.onPush = this.pushLogs
               ref.fit()
             }
           }}
@@ -217,7 +266,7 @@ class LogViewer extends React.Component {
     }
 
     return (
-      <ToolbarGroup style={{width: '100%'}}>
+      <ToolbarGroup style={{width: '100%'}} className={'log-controls'}>
         <span style={styles.label}>following container(s)</span>
         <IconChevronRight style={{height: 22, width: 22, fill: grey500}}/>
         <FlatButton
@@ -253,6 +302,30 @@ class LogViewer extends React.Component {
             {menuItems}
           </Menu>
         </Popover>
+        <IconSearch style={{color: grey500, height: 40, width: 40, marginRight: 10}}/>
+        <TextField
+          id={'filter-logs'}
+          style={{height: 24, marginTop: 0, width: '35%', }}
+          inputStyle={{color: grey100, fontSize: 15, backgroundColor: grey800,}}
+          ref={(ref) => {
+            if (ref) {
+              this.filterLogsInput=ref 
+              this.filterLogsInput.input.onkeydown = this.handleFilterKeydown
+            }
+          }}
+          errorText={this.state.filterErrorText}
+          underlineStyle={{bottom: 2, borderWidth: 0}}
+          underlineFocusStyle={{bottom: 2, borderWidth: 2}}
+
+        />
+        <Checkbox
+          label="filter"
+          checked={this.state.filterChecked}
+          onCheck={this.toggleFilter}
+          style={styles.checkbox}
+          labelStyle={styles.checkboxLabel}
+          iconStyle={styles.checkboxIcon}
+        />
       </ToolbarGroup>
     )
   }

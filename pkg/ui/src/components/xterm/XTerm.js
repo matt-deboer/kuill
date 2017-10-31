@@ -5,6 +5,10 @@ import className from 'classnames'
 
 import './XTerm.css'
 
+xterm.loadAddon('search', function(addon) {
+  console.info('loaded search addon')
+})
+
 export default class XTerm extends React.Component {
     
     static propTypes = {
