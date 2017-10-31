@@ -64,7 +64,7 @@ export default class ContainerPanel extends React.Component {
   render() {
   
     let { props } = this
-    let { container, namespace, initIndex, linkGenerator, status } = props
+    let { container, namespace, initIndex, status } = props
     let initHeader = null
     let statusHeader = null
     if (initIndex !== undefined) {
@@ -111,8 +111,7 @@ export default class ContainerPanel extends React.Component {
               <TableRow style={styles.tableRow} displayBorder={false}>
                 <TableRowColumn style={styles.tableRowKeyCol}>Env:</TableRowColumn>
                 <TableRowColumn style={styles.tableRowValCol}>
-                  <EnvironmentExpander data={container.env} title={'env'} namespace={namespace} 
-                    linkGenerator={linkGenerator}/>
+                  <EnvironmentExpander data={container.env} title={'env'} namespace={namespace} />
                 </TableRowColumn>
               </TableRow>
             }

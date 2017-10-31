@@ -1,6 +1,6 @@
 import React from 'react'
-import {Card, CardText} from 'material-ui/Card'
-import {grey800} from 'material-ui/styles/colors'
+import { Card, CardText } from 'material-ui/Card'
+import { grey800 } from 'material-ui/styles/colors'
 import {
   Table,
   TableBody,
@@ -10,6 +10,7 @@ import {
 import sizeMe from 'react-sizeme'
 import Volumes from './Volumes'
 import yaml from 'js-yaml'
+import FilterChip from '../FilterChip'
 
 import './PodDetailsPanel.css'
 
@@ -95,7 +96,10 @@ class PodDetailsPanel extends React.Component {
             tableLayout: 'inherit',
           }} selectable={false} headerStyle={{display: 'none'}}>
             <TableBody displayRowCheckbox={false}>
-              {spec.nodeName && tableRow('Node:', spec.nodeName)}
+              {spec.nodeName && tableRow('Node:', 
+                  <FilterChip key={spec.nodeName} style={{margin: '0'}} prefix={'node'} suffix={spec.nodeName} 
+                    link={linkGenerator.linkForResource(`Node/~/${spec.nodeName}`)}/>)
+              }
               {spec.dnsPolicy && tableRow('DNS Policy:', spec.dnsPolicy)}
               {spec.restartPolicy && tableRow('Restart Policy:', spec.restartPolicy)}
               {spec.nodeSelector && tableRow('Node-Selectors:', spec.nodeSelector)}
@@ -127,7 +131,7 @@ function tableRow(key, val) {
 
 function renderValue(value) {
   let rendered = value
-  if (typeof value === 'object') {
+  if (typeof value === 'object' && !value.type) {
     rendered = <pre style={styles.valueStyle}>{yaml.safeDump(value)}</pre>
   }
   return rendered
