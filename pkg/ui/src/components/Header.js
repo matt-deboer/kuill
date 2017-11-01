@@ -9,6 +9,7 @@ import { connect } from 'react-redux'
 import { routerActions } from 'react-router-redux'
 import { clearErrors, clearLatestError } from '../state/actions/errors'
 import { invalidateSession } from '../state/actions/session'
+import { objectEmpty } from '../comparators'
 import Avatar from 'react-avatar'
 import Badge from 'material-ui/Badge'
 import IconButton from 'material-ui/IconButton'
@@ -33,6 +34,8 @@ const mapStateToProps = function(store) {
     latestError: store.errors.latestError,
     location: store.routing.location,
     editing: store.resources.editing,
+    selectedNamespaces: store.usersettings.selectedNamespaces,
+    selectedKinds: store.usersettings.selectedKinds,
   }
 }
 
@@ -251,6 +254,9 @@ class Header extends React.Component {
     }
 
     let { props } = this
+    let { selectedNamespaces, selectedKinds } = props
+    let filtersActive = !objectEmpty(selectedNamespaces) || !objectEmpty(selectedKinds)
+
     return (
       <AppBar
         iconStyleLeft={{marginTop: 8, marginRight: 4, marginLeft: -10}}
@@ -295,9 +301,9 @@ class Header extends React.Component {
             <RaisedButton
               label={'Filters'}
               icon={<IconFilters/>}
-              className={'menu-button'}
+              className={`menu-button filters${filtersActive ? ' active':''}`}
               labelStyle={styles.menuButtonLabel}
-              data-rh={'Filters'}
+              data-rh={`Filters${filtersActive ? ' (active)' : '' }`}
               data-rh-at={'bottom'}
               data-rh-cls={'menu-button-rh'}
               onTouchTap={this.handleOpenFilters}

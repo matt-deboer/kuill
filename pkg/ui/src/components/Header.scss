@@ -27,10 +27,17 @@
   span {
     display: none !important;
   }
+
   svg {
     margin-left: 2px !important;
     margin-right: 2px !important;
     fill: #9e9e9e !important;
+  }
+  
+  &.filters.active {
+    svg {
+      fill: tan !important;
+    }
   }
 }
 
