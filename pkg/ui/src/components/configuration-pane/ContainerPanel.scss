@@ -41,6 +41,10 @@ span.env-ref-key {
   padding-left: 3px;
 }
 
+pre.quoted-string {
+  margin: 0px;
+}
+
 .quoted-string {
   color: rgb(30, 136, 229);
   &:before {

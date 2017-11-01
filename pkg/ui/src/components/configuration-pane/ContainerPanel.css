@@ -34,6 +34,9 @@ span.env-ref-type {
 span.env-ref-key {
   padding-left: 3px; }
 
+pre.quoted-string {
+  margin: 0px; }
+
 .quoted-string {
   color: #1e88e5; }
   .quoted-string:before {

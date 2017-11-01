@@ -75,7 +75,7 @@ class StringArrayExpander extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      resolveRefs: true,
+      resolveRefs: false,
     }
   }
 
@@ -87,15 +87,16 @@ class StringArrayExpander extends React.PureComponent {
 
   renderEnvValue = (env, linkGenerator, resources, resolve) => {
     let { namespace } = this.props
+    var refKey, ref
     if ('value' in env) {
       return <span className="quoted-string">{env.value}</span>
     } else if ('valueFrom' in env) {
       let valueFrom = env.valueFrom
       if ('secretKeyRef' in valueFrom) {
-        let refKey = `Secret/${namespace}/${valueFrom.secretKeyRef.name}`
+        refKey = `Secret/${namespace}/${valueFrom.secretKeyRef.name}`
         if (resolve && !!resources[refKey]) {
-          let ref = resources[refKey]
-          return <span className="quoted-string">{ref.data.key}</span>
+          ref = resources[refKey]
+          return <pre className="quoted-string">{ref.data[valueFrom.secretKeyRef.key]}</pre>
         } else {
           return (
             <div>
@@ -107,10 +108,10 @@ class StringArrayExpander extends React.PureComponent {
           )
         }
       } else if ('configMapKeyRef' in valueFrom) {
-        let refKey = `ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`
+        refKey = `ConfigMap/${namespace}/${valueFrom.configMapKeyRef.name}`
         if (resolve && !!resources[refKey]) {
-          let ref = resources[refKey]
-          return <span className="quoted-string">{ref.data.key}</span>
+          ref = resources[refKey]
+          return <pre className="quoted-string">{ref.data[valueFrom.configMapKeyRef.key]}</pre>
         } else {
           return (
             <div>
