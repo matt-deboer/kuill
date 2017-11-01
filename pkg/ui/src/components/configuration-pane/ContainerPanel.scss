@@ -70,3 +70,10 @@ pre.quoted-string {
     color: rgb(0,0,0);
   }
 }
+
+.resolve-env-refs-check.disabled {
+  svg, label {
+      fill: rgba(0, 0, 0, 0.2) !important;
+      color: rgba(0, 0, 0, 0.2) !important;
+  }
+}

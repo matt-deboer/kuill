@@ -7,6 +7,7 @@ const styles = {
   popover: {
     border: '1px solid rgba(0,0,0,0.3)',
     backgroundColor: 'rgb(240,240,240)',
+    margin: 20,
   },
   popoverTitle: {
     color: 'rgb(0,0,0)',
@@ -73,13 +74,14 @@ export default class GenericExpander extends React.Component {
           background: 'transparent',
           fontSize: 13,
           overflow: 'hidden',
+
           }}
           zDepth={3}>
           <Subheader style={styles.popoverTitle}>{title}</Subheader>
           <div style={{
             overflow: 'auto',
-            maxHeight: 'calc(100vh - 295px)',
-            maxWidth: 'calc(100vw - 100px)',
+            maxHeight: 'calc(100vh - 300px)',
+            maxWidth: 'calc(100vw - 200px)',
             padding: 16,
           }}>
             {contents}

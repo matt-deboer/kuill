@@ -10,7 +10,6 @@ import Checkbox from 'material-ui/Checkbox'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 import GenericExpanderButton from './GenericExpanderButton'
-import './ContainerPanel.css'
 
 const rowHeight = 22
 const styles = {
@@ -137,12 +136,14 @@ class StringArrayExpander extends React.PureComponent {
   
     let { props } = this
     let { data, title, linkGenerator, resources } = props
+    let resolveRefsDisabled = (data.filter(env=>!!env.valueFrom && !env.valueFrom.fieldRef).length === 0)
     
     return (
         <GenericExpanderButton
           title={<div>
             {title}<Checkbox
-              className={`resolve-env-refs-check`}
+              className={`resolve-env-refs-check${resolveRefsDisabled ? ' disabled':''}`}
+              disabled={resolveRefsDisabled}
               label="resolve refs"
               checked={this.state.resolveRefs}
               onCheck={this.toggleResolveRefs}

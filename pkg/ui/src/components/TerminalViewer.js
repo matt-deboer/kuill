@@ -328,7 +328,7 @@ class TerminalViewer extends React.Component {
           }}>
           <IconButton
             hoveredStyle={{backgroundColor: grey300, fill: grey800}}
-            iconStyle={{width: '30%', height: '30%'}}
+            iconStyle={{width: '20%', height: '20%'}}
             style={{
               backgroundColor: 'rgb(158, 158, 158)',
               margin: '0 auto', 

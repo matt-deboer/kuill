@@ -55,3 +55,7 @@ pre.quoted-string {
   .item-array:after {
     content: "]";
     color: black; }
+
+.resolve-env-refs-check.disabled svg, .resolve-env-refs-check.disabled label {
+  fill: rgba(0, 0, 0, 0.2) !important;
+  color: rgba(0, 0, 0, 0.2) !important; }
