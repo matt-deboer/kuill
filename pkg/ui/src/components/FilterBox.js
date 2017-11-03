@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {blueA400, blueA100 } from 'material-ui/styles/colors'
 import ChipInput from 'material-ui-chip-input'
+import { normalizeFilter } from '../utils/filter-utils'
 import Chip from 'material-ui/Chip'
 import './FilterBox.css'
 
@@ -73,7 +74,7 @@ export default class FilterBox extends React.PureComponent {
     }
 
     if (filterNames.length < this.props.maxFilters) {
-      filterNames.push(filter)
+      filterNames.push(normalizeFilter(filter))
 
       this.setState({
         filterNames: filterNames,

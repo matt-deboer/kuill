@@ -20,10 +20,6 @@ export function applyFilters(globalFilters, dynamicFilters, resource) {
   }
 }
 
-function isNamespaced(resource) {
-  return resource.metadata.namespace && resource.metadata.namespace !== '~'
-}
-
 /**
  * Applies the provided filters to the resource, modifying
  * the 'isFiltered' attribute of the resource accordingly.
@@ -39,6 +35,12 @@ function applyFiltersToResource(filters, resource) {
   for (var field in filters) {
     var values = filters[field]
     let match = false
+    let negated = false
+    if (field.startsWith('!')) {
+      negated = true
+      field = field.substr(1)
+    }
+
     if (field === '*') {
       let matched = false
       for (let m in resource.metadata) {
@@ -119,25 +121,32 @@ function applyFiltersToResource(filters, resource) {
         
       // }
     } else if (field === 'namespace') {
-      if (isNamespaced(resource) && !(resource.metadata.namespace in values)) {
-        return resource.isFiltered = true
-      } else {
-        match = true
-      }
+      match = true
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
       match = true
-    } else if ( `!${resource.metadata[field]}` ) {
-      return resource.isFiltered = true
     }
 
-    if (match) {
-      resource.isFiltered = false
-    } else {
-      // at least one filter field did not match; exit
-      return resource.isFiltered = true
+    if (negated) {
+      match = !match
     }
+    resource.isFiltered = !match
+    if (resource.isFiltered) {
+      return true
+    }
+  }
+}
+
+export function normalizeFilter(parts) {
+  if (typeof parts === 'string') {
+    parts = splitFilter(parts)
+  }
+  
+  if (parts[0].startsWith('!')) {
+    return `${parts[0].substr(1)}:!${parts[1]}`
+  } else {
+    return parts.join(':')
   }
 }
 
@@ -145,6 +154,9 @@ export function splitFilter(filter) {
   var parts=filter.split(":")
   if (parts.length === 1) {
     parts = ["*", parts[0]]
+  } else if (parts[1].startsWith('!')) {
+    parts[0] = '!' + parts[0]
+    parts[1] = parts[1].substr(1)
   }
   return parts
 }
