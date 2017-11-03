@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { removeResource, requestResources, viewResource, addFilter, removeFilter } from '../../state/actions/resources'
+import { removeResource, requestResources, viewResource, addFilter, removeFilter, detachResource } from '../../state/actions/resources'
 import { red900 } from 'material-ui/styles/colors'
 import { requestMetrics } from '../../state/actions/metrics'
 import { compareStatuses } from '../../utils/resource-utils'
@@ -41,6 +41,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
+    },
+    detachResource: function(resource) {
+      dispatch(detachResource(resource))
     },
     addFilter: function(filterName) {
       dispatch(addFilter(filterName))
@@ -393,6 +396,7 @@ class PodsForNodePane extends React.PureComponent {
           term: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
           edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
           delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+          detach: ()=> {this.props.detachResource(this.state.hoveredResource)},
           close: this.handleActionsRequestClose,
         }}
         access={this.state.hoveredResourceAccess}

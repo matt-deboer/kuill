@@ -1,5 +1,6 @@
 import { defaultFetchParams } from './request-utils'
 import { keyForResource } from './resource-utils'
+import { detachedOwnerRefsAnnotation } from '../state/actions/resources'
 
 export default class AccessEvaluator {
   
@@ -33,6 +34,9 @@ export default class AccessEvaluator {
           delete: permissions.delete,
           logs: permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
           exec: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
+          detach: permissions.put && resource.kind === 'Pod' 
+            && resource.metadata.annotations 
+            && !(detachedOwnerRefsAnnotation in resource.metadata.annotations),
           scale: permissions.put && replicas >= 0,
           suspend: permissions.put && replicas > 0,
         }

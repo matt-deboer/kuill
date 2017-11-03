@@ -1,8 +1,11 @@
+import { detachedOwnerRefsAnnotation } from '../state/actions/resources'
+
 export const zoneLabel = 'failure-domain.beta.kubernetes.io/zone'
 export const regionLabel = 'failure-domain.beta.kubernetes.io/region'
 export const instanceTypeLabel = 'beta.kubernetes.io/instance-type'
 export const roleLabel = 'kubernetes.io/role'
 export const hostnameLabel = 'kubernetes.io/hostname'
+
 
 /**
  * Applies the global and dynamic filters to the provided resource.
@@ -120,6 +123,14 @@ function applyFiltersToResource(filters, resource) {
       // for (let v of values) {
         
       // }
+
+    } else if (field === 'detached' 
+      && resource.kind === 'Pod' 
+      && 'true' in values 
+      && resource.metadata.annotations 
+      && detachedOwnerRefsAnnotation in resource.metadata.annotations
+    ) {
+      match = true
     } else if (field === 'namespace') {
       match = true
     } else if ( (resource.metadata[field] in values)

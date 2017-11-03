@@ -1,4 +1,4 @@
-import { types, excludedKinds } from '../actions/resources'
+import { types, excludedKinds, detachedOwnerRefsAnnotation } from '../actions/resources'
 import { types as session } from '../actions/session'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
@@ -244,6 +244,9 @@ function updateWorkloadsAutocomplete(possible, resource) {
   possible[`status:${resource.statusSummary}`]=true
   if (resource.kind === 'Pod') {
     possible[`node:${resource.spec.nodeName}`]=true
+    if (resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
+      possible['detached:true']=true
+    }
   }
 }
 
@@ -255,6 +258,9 @@ function updatePodsAutocomplete(possible, resource) {
     possible[`app:${resource.metadata.labels.app}`]=true
   }
   possible[`status:${resource.statusSummary}`]=true
+  if (resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
+    possible['detached:true']=true
+  }
 }
 
 function updateNodesAutocomplete(possible, resource) {

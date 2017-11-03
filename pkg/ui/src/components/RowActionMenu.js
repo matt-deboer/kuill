@@ -8,12 +8,13 @@ import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEdit from 'material-ui/svg-icons/editor/mode-edit'
 import IconView from 'material-ui/svg-icons/image/crop-free'
 import IconDelete from 'material-ui/svg-icons/action/delete'
+import IconDetach from 'material-ui/svg-icons/image/filter-none'
 import IconScale from 'material-ui/svg-icons/communication/import-export'
 import IconSuspend from 'material-ui/svg-icons/content/block'
 import { connect } from 'react-redux'
 import Popover from 'material-ui/Popover'
 
-const orderedActions = ['logs', 'exec', 'suspend', 'scale', 'edit', 'get', 'delete']
+const orderedActions = ['logs', 'exec', 'suspend', 'scale', 'detach', 'edit', 'get', 'delete']
 
 const actionIcons = {
   logs: <IconLogs/>,
@@ -23,6 +24,7 @@ const actionIcons = {
   edit: <IconEdit/>, 
   get: <IconView/>,
   delete: <IconDelete/>,
+  detach: <IconDetach/>,
 }
 
 const mapStateToProps = function(store) {

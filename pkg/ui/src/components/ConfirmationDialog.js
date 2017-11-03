@@ -12,6 +12,10 @@ export default class ConfirmationDialog extends React.PureComponent {
     let { props } = this
     let { linkGenerator } = props
 
+    if (!props.open) {
+      return null
+    }
+
     const actions = [
       <FlatButton
         label={props.cancelText || 'Cancel'}
@@ -26,6 +30,8 @@ export default class ConfirmationDialog extends React.PureComponent {
       />,
     ];
 
+    const links = props.resources.map(r => <div key={r.key}><Link to={linkGenerator.linkForResource(r)}>{r.key.replace(/\//g, ' / ')}</Link></div>)
+
     return (
       <Dialog
         title={<div>{props.title}</div>}
@@ -37,7 +43,8 @@ export default class ConfirmationDialog extends React.PureComponent {
         onRequestClose={props.onRequestClose}
       >
         {props.message}
-        {props.resources.map(r => <div key={r.key}><Link to={linkGenerator.linkForResource(r)}>{r.key.replace(/\//g, ' / ')}</Link></div>)}
+        {links}
+        {props.children}
       </Dialog>
     )
   }

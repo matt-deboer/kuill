@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import { blueA400, grey200, grey300, grey500, grey800, red900, white } from 'material-ui/styles/colors'
 import { connect } from 'react-redux'
-import { addFilter, removeFilter, removeResource, scaleResource, viewResource } from '../state/actions/resources'
+import { addFilter, removeFilter, removeResource, scaleResource, viewResource, detachResource } from '../state/actions/resources'
 import sizeMe from 'react-sizeme'
 import FilterTable from './filter-table/FilterTable'
 
@@ -22,6 +22,7 @@ import ConfirmationDialog from './ConfirmationDialog'
 import ScaleDialog from './ScaleDialog'
 import FilteredResourceCountsPanel from './FilteredResourceCountsPanel'
 import RowActionMenu from './RowActionMenu'
+import Checkbox from 'material-ui/Checkbox'
 import MultiResourceActionButton from './MultiResourceActionButton'
 import './WorkloadsPage.css'
 
@@ -54,6 +55,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     removeResource: function(...resources) {
       dispatch(removeResource(...resources))
+    },
+    detachResource: function(resource) {
+      dispatch(detachResource(resource))
     },
     scaleResource: function(resource, replicas) {
       dispatch(scaleResource(
@@ -190,6 +194,7 @@ class WorkloadsPage extends React.Component {
       hoveredRow: -1,
       hoveredResources: null,
       selectedResources: [],
+      openTerminalOnDetach: true,
     }
     this.selectedIds = {}
     this.deleteEnabled = false
@@ -354,6 +359,12 @@ class WorkloadsPage extends React.Component {
       || this.props.kinds !== nextProps.kinds
   }
 
+  toggleOpenTerminalOnDetach = () => {
+    this.setState({
+      openTerminalOnDetach: !this.state.openTerminalOnDetach,
+    })
+  }
+
   handleActionsRequestClose = () => {
     this.setState({
       actionsOpen: false,
@@ -438,6 +449,30 @@ class WorkloadsPage extends React.Component {
     })
   }
 
+  handleDetach = (resource) => {
+    let resources = []
+    if (resource) {
+      resources.push(resource)
+    } else if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
+      for (let id in this.selectedIds) {
+        resources.push(this.props.resources[id])
+      }
+    }
+
+    this.setState({
+      selectedResources: resources,
+      detachOpen: true,
+      actionsOpen: false,
+    })
+  }
+
+  handleRequestCloseDetach = () => {
+    this.setState({
+      detachOpen: false,
+      selectedResources: [],
+    })
+  }
+
   handleRequestCloseDelete = () => {
     this.setState({
       deleteOpen: false,
@@ -446,11 +481,20 @@ class WorkloadsPage extends React.Component {
   }
 
   handleConfirmDelete = () => {
+    this.props.removeResource(...this.state.selectedResources)
     this.setState({
       selectedResources: [],
       deleteOpen: false,
     })
-    this.props.removeResource(...this.state.selectedResources)
+    this.handleRowSelection({})
+  }
+
+  handleConfirmDetach = () => {
+    this.props.detachResource(...this.state.selectedResources)
+    this.setState({
+      selectedResources: [],
+      detachOpen: false,
+    })
     this.handleRowSelection({})
   }
 
@@ -561,6 +605,7 @@ class WorkloadsPage extends React.Component {
             scale: this.handleScale,
             edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
             delete: ()=>{ this.handleDelete(this.state.hoveredResources)},
+            detach: ()=> { this.handleDetach(this.state.hoveredResource)},
             close: this.handleActionsRequestClose,
           }}
           access={this.state.hoveredResourceAccess}
@@ -618,6 +663,30 @@ class WorkloadsPage extends React.Component {
           onConfirm={this.handleConfirmSuspend}
           linkGenerator={this.props.linkGenerator}
           />
+
+        <ConfirmationDialog 
+          open={this.state.detachOpen}
+          title={'Detach Resource:'}
+          message={`Are you sure you want to detach the following resource?`}
+          resources={this.state.selectedResources}
+          onRequestClose={this.handleRequestCloseDetach}
+          onConfirm={this.handleConfirmDetach}
+          linkGenerator={this.props.linkGenerator}
+          >
+          <p>
+            This object will no longer count among the replicas for it's owner.
+            <br/>
+            Note: You can view "detached" resources in the workloads view by adding the filter 'detached:true'
+          </p>
+          <Checkbox
+            label="Open terminal view"
+            className={'open-term'}
+            checked={this.state.openTerminalOnDetach}
+            onCheck={this.toggleOpenTerminalOnDetach}
+            style={styles.checkbox}
+            labelStyle={styles.checkboxLabel}
+          />
+        </ConfirmationDialog>
 
         <ScaleDialog 
           open={this.state.scaleOpen}

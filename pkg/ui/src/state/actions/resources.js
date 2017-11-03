@@ -49,6 +49,8 @@ export const excludedKinds = {
   'Endpoints': true,
 }
 
+export const detachedOwnerRefsAnnotation = 'kuill/detachedOwnerReferences'
+
 export function receiveResources(resources) {
   return function(dispatch, getState) {
     let kubeKinds = getState().apimodels.kinds
@@ -273,6 +275,8 @@ export function scaleResource(namespace, kind, name, replicas) {
   }
 }
 
+
+
 /**
  * Called by editors to send updated resource contents
  * 
@@ -288,13 +292,8 @@ export function applyResourceChanges(namespace, kind, name, contents) {
       })
       // TODO: should we really be controlling routing here?
       if (success) {
-        let link = getState().session.linkGenerator.linkForResource({
-          name: name, namespace: namespace, kind: kind})
-        dispatch(routerActions.push({
-          pathname: link.split('?')[0],
-          search: '?view=events',
-          hash: '',
-        }))
+        dispatch(viewResource({
+          name: name, namespace: namespace, kind: kind}, 'events'))
       }
   }
 }
@@ -379,11 +378,7 @@ export function createResource(contents) {
       })
       // let workloads = getState().resources
       if (!!resource) {
-        let link = getState().session.linkGenerator.linkForResource(resource)
-        dispatch(routerActions.push({
-          pathname: link.split('?')[0],
-          search: '?view=events',
-        }))
+        dispatch(viewResource(resource, 'events'))
       }
   }
 }
@@ -420,6 +415,24 @@ export function removeResource(...resourcesToRemove) {
       }
   }
 }
+
+/**
+ * Detaches the resource from it's owner
+ */
+export function detachResource(resource) {
+  return async function (dispatch, getState) {
+    let meta = resource.metadata
+    if (meta && 'ownerReferences' in meta) {
+      meta.annotations = meta.annotations || {}
+      meta.annotations[detachedOwnerRefsAnnotation] = JSON.stringify(meta.ownerReferences)
+      meta.ownerReferences = []
+      await doRequest(dispatch, getState, 'resource.contents', async () => {
+        await updateResourceContents(dispatch, getState, resource.metadata.namespace, resource.kind, resource.metadata.name, resource)
+      })
+    }
+  }
+}
+
 
 async function shouldFetchResources(dispatch, getState, force) {
   let state = getState()
@@ -680,21 +693,18 @@ async function updateResourceContents(dispatch, getState, namespace, kind, name,
     if (!resp.ok) {
       if (resp.status === 401) {
         dispatch(invalidateSession())
-      } else if (resp.status < 500) {
-        return resp.json()
-      } else {
-        dispatch(addError(resp,'error',`Failed to update contents for ${kind}/${namespace}/${name}: ${resp.statusText}`))
       }
-    } else {
-      return resp.json()
     }
+    return resp.json()
   }).then(resource => {
-    if (resource.code) {
-      dispatch(addError(resource,'error',`Failed to update contents for ${kind}/${namespace}/${name}: ${resource.message}`))
-    } else {
-      dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
-      dispatch(receiveResource(resource, resource))
-      return true
+    if (resource) {
+      if (resource.code) {
+        dispatch(addError(resource,'error',`Failed to update contents for ${kind}/${namespace}/${name}: ${resource.message}`))
+      } else {
+        dispatch({ type: types.SELECT_RESOURCE, namespace: namespace, kind: kind, name: name, })
+        dispatch(receiveResource(resource, resource))
+        return true
+      }
     }
   })
 }
