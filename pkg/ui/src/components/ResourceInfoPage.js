@@ -8,13 +8,15 @@ import {Card, CardHeader} from 'material-ui/Card'
 import ConfigurationPane from './configuration-pane/ConfigurationPane'
 import PermissionsPane from './configuration-pane/PermissionsPane'
 import PodTemplatePane from './configuration-pane/PodTemplatePane'
-import PodsPane from './configuration-pane/PodsPane'
+import PodsForNodePane from './configuration-pane/PodsForNodePane'
+import RelatedResourcesPane from './configuration-pane/RelatedResourcesPane'
 import EventViewer from './EventViewer'
 
 import IconConfiguration from 'material-ui/svg-icons/action/list'
 import IconPermissions from 'material-ui/svg-icons/communication/vpn-key'
 import IconPodTemplate from 'material-ui/svg-icons/action/flip-to-back'
 import IconPods from 'material-ui/svg-icons/action/group-work'
+import IconRelated from 'material-ui/svg-icons/hardware/device-hub'
 import IconLogs from 'material-ui/svg-icons/action/receipt'
 import IconTerminal from 'material-ui/svg-icons/hardware/computer'
 import IconEvents from 'material-ui/svg-icons/action/event'
@@ -280,9 +282,16 @@ class ResourceInfoPage extends React.Component {
       if (resource.kind === 'Node') {
         tabs.push({
           name: 'pods',
-          component: PodsPane,
+          component: PodsForNodePane,
           icon: <IconPods/>,
           props: {node: resource},
+        })
+      } else if (!!resource.owned) {
+        tabs.push({
+          name: 'related',
+          component: RelatedResourcesPane,
+          icon: <IconRelated/>,
+          props: {resource: resource},
         })
       }
     }
@@ -312,6 +321,9 @@ class ResourceInfoPage extends React.Component {
       })
     }
 
+    // TODO: check for tab change, 
+    // if the tab is 'related', set the default
+    // filters...
     let activeTab = tabs[0].name
     if (targetTab !== 'edit') {
       if (tabs.find((t) => t.name === targetTab)) {

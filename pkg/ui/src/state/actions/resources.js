@@ -37,11 +37,15 @@ for (let type of [
 }
 
 export const maxReloadInterval = 5000
-export const excludedKinds = {
+const excludedFetch = {
   'APIService': true,
   'ComponentStatus': true,
   'ControllerRevision': true,
   'Event': true,
+}
+
+export const excludedKinds = {
+  ...excludedFetch,
   'Endpoints': true,
 }
 
@@ -450,8 +454,8 @@ async function fetchResources(dispatch, getState, force, filter) {
     
     let kubeKinds = getState().apimodels.kinds
     let entryFilter = (typeof filter === 'function') ?
-      function(entry) { return !(entry[0] in excludedKinds) && filter(entry[1]) } : 
-      function(entry) { return !(entry[0] in excludedKinds) }
+      function(entry) { return !(entry[0] in excludedFetch) && filter(entry[1]) } : 
+      function(entry) { return !(entry[0] in excludedFetch) }
 
     let urls = Object.entries(kubeKinds).filter(entryFilter).map(entry => [entry[1], `/proxy/${entry[1].base}/${entry[1].plural}`])
     let requests = urls.map(([kubeKind,url],index) => fetch(url, defaultFetchParams

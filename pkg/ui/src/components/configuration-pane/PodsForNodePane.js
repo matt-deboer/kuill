@@ -14,7 +14,7 @@ import FilterTable from '../filter-table/FilterTable'
 import RowActionMenu from '../RowActionMenu'
 import ConfirmationDialog from '../ConfirmationDialog'
 import MultiResourceActionButton from '../MultiResourceActionButton'
-import './PodsPane.css'
+import './PodsForNodePane.css'
 
 const mapStateToProps = function(store) {
   return {
@@ -74,7 +74,7 @@ const styles = {
 
 export default sizeMe({ monitorHeight: true, monitorWidth: true }) (
 connect(mapStateToProps, mapDispatchToProps) (
-class PodsPane extends React.PureComponent {
+class PodsForNodePane extends React.PureComponent {
   
   static propTypes = {
     node: PropTypes.object.isRequired,

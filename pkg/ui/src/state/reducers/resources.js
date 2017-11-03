@@ -1,11 +1,11 @@
-import { types } from '../actions/resources'
+import { types, excludedKinds } from '../actions/resources'
 import { types as session } from '../actions/session'
 import yaml from 'js-yaml'
 import queryString from 'query-string'
 import { LOCATION_CHANGE } from 'react-router-redux'
 import { arraysEqual } from '../../comparators'
 import { keyForResource, statusForResource, sameResource } from '../../utils/resource-utils'
-import { applyFilters, splitFilter } from '../../utils/filter-utils'
+import { applyFilters, splitFilter, normalizeFilter } from '../../utils/filter-utils'
 import { removeReadOnlyFields } from '../../utils/request-utils'
 
 const initialState = {
@@ -58,6 +58,8 @@ const initialState = {
   disabledKinds: {},
   // is a map[node-name]string[]
   podsByNode: {},
+
+  podsByService: {},
   // the maximum resourceVersion value seen across all resource fetches
   // by kind--this allows us to set watches more efficiently; 
   // TODO: we may need to store this on a per-resource basis, 
@@ -288,6 +290,11 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     return state
   }
   let newState = {...state}
+  updateRelatedResources(newState, resource)
+  if (resource.kind in excludedKinds) {
+    return newState
+  }
+
   let kubeKind = kubeKinds[resource.kind]
   let resourceGroup = kubeKind.resourceGroup
   resource.statusSummary = statusForResource(resource)
@@ -299,6 +306,7 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     updatePodCount(newState, resource)
   }
 
+  // TODO: there's a specific set of endpoints we're trying to throttle here
   if (isNew || resource.kind !== 'Endpoints') {
     ++newState.resourceRevision
   }
@@ -338,6 +346,7 @@ function doRemoveResource(state, resource) {
     if (countsByNamespace[resource.metadata.namespace] === 0) {
       delete countsByNamespace[resource.metadata.namespace]
     }
+    updateRelatedResources(state, resource, true)
 
     return { ...state,
       countsByKind: countsByKind,
@@ -411,11 +420,17 @@ function doReceiveResources(state, resources, kubeKinds) {
     unresolvedOwnership: {},
   }
 
+  let excludeKeys = {}
   visitResources(resources, function(resource) {
     resource.statusSummary = statusForResource(resource)
     let kubeKind = kubeKinds[resource.kind]
     let resourceGroup = (kubeKind && kubeKind.resourceGroup) || 'workloads'
     registerOwned(newState, resource)
+    updateRelatedResources(newState, resource)
+    if (resource.kind in excludedKinds) {
+      excludeKeys[resource.key]=true
+      return
+    }
     updateProblemResources(newState, resource)
     if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
       updateAutocomplete(newState, resource, resourceGroup)
@@ -425,7 +440,10 @@ function doReceiveResources(state, resources, kubeKinds) {
     updateResourceCounts(newState, resource)
   })
   processUnresolvedOwners(newState)
-  
+  for (let key in excludeKeys) {
+    delete newState.resources[key]
+  }
+
   ++newState.resourceRevision
   return newState
 }
@@ -460,6 +478,63 @@ function updateVersionByKind(state, resource) {
 
   state.maxResourceVersionByKind[resource.kind] = Math.max(currentMax, resourceVersion)
 }
+
+
+// maintain a bidirectional relationship between
+// a resource and all other resources to which it is 'related'
+function updateRelatedResources(state, resource, remove) {
+  
+  if (remove && resource.related) {
+    for (let relKey in resource.related) {
+      let rel = state.resources[relKey]
+      if (rel && rel.related) {
+        delete rel.related[resource.key]
+      }
+    }
+  } else if (resource.kind === 'Endpoints') {
+    // Endpoints(Service) <==> Pod
+    if (resource.subsets) {
+      for (let subset of resource.subsets) {
+        for (let addr of subset.addresses) {
+          if ('targetRef' in addr) {
+            let ref = addr.targetRef
+            let refKey = `${ref.kind}/${ref.namespace}/${ref.name}`
+            let target = state.resources[refKey]
+            let serviceKey = `Service/${resource.metadata.namespace}/${resource.metadata.name}`
+            if (target) {
+              target.related = target.related || {}
+              target.related[serviceKey] = true
+            }
+            let service = state.resources[serviceKey]
+            if (service) {
+              service.related = service.related || {}
+              service.related[refKey] = true
+            }
+          }
+        }
+      }
+    }
+  } else if (resource.kind === 'Ingress') {
+    // Ingress <==> Service
+    for (let rule of resource.spec.rules) {
+      if (rule.http && rule.http.paths) {
+        for (let path of rule.http.paths) {
+          if (path.backend && path.backend.serviceName) {
+            let refKey = `Service/${resource.metadata.namespace}/${path.backend.serviceName}`
+            let target = state.resources[refKey]
+            if (target) {
+              target.related = target.related || {}
+              target.related[resource.key] = true
+            }
+            resource.related = resource.related || {}
+            resource.related[refKey] = true
+          }
+        }
+      }
+    }
+  } 
+}
+
 
 function updatePodCount(state, resource) {
   if (resource.kind === 'Pod') {
@@ -620,7 +695,7 @@ function addFilter(filters, filterNames, ...newFilterNames) {
     if (!(filterKey in filters) || !(filterValue in filters[filterKey])) {
       let filter = filters[filterKey] = (filters[filterKey] || {})
       filter[filterValue]=true
-      filterNames.push(filterName)
+      filterNames.push(normalizeFilter([filterKey, filterValue]))
       modified = true
     }
   }
