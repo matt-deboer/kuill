@@ -26,7 +26,7 @@ const mapStateToProps = function(store) {
     resourceRevision: store.resources.revision,
     podMetrics: store.metrics.pod,
     filterNames: store.resources.filterNames,
-    autocomplete: store.resources.autocomplete.pods,
+    autocomplete: store.resources.autocomplete.workloads,
   }
 }
 
