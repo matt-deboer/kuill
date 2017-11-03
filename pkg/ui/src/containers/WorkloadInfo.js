@@ -19,6 +19,8 @@ const AsyncEditorPage = Loadable({
   loading: LoadingComponentStub
 })
 
+const defaultRelatedFilters = ['status:!disabled']
+
 const mapStateToProps = function(store) {
   return { 
     resource: store.resources.resource,
@@ -50,7 +52,6 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     },
     editResource: function(namespace, kind, name) {
       dispatch(editResource(namespace, kind, name))
-      // ownProps.selectView('edit')
       let { params } = ownProps.match
       dispatch(editResource(params.namespace, params.kind, params.name))
     },
@@ -95,8 +96,14 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       }
       
       let { location } = ownProps
-      let newSearch = `?view=${tab}`
-      console.log(`selectView: pushed new location...`)
+      let query = queryString.parse(location.search)
+      if (query.view !== tab && tab === 'related') {
+        query.filters = defaultRelatedFilters
+      }
+      query.view = tab
+      
+      let newSearch = queryString.stringify(query)
+
       dispatch(routerActions.push({
         pathname: location.pathname,
         search: newSearch,
