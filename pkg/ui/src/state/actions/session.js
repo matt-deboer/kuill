@@ -65,16 +65,3 @@ export function replaceLoginMethods(loginMethods) {
     loginMethods: loginMethods,
   }
 }
-
-/**
- * 
- * @param {*} kind 
- * @param {*} permissions 
- */
-export function updatePermissionsForKind(kind, permissions) {
-  return {
-    type: types.PUT_PERMISSIONS,
-    kind: kind,
-    permissions: permissions,
-  }
-}

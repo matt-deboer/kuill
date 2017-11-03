@@ -7,21 +7,12 @@ export default class AccessEvaluator {
     this.props = props
     this.getState = props.getState
     this.dispatch = props.dispatch
-    this.forbiddenByKind = {}
     this.permissions = {}
   }
 
   initialize = () => {    
     this.swagger = this.swagger || this.getState().apimodels.swagger
     this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
-    this.permissionsByKind = this.permissionsByKind || this.getState().session.permissionsByKind
-  }
-
-  forbidden = (kind, verb, namespace='') => {
-    let perms = this.forbiddenByKind[kind] = this.forbiddenByKind[kind] || {}
-    let perm = perms[verb] = perms[verb] || {}
-    let ns = namespace === '~' ? '' : namespace
-    perm[ns] = 'forbidden'
   }
 
   /**
@@ -117,45 +108,31 @@ export default class AccessEvaluator {
    * 
    * @param {String} kind 
    */
-  getWatchableNamespaces = (kind) => {
+  getWatchableNamespaces = async (kind) => {
     this.initialize()
     let kubeKind = this.kubeKinds[kind]
-    let permissions = this.permissionsByKind[kind]
-    let swagger = this.swagger
 
-    if (permissions && permissions.namespaced) {
-      if (permissions.namespaces && 
-          permissions.namespaces.length > 0 && 
-          !!swagger && `/${kubeKind.base}/watch/namespaces/{namespace}/${kubeKind.plural}` in swagger.paths) {
-        return permissions.namespaces
+    let requests = []
+    requests.push(accessReview(kubeKind, 'watch'))
+    for (let ns of this.getState().resources.namespaces) {
+      requests.push(accessReview(kubeKind, 'watch', ns))
+    }
+    let results = await Promise.all(requests)
+    let clusterLevel = false
+    let watchableNamespaces = []
+    for (let result of results) {
+      let allowed = result.status.allowed
+      let attrs = result.spec.resourceAttributes
+      if (allowed) {
+        if ('namespace' in attrs) {
+          watchableNamespaces.push(attrs.namespace)
+        } else {
+          clusterLevel = true
+          break
+        }
       }
-    } else if (!!swagger && `/${kubeKind.base}/watch/${kubeKind.plural}` in swagger.paths) {
-      return (permissions && permissions.disabled) ? [] : ['*']
     }
-    return []
-  }
-
-  /**
-   * Returns true if the kind is namespaced
-   * 
-   * @param {String} kind
-   */
-  isNamespaced = (kind) => {
-    this.initialize()
-    let kubeKind = this.kubeKinds[kind]
-    return this.swagger && `/${kubeKind.base}/namespaces/{namespace}/${kubeKind.plural}` in this.swagger.paths
-  }
-
-  /**
-   * Returns true if the resource can be listed at the specified namespace
-   * use '' for namespace to list at the cluster level
-   */
-  canList = (kind, namespace) => {
-    let perms = this.forbiddenByKind[kind]
-    if (perms && 'list' in perms && namespace in perms.list) {
-      let forbidden = perms.list[namespace]
-      return !forbidden
-    }
+    return clusterLevel ? ['*'] : watchableNamespaces
   }
 }
 

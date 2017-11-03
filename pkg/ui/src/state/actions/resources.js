@@ -1,4 +1,4 @@
-import { invalidateSession, updatePermissionsForKind } from './session'
+import { invalidateSession } from './session'
 import { requestSwagger, requestKinds } from './apimodels'
 import { requestMetrics } from './metrics'
 import { selectLogsFor } from './logs'
@@ -465,9 +465,6 @@ async function fetchResources(dispatch, getState, force, filter) {
             dispatch(invalidateSession())
           } else if (resp.status === 403) {
             if (kubeKind.namespaced) {
-              dispatch(updatePermissionsForKind(kubeKind.name, {
-                namespaced: true
-              }))
               return fetchResourcesByNamespace(dispatch, getState, kubeKind)
             }
           } else if (resp.status !== 404) {
@@ -505,11 +502,6 @@ async function fetchResourcesByNamespace(dispatch, getState, kubeKind) {
         }
         return resp
       } else {
-        let allowedNamespaces = {}
-        allowedNamespaces[ns] = true
-        dispatch(updatePermissionsForKind(kind, {
-          namespaces: allowedNamespaces,
-        }))
         return resp.json()
       }
     }
@@ -562,7 +554,7 @@ function watchResources(dispatch, getState) {
   let watches = getState().resources.watches || {}
   let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
   let kubeKinds = getState().apimodels.kinds
-  var watchableNamespaces
+  let watchRequests = []
 
   if (!objectEmpty(watches)) {
     // Update/reset any existing watches
@@ -570,43 +562,51 @@ function watchResources(dispatch, getState) {
       if (kind in excludedKinds) {
         continue
       }
-      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
-      if (watchableNamespaces.length > 0) {
-        let watch = watches[kind]
-        if (!!watch && watch.closed()) {
-          watch.destroy()
-          watches[kind] = new ResourceKindWatcher({
-            kubeKinds: kubeKinds,
-            kind: kind,
-            dispatch: dispatch,
-            resourceVersion: maxResourceVersionByKind[kind] || 0,
-            resourceGroup: 'workloads',
-            namespaces: watchableNamespaces,
-          })
-        }
-      }
+      watchRequests.push(
+          accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
+          if (watchableNamespaces.length > 0) {
+            let watch = watches[kind]
+            if (!!watch && watch.closed()) {
+              watch.destroy()
+              watches[kind] = new ResourceKindWatcher({
+                kubeKinds: kubeKinds,
+                kind: kind,
+                dispatch: dispatch,
+                resourceVersion: maxResourceVersionByKind[kind] || 0,
+                resourceGroup: 'workloads',
+                namespaces: watchableNamespaces,
+              })
+            }
+          }
+        })
+      )
     }
   } else {
     for (let kind in kubeKinds) {
       if (kind in excludedKinds) {
         continue
       }
-      watchableNamespaces = accessEvaluator.getWatchableNamespaces(kind)
-      if (watchableNamespaces.length > 0) {
-        watches[kind] = new ResourceKindWatcher({
-          kubeKinds: kubeKinds,
-          kind: kind, 
-          dispatch: dispatch,
-          resourceVersion: maxResourceVersionByKind[kind] || 0,
-          resourceGroup: 'workloads',
-          namespaces: watchableNamespaces,
+      watchRequests.push(
+        accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
+          if (watchableNamespaces.length > 0) {
+            watches[kind] = new ResourceKindWatcher({
+              kubeKinds: kubeKinds,
+              kind: kind, 
+              dispatch: dispatch,
+              resourceVersion: maxResourceVersionByKind[kind] || 0,
+              resourceGroup: 'workloads',
+              namespaces: watchableNamespaces,
+            })
+          }
         })
-      }
+      )
     }
   }
-  dispatch({
-    type: types.SET_WATCHES,
-    watches: watches,
+  Promise.all(watchRequests).then( () => {
+    dispatch({
+      type: types.SET_WATCHES,
+      watches: watches,
+    })
   })
 }
 
