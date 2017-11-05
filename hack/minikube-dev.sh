@@ -7,12 +7,7 @@ SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 # starts up kuill locally, pointed at the apiserver from minikube
 
-status=$(minikube status)
-
-if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
-  echo "Launching minikube cluster..."
-  ${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
-fi
+${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
 
 kubectl config use-context minikube
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
