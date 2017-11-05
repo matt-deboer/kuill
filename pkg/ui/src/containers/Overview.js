@@ -67,6 +67,7 @@ class Overview extends React.Component {
 
   fetch = () => {
     let { props } = this
+    props.requestMetrics()
     props.requestResources()
     props.watchEvents()
   }
