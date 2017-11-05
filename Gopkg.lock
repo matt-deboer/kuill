@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/alecthomas/template"
+  packages = [".","parse"]
+  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
+
+[[projects]]
+  branch = "master"
   name = "github.com/alecthomas/units"
   packages = ["."]
   revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
@@ -44,6 +50,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/gogo/protobuf"
+  packages = ["proto"]
+  revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
+  version = "v0.5"
+
+[[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
@@ -72,6 +84,12 @@
   name = "github.com/pquerna/cachecontrol"
   packages = [".","cacheobject"]
   revision = "5475d973ea70916980bee28c2b674f3dc3eaed0a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/common"
+  packages = ["log"]
+  revision = "e3fb1a1acd7605367a2b378bc2e2f893c05174b7"
 
 [[projects]]
   branch = "master"
@@ -118,7 +136,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = ["unix","windows","windows/registry","windows/svc/eventlog"]
   revision = "47bdb838cce8879fca08207206a5dfde2f2538bc"
 
 [[projects]]
@@ -140,6 +158,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "gopkg.in/alecthomas/kingpin.v2"
+  packages = ["."]
+  revision = "1087e65c9441605df944fb12c33f0fe7072d18ca"
+  version = "v2.2.5"
+
+[[projects]]
   name = "gopkg.in/square/go-jose.v2"
   packages = [".","cipher","json"]
   revision = "b25e6cab129e4a54675b42ea49d38e9c33ade9e6"
@@ -154,6 +178,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "72df0a537953b5431a922cedb07b801e3d5a8f113416537abeda1424410f9100"
+  inputs-digest = "c59398cf8d7917048b4d42918b395023fbf961960bae14c2287572f8190c2eeb"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -44,6 +44,7 @@
     "shallowequal": "^1.0.2",
     "source-map-explorer": "^1.4.0",
     "swagger-object-validator": "^1.1.7",
+    "test-proxy": "file:test-proxy",
     "text-encoding-utf-8": "^1.0.1",
     "visibilityjs": "^1.2.5",
     "whatwg-fetch-timeout": "^2.0.2-timeout",
