@@ -86,13 +86,14 @@ async function setEventWatches(dispatch, getState) {
     if (!!result && result.kind === 'EventList') {
       resourceVersion = result.metadata.resourceVersion
       dispatch(receiveEvents(getState().resources.resources, ...result.items))   
+      
+      watch = new EventsWatcher({
+        dispatch: dispatch,
+        getState: getState,
+        resourceVersion: resourceVersion,
+      })
+      dispatch(setWatch(watch))
     }
 
-    watch = new EventsWatcher({
-      dispatch: dispatch,
-      getState: getState,
-      resourceVersion: resourceVersion,
-    })
-    dispatch(setWatch(watch))
   }
 }
