@@ -279,7 +279,7 @@ function updateAccessAutocomplete(access, subjects, resource) {
     access[`app:${resource.metadata.labels.app}`]=true
   }
 
-  if ('subjects' in resource) {
+  if (resource.subjects) {
     for (let subject of resource.subjects) {
       access[`subject:${subject.name}`]=true
       subjects[`${subject.kind}:${subject.name}`]=true
