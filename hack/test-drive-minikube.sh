@@ -5,7 +5,7 @@ status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
   minikube start ${MINIKUBE_OPTIONS} \
-    --kubernetes-version v1.7.5 \
+   --kubernetes-version v1.8.0 \
     --extra-config apiserver.Authorization.Mode=RBAC \
     --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
     --extra-config apiserver.Authentication.RequestHeader.ClientCAFile=/var/lib/localkube/certs/ca.crt \

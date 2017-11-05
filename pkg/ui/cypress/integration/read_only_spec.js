@@ -11,13 +11,13 @@ context('Readonly User', function(){
 
     cy.get('table.filter-table.workloads > tbody')
       .children('tr:nth-child(1)')
-      .children('td:nth-child(8)')
+      .children('td:nth-child(11)')
       .click()
     
-    cy.get('.actions-popover')
+      cy.get('div.actions-popover div', {timeout: 10000})
       .children('button.row-action')
       .each(function(button) {
-        expect(button.context.id).to.match(/row-action:get|row-action:logs/)
+        expect(button.context.id).to.match(/row-action:(get|logs)/)
       })
   })
 

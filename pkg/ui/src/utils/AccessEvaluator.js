@@ -9,10 +9,12 @@ export default class AccessEvaluator {
     this.getState = props.getState
     this.dispatch = props.dispatch
     this.permissions = {}
+    this.rules = {}
   }
 
-  initialize = () => {    
+  initialize = () => {  
     this.swagger = this.swagger || this.getState().apimodels.swagger
+    this.useRulesReview = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview' in this.swagger.definitions
     this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
   }
 
@@ -45,6 +47,11 @@ export default class AccessEvaluator {
 
   getObjectPermissions = async (resource) => {
     this.initialize()
+
+    if (this.useRulesReview) {
+      return this.getRules()
+    }
+
     let kubeKind = this.kubeKinds[resource.kind]
     let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
     let namespacePerms = {}
@@ -97,6 +104,32 @@ export default class AccessEvaluator {
       objectPerms.exec = permissions.exec = false
     }
     return permissions
+  }
+
+  getRules = async () => {
+    this.initialize()
+
+    let requests = []
+    for (let ns of this.getState().resources.namespaces) {
+      requests.push(rulesReview(ns))
+    }
+
+    let rules = {}
+    let results = await Promise.all(requests)
+    for (let result of results) {
+      for (let rule of result.status.resourceRules) {
+        for (let verb of rule.verbs) {
+          for (let resource of rule.resources) {
+            let resourceNames = rule.resourceNames || ['*']
+            for (let name of resourceNames) {
+              rules[`${result.spec.namespace}.${resource}.${name}`]=true
+            }
+          }
+        }
+      }
+    }
+
+    return rules
   }
 
   /**
@@ -222,4 +255,42 @@ async function accessReview(kubeKind, verb, namespace='', name='', subresource='
   //   console.error(`Unexpected response from selfsubjectaccessreviews: ${result}`)
   //   return false
   // }
+}
+
+
+async function rulesReview(namespace='') {
+  
+  let body = {
+    kind: 'SelfSubjectRulesReview',
+    apiVersion: 'authorization.k8s.io/v1',
+    spec: {}
+  }
+  if (namespace === '~') {
+    namespace = ''
+  }
+  body.spec = {
+    namespace: namespace,
+  }
+
+  let bodyString = JSON.stringify(body)
+  let url = '/proxy/apis/authorization.k8s.io/v1/selfsubjectrulesreviews'
+  return await fetch( url, {...defaultFetchParams, 
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: bodyString,
+  }).then(resp => {
+    if (!resp.ok) {
+      return resp.text()
+    } else {
+      return resp.json()
+    }
+  }).then(json => {
+    if (json && json.spec) {
+      json.spec.namespace = namespace
+    }
+    return json
+  })
 }
