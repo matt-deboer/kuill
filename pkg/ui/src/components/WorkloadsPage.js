@@ -613,7 +613,7 @@ class WorkloadsPage extends React.Component {
           />
 
         <Link to="/workloads/new" >
-          <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
+          <FloatingActionButton className={'new-workload'} style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
           </FloatingActionButton>
         </Link>
