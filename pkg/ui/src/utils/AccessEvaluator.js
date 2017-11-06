@@ -2,6 +2,25 @@ import { defaultFetchParams } from './request-utils'
 import { keyForResource } from './resource-utils'
 import { detachedOwnerRefsAnnotation } from '../state/actions/resources'
 
+
+const denyAll = {
+  'get':false,
+  'put':false,
+  'delete':false,
+  'logs':false,
+  'exec':false,
+  'watch':false,
+}
+
+const allowAll = {
+  'get':true,
+  'put':true,
+  'delete':true,
+  'logs':true,
+  'exec':true,
+  'watch':true,
+}
+
 export default class AccessEvaluator {
   
   constructor(props) {
@@ -9,12 +28,22 @@ export default class AccessEvaluator {
     this.getState = props.getState
     this.dispatch = props.dispatch
     this.permissions = {}
-    this.rules = {}
+    this.initialize()
   }
 
   initialize = () => {  
     this.swagger = this.swagger || this.getState().apimodels.swagger
     this.useRulesReview = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview' in this.swagger.definitions
+    if (!this.rules) {
+      if (this.useRulesReview) {
+        let that = this
+        this.getRules().then(rules => {
+          that.rules = rules
+        })
+      } else {
+        this.rules = {}
+      }
+    }
     this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
   }
 
@@ -49,7 +78,7 @@ export default class AccessEvaluator {
     this.initialize()
 
     if (this.useRulesReview) {
-      return this.getRules()
+      return resolveNamespacePermissions(resource, this.rules, this.kubeKinds)
     }
 
     let kubeKind = this.kubeKinds[resource.kind]
@@ -107,7 +136,6 @@ export default class AccessEvaluator {
   }
 
   getRules = async () => {
-    this.initialize()
 
     let requests = []
     for (let ns of this.getState().resources.namespaces) {
@@ -117,12 +145,15 @@ export default class AccessEvaluator {
     let rules = {}
     let results = await Promise.all(requests)
     for (let result of results) {
+      let nsRules = rules[result.spec.namespace] = rules[result.spec.namespace] || {}
       for (let rule of result.status.resourceRules) {
-        for (let verb of rule.verbs) {
-          for (let resource of rule.resources) {
-            let resourceNames = rule.resourceNames || ['*']
-            for (let name of resourceNames) {
-              rules[`${result.spec.namespace}.${resource}.${name}`]=true
+        for (let resource of rule.resources) {
+          let resourceNames = rule.resourceNames || ['']
+          for (let name of resourceNames) {
+            let kindKey = resource + (name ? ':' + name : '')
+            let kindRules = nsRules[kindKey] = nsRules[kindKey] || {}
+            for (let verb of rule.verbs) {
+              kindRules[verb] = true
             }
           }
         }
@@ -147,6 +178,11 @@ export default class AccessEvaluator {
    */
   getWatchableNamespaces = async (kind) => {
     this.initialize()
+    
+    if (this.useRulesReview) {
+      return resolveWatchableFromRules(kind, this.rules, this.kubeKinds)
+    }
+    
     let kubeKind = this.kubeKinds[kind]
 
     let requests = []
@@ -170,6 +206,47 @@ export default class AccessEvaluator {
       }
     }
     return clusterLevel ? ['*'] : watchableNamespaces
+  }
+}
+
+function resolveWatchableFromRules(kind, rules, kubeKinds) {
+  let watchable = {}
+  for (let ns in rules) {
+    let nsPerms = resolveNamespacePermissions({kind: kind, metadata: {namespace: ns, name: ''}}, rules, kubeKinds)
+    if (nsPerms.watch) {
+      watchable[ns] = true
+    }
+  }
+  return Object.keys(watchable)
+}
+
+
+function resolveNamespacePermissions(resource, rules, kubeKinds) {
+  let nsRules = rules[resource.metadata.namespace]
+  if (nsRules) {
+    return resolveKindPermissions(resource, nsRules, kubeKinds)
+  } else {
+    return denyAll
+  }
+}
+
+function resolveKindPermissions(resource, rules, kubeKinds) {
+  if (rules) {
+    let allKindsPerms = resolveVerbs(rules['*'])
+    let plural = kubeKinds[resource.kind].plural
+    let kindPerms = resolveVerbs(rules[plural])
+    let namePerms = resolveVerbs(rules[`${plural}:${resource.metadata.name}`])
+    return {...allKindsPerms, ...kindPerms, ...namePerms}
+  }
+}
+
+function resolveVerbs(verbs) {
+  if (verbs) {
+    if ('*' in verbs) {
+      return allowAll
+    } else {
+      return verbs
+    }
   }
 }
 
