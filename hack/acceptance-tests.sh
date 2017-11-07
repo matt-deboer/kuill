@@ -18,6 +18,8 @@ apiserver=$(${MINIKUBE_SUDO} kubectl config view --flatten --minify -o json | jq
 echo "Waiting for minikube to be available at ${apiserver}..."
 while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 
+echo "Installing manifests:"
+ls -la ${SCRIPT_DIR}/aceptance-tests/manifests/
 ${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/aceptance-tests/manifests/
 
 export KUILL_URL="https://localhost:${KUILL_PORT}"
