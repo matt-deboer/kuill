@@ -29,7 +29,7 @@ install:
 script:
 - make release
 - upx bin/kuill
-# - MINIKUBE_OPTIONS="--vm-driver none" MINIKUBE_SUDO="sudo" make acceptance
+- MINIKUBE_OPTIONS="--vm-driver none" MINIKUBE_SUDO="sudo" make acceptance
 - make docker
 
 after_deploy:
