@@ -11,9 +11,9 @@
 Cypress.Commands.add("login", (username, password) => {
 
   cy.visit('/', {
-    // onBeforeLoad: (win) => {
-    //   win.onerror = null
-    // }
+    onBeforeLoad: (win) => {
+      win.onerror = null
+    }
   })  
   cy.get('.login .title > div').should('have.text', 'Authentication Required')
   cy.get('#username').type(username)
@@ -21,5 +21,11 @@ Cypress.Commands.add("login", (username, password) => {
   cy.get('#login').click()
   cy.get('.overview .namespace-panel > .title', {timeout: 20000})
     .should('contain.text', 'Allocated Resource Usage')
+})
+
+Cypress.Commands.add("logout", () => {
+  cy.get('body').click('top')
+  cy.get('button.profile').click()
+  cy.get('.profile-menu span.logout').click()
 })
 

@@ -5,6 +5,10 @@ context('Namespace Admin', function(){
     cy.login('nsadmin', 'nsadmin')
   })
 
+  afterEach(function(){
+    cy.logout()
+  })
+  
   it('should only see resources in 2 namespaces', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')

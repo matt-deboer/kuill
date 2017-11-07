@@ -5,6 +5,10 @@ context('Cluster Admin', function(){
     cy.login('admin', 'password')
   })
 
+  afterEach(function(){
+    cy.logout()
+  })
+
   it('should see all supported actions', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')

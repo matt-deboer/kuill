@@ -577,7 +577,7 @@ function watchResources(dispatch, getState) {
       }
       watchRequests.push(
           accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-          if (watchableNamespaces.length > 0) {
+          if (watchableNamespaces && watchableNamespaces.length > 0) {
             let watch = watches[kind]
             if (!!watch && watch.closed()) {
               watch.destroy()
@@ -600,7 +600,7 @@ function watchResources(dispatch, getState) {
       }
       watchRequests.push(
         accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-          if (watchableNamespaces.length > 0) {
+          if (watchableNamespaces && watchableNamespaces.length > 0) {
             watches[kind] = new ResourceKindWatcher({
               kind: kind, 
               dispatch: dispatch,

@@ -1,6 +1,6 @@
 import { defaultFetchParams } from './request-utils'
 import { keyForResource } from './resource-utils'
-import { detachedOwnerRefsAnnotation } from '../state/actions/resources'
+import { detachedOwnerRefsAnnotation, requestNamespaces } from '../state/actions/resources'
 import { doRequest } from '../state/actions/requests'
 
 const rulesReviewType = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview'
@@ -47,6 +47,9 @@ export default class AccessEvaluator {
               that.getRules().then(rules => {
                 that.rules = rules
                 that.useRulesReview = true
+              }).catch(error => {
+                that.rules = null
+                that.useRulesReview = false
               })
             }
           })
@@ -146,7 +149,13 @@ export default class AccessEvaluator {
   getRules = async () => {
 
     let requests = [rulesReview()]
-    for (let ns of this.getState().resources.namespaces) {
+    let namespaces = this.getState().resources.namespaces
+    if (!namespaces) {
+      await this.dispatchEvent(requestNamespaces())
+      namespaces = this.getState().resources.namespaces
+    }
+
+    for (let ns of namespaces) {
       requests.push(rulesReview(ns))
     }
 
@@ -157,15 +166,18 @@ export default class AccessEvaluator {
         // we can't actually use this method, even though the version supports it :(
         return null
       }
-      let nsRules = rules[result.spec.namespace] = rules[result.spec.namespace] || {}
-      for (let rule of result.status.resourceRules) {
-        for (let resource of rule.resources) {
-          let resourceNames = rule.resourceNames || ['']
-          for (let name of resourceNames) {
-            let kindKey = resource + (name ? ':' + name : '')
-            let kindRules = nsRules[kindKey] = nsRules[kindKey] || {}
-            for (let verb of rule.verbs) {
-              kindRules[verb] = true
+      let ns = (result.spec && result.spec.namespace) || ''
+      let nsRules = rules[ns] = rules[ns] || {}
+      if (result.status.resourceRules) {
+        for (let rule of result.status.resourceRules) {
+          for (let resource of rule.resources) {
+            let resourceNames = rule.resourceNames || ['']
+            for (let name of resourceNames) {
+              let kindKey = resource + (name ? ':' + name : '')
+              let kindRules = nsRules[kindKey] = nsRules[kindKey] || {}
+              for (let verb of rule.verbs) {
+                kindRules[verb] = true
+              }
             }
           }
         }

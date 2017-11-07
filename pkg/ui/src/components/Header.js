@@ -359,6 +359,7 @@ class Header extends React.Component {
                 <MenuItem primaryText="Log out" 
                   leftIcon={<IconLogout/>}
                   onTouchTap={this.handleLogout}
+                  className={'logout'}
                   />
               </Menu>
               <div style={styles.logo}>

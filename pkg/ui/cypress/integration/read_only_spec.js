@@ -5,6 +5,10 @@ context('Readonly User', function(){
     cy.login('reader', 'reader')
   })
 
+  afterEach(function(){
+    cy.logout()
+  })
+  
   it('should only see read-only context actions', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
