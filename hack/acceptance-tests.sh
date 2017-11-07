@@ -19,8 +19,8 @@ echo "Waiting for minikube to be available at ${apiserver}..."
 while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 
 echo "Installing manifests:"
-ls -la ${SCRIPT_DIR}/aceptance-tests/manifests/
-${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/aceptance-tests/manifests/
+ls -la ${SCRIPT_DIR}/acceptance-tests/manifests/
+${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
 
 export KUILL_URL="https://localhost:${KUILL_PORT}"
 echo "Waiting for kuill to be available at ${KUILL_URL}..."
