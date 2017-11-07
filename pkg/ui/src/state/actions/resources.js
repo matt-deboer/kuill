@@ -582,11 +582,10 @@ function watchResources(dispatch, getState) {
             if (!!watch && watch.closed()) {
               watch.destroy()
               watches[kind] = new ResourceKindWatcher({
-                kubeKinds: kubeKinds,
                 kind: kind,
                 dispatch: dispatch,
+                getState: getState,
                 resourceVersion: maxResourceVersionByKind[kind] || 0,
-                resourceGroup: 'workloads',
                 namespaces: watchableNamespaces,
               })
             }
@@ -603,11 +602,10 @@ function watchResources(dispatch, getState) {
         accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
           if (watchableNamespaces.length > 0) {
             watches[kind] = new ResourceKindWatcher({
-              kubeKinds: kubeKinds,
               kind: kind, 
               dispatch: dispatch,
+              getState: getState,
               resourceVersion: maxResourceVersionByKind[kind] || 0,
-              resourceGroup: 'workloads',
               namespaces: watchableNamespaces,
             })
           }

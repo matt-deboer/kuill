@@ -1,7 +1,9 @@
 import { defaultFetchParams } from './request-utils'
 import { keyForResource } from './resource-utils'
 import { detachedOwnerRefsAnnotation } from '../state/actions/resources'
+import { doRequest } from '../state/actions/requests'
 
+const rulesReviewType = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview'
 
 const denyAll = {
   'get':false,
@@ -31,20 +33,26 @@ export default class AccessEvaluator {
     this.initialize()
   }
 
-  initialize = () => {  
+  initialize = () => {
     this.swagger = this.swagger || this.getState().apimodels.swagger
-    this.useRulesReview = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview' in this.swagger.definitions
-    if (!this.rules) {
-      if (this.useRulesReview) {
-        let that = this
-        this.getRules().then(rules => {
-          that.rules = rules
+    this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
+    let that = this
+    if (this.getState().session.user && this.swagger && this.swagger.definitions) {
+      if (!('useRulesReview' in this) && rulesReviewType in this.swagger.definitions) {
+        doRequest(this.dispatch, this.getState, rulesReviewType + ':test', async () => {
+          await rulesReview().then(resp => {
+            if (resp.status === 403) {
+              that.useRulesReview = false
+            } else {
+              that.getRules().then(rules => {
+                that.rules = rules
+                that.useRulesReview = true
+              })
+            }
+          })
         })
-      } else {
-        this.rules = {}
       }
     }
-    this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
   }
 
   /**
@@ -137,7 +145,7 @@ export default class AccessEvaluator {
 
   getRules = async () => {
 
-    let requests = []
+    let requests = [rulesReview()]
     for (let ns of this.getState().resources.namespaces) {
       requests.push(rulesReview(ns))
     }
@@ -145,6 +153,10 @@ export default class AccessEvaluator {
     let rules = {}
     let results = await Promise.all(requests)
     for (let result of results) {
+      if (result.status === 403) {
+        // we can't actually use this method, even though the version supports it :(
+        return null
+      }
       let nsRules = rules[result.spec.namespace] = rules[result.spec.namespace] || {}
       for (let rule of result.status.resourceRules) {
         for (let resource of rule.resources) {
@@ -178,17 +190,22 @@ export default class AccessEvaluator {
    */
   getWatchableNamespaces = async (kind) => {
     this.initialize()
-    
+
+    let kubeKind = this.kubeKinds[kind]
+    if (!kubeKind.verbs.includes('watch')) {
+      return []
+    }
+
     if (this.useRulesReview) {
       return resolveWatchableFromRules(kind, this.rules, this.kubeKinds)
     }
     
-    let kubeKind = this.kubeKinds[kind]
-
     let requests = []
     requests.push(accessReview(kubeKind, 'watch'))
-    for (let ns of this.getState().resources.namespaces) {
-      requests.push(accessReview(kubeKind, 'watch', ns))
+    if (kubeKind.namespaced) {
+      for (let ns of this.getState().resources.namespaces) {
+        requests.push(accessReview(kubeKind, 'watch', ns))
+      }
     }
     let results = await Promise.all(requests)
     let clusterLevel = false
@@ -211,18 +228,24 @@ export default class AccessEvaluator {
 
 function resolveWatchableFromRules(kind, rules, kubeKinds) {
   let watchable = {}
-  for (let ns in rules) {
-    let nsPerms = resolveNamespacePermissions({kind: kind, metadata: {namespace: ns, name: ''}}, rules, kubeKinds)
-    if (nsPerms.watch) {
-      watchable[ns] = true
+  let kubeKind = kubeKinds[kind]
+  let clusterPerms = resolveNamespacePermissions({kind: kind, metadata: {namespace: '', name: ''}}, rules, kubeKinds)
+  if (clusterPerms.watch) {
+    return ['*']
+  } else if (kubeKind.namespaced) {
+    for (let ns in rules) {
+      let nsPerms = resolveNamespacePermissions({kind: kind, metadata: {namespace: ns, name: ''}}, rules, kubeKinds)
+      if (nsPerms.watch) {
+        watchable[ns] = true
+      }
     }
+    return Object.keys(watchable)
   }
-  return Object.keys(watchable)
 }
 
 
 function resolveNamespacePermissions(resource, rules, kubeKinds) {
-  let nsRules = rules[resource.metadata.namespace]
+  let nsRules = rules[resource.metadata.namespace || '']
   if (nsRules) {
     return resolveKindPermissions(resource, nsRules, kubeKinds)
   } else {
@@ -256,6 +279,10 @@ async function resolveResourcePermissions(resource, permissions, kubeKind, kubeK
     requests.push(accessReview(kubeKind, 'get'))
     requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace))
     requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace, resource.metadata.name))
+  }
+  if (!('watch' in permissions)) {
+    requests.push(accessReview(kubeKind, 'watch'))
+    requests.push(accessReview(kubeKind, 'watch', resource.metadata.namespace))
   }
   if (!('edit' in permissions)) {
     requests.push(accessReview(kubeKind, 'put'))
@@ -360,7 +387,7 @@ async function rulesReview(namespace='') {
     body: bodyString,
   }).then(resp => {
     if (!resp.ok) {
-      return resp.text()
+      return resp
     } else {
       return resp.json()
     }

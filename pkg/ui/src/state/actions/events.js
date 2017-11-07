@@ -1,5 +1,5 @@
 import { invalidateSession } from './session'
-import EventsWatcher from '../../utils/EventsWatcher'
+import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 
 export var types = {}
 for (let type of [
@@ -87,12 +87,19 @@ async function setEventWatches(dispatch, getState) {
       resourceVersion = result.metadata.resourceVersion
       dispatch(receiveEvents(getState().resources.resources, ...result.items))   
       
-      watch = new EventsWatcher({
-        dispatch: dispatch,
-        getState: getState,
-        resourceVersion: resourceVersion,
+      getState().session.accessEvaluator.getWatchableNamespaces('Event').then(watchableNamespaces => {
+        if (watchableNamespaces.length > 0) {
+          
+          watch = new ResourceKindWatcher({
+            kind: 'Event',
+            dispatch: dispatch,
+            getState: getState,
+            resourceVersion: resourceVersion || 0,
+            namespaces: watchableNamespaces,
+          })
+          dispatch(setWatch(watch))
+        }
       })
-      dispatch(setWatch(watch))
     }
 
   }
