@@ -6,7 +6,7 @@ context('Cluster Admin', function(){
   })
 
   afterEach(function(){
-    cy.logout()
+    // cy.logout()
   })
 
   it('should see all supported actions', function() {
@@ -23,6 +23,7 @@ context('Cluster Admin', function(){
       .each(function(button) {
         expect(button.context.id).to.match(/row-action:(edit|logs|exec|delete|scale|suspend)/)
       })
+    // cy.get('div.actions-popover div').click(0, -10)
   })
 
   it('can create new resources', function() {

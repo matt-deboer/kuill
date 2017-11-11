@@ -24,8 +24,11 @@ Cypress.Commands.add("login", (username, password) => {
 })
 
 Cypress.Commands.add("logout", () => {
-  cy.get('div').click('top')
+
+  cy.get('body').click('top', {force: true})
   cy.get('button.profile').click()
   cy.get('.profile-menu span.logout').click()
+    
+
 })
 
