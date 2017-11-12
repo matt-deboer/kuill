@@ -6,7 +6,7 @@ context('Namespace Admin', function(){
   })
 
   afterEach(function(){
-    cy.logout()
+    // cy.logout()
   })
   
   it('should only see resources in 2 namespaces', function() {
@@ -15,8 +15,8 @@ context('Namespace Admin', function(){
     
     let namespaces = {}
     cy.get('table.filter-table.workloads > tbody')
-      .children()
-      .children(':nth-child(4)')
+      .children('tr')
+      .children('td.namespace')
       .each(function(td) {
         expect(td.context.innerText).to.match(/kube-system|app-group-1/)
       })

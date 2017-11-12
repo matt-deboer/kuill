@@ -129,7 +129,7 @@ class ResourceInfoPage extends React.Component {
     if (props.resource) {
       this.kubeKind = this.props.kinds[props.resource.kind]
       let that = this
-      this.props.accessEvaluator.getObjectAccess(props.resource, props.resourceGroup).then((access) => {
+      this.props.accessEvaluator.getObjectAccess(props.resource).then((access) => {
         that.setState({
           resourceAccess: access,
         })
@@ -229,11 +229,11 @@ class ResourceInfoPage extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps, nextState) => {
-    if (!sameResource(nextProps.resource, this.props.resource)) {
+    if (!sameResource(nextProps.resource, this.props.resource) || !this.state.resourceAccess) {
       this.setState({resourceAccess: null})
       this.kubeKind = nextProps.kinds[nextProps.resource.kind]
       let that = this
-      this.props.accessEvaluator.getObjectAccess(nextProps.resource, nextProps.resourceGroup).then((access) => {
+      this.props.accessEvaluator.getObjectAccess(nextProps.resource).then((access) => {
         that.setState({
           resourceAccess: access,
         })

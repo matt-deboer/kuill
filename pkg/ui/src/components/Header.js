@@ -350,6 +350,7 @@ class Header extends React.Component {
               anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
               targetOrigin={{horizontal: 'right', vertical: 'top'}}
               style={{backgroundColor: 'rgb(33,33,33)'}}
+              zDepth={4}
             >
               <Menu 
                 desktop={false} 

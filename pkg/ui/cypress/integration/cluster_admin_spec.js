@@ -13,17 +13,16 @@ context('Cluster Admin', function(){
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
 
-    cy.get('table.filter-table.workloads > tbody')
-      .children('tr.Deployment_kube-system_kube-dns')
-      .children('td.resource-actions')
-      .click()
+    cy.get(`table.filter-table.workloads > tbody 
+      tr.Deployment_kube-system_kube-dns 
+      td.resource-actions > svg`)
+      .scrollIntoView().click()
     
-    cy.get('div.actions-popover div', {timeout: 10000})
+    cy.get('div.actions-popover div')
       .children('button.row-action')
       .each(function(button) {
         expect(button.context.id).to.match(/row-action:(edit|logs|exec|delete|scale|suspend)/)
       })
-    // cy.get('div.actions-popover div').click(0, -10)
   })
 
   it('can create new resources', function() {

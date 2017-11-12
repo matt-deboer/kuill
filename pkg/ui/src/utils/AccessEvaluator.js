@@ -96,8 +96,8 @@ export default class AccessEvaluator {
     let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
     let namespacePerms = {}
     if (resource.metadata && resource.metadata.namespace) {
-      namespacePerms = this.permissions[`${resource.kind}/${resource.namespace}`] =
-      this.permissions[`${resource.kind}/${resource.namespace}`] || {}
+      namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] =
+      this.permissions[`${resource.kind}/${resource.metadata.namespace}`] || {}
     }
     let key = keyForResource(resource)
     let objectPerms = this.permissions[key] = this.permissions[key] || {}
@@ -165,18 +165,19 @@ export default class AccessEvaluator {
       if (result.status === 403) {
         // we can't actually use this method, even though the version supports it :(
         return null
-      }
-      let ns = (result.spec && result.spec.namespace) || ''
-      let nsRules = rules[ns] = rules[ns] || {}
-      if (result.status.resourceRules) {
-        for (let rule of result.status.resourceRules) {
-          for (let resource of rule.resources) {
-            let resourceNames = rule.resourceNames || ['']
-            for (let name of resourceNames) {
-              let kindKey = resource + (name ? ':' + name : '')
-              let kindRules = nsRules[kindKey] = nsRules[kindKey] || {}
-              for (let verb of rule.verbs) {
-                kindRules[verb] = true
+      } else if (result.spec) {
+        let ns = (result.spec && result.spec.namespace) || ''
+        let nsRules = rules[ns] = rules[ns] || {}
+        if (result.status.resourceRules) {
+          for (let rule of result.status.resourceRules) {
+            for (let resource of rule.resources) {
+              let resourceNames = rule.resourceNames || ['']
+              for (let name of resourceNames) {
+                let kindKey = resource + (name ? ':' + name : '')
+                let kindRules = nsRules[kindKey] = nsRules[kindKey] || {}
+                for (let verb of rule.verbs) {
+                  kindRules[verb] = true
+                }
               }
             }
           }
