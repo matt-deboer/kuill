@@ -11,9 +11,9 @@
 Cypress.Commands.add("login", (username, password) => {
 
   cy.visit('/', {
-    onBeforeLoad: (win) => {
-      win.onerror = null
-    }
+    // onBeforeLoad: (win) => {
+    //   win.onerror = null
+    // }
   })  
   cy.get('.login .title > div').should('have.text', 'Authentication Required')
   cy.get('#username').type(username)

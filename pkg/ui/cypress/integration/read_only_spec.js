@@ -21,7 +21,7 @@ context('Readonly User', function(){
     cy.get('div.actions-popover div')
       .children('button.row-action')
       .each(function(button) {
-        expect(button.context.id).to.match(/row-action:(get|logs)/)
+        expect(button.context.className).to.match(/row-action (get|logs)/)
       })
   })
 
