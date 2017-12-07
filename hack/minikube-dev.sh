@@ -27,7 +27,7 @@ fi
 
 verbose=""
 if [ -n "${VERBOSE}" ]; then
-  verbose="--verbose --trace-requests"
+  verbose="--verbose --trace-requests --trace-websockets"
 fi
 
 disable_tls=""
@@ -39,7 +39,6 @@ echo "Launching kuill..."
 ${ROOT}/bin/kuill \
   --port ${KUILL_PORT} \
   $verbose $disable_tls \
-  --trace-websockets \
   --server-cert ${ROOT}/certs/minikube/server-cert.pem \
   --server-key ${ROOT}/certs/minikube/server-key.pem \
   --password-file hack/test-users.tsv \
