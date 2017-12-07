@@ -40,7 +40,7 @@ context('Cluster Admin', function(){
 
     cy.get('.resource-tabs.terminal')
     cy.get('button.terminal-start svg').click()
-    cy.wait(500)
+    cy.wait(2000)
     cy.get('.xterm-react.terminal').should('be.visible')
     cy.get('.xterm-react.terminal .terminal.xterm').should('be.visible')
     cy.get('.xterm-react.terminal .terminal.xterm textarea').type('exit{enter}', {force: true})
