@@ -175,7 +175,7 @@ class EditorPage extends React.Component {
         resource: result.resource,
       })
 
-      if (!this.state.resourceAccess && !!result.resource) {
+      if (!!result.resource) {
         this.getResourceAccess(result.resource, this.props.resourceGroup)
       }
     })
