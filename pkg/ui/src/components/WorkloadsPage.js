@@ -600,7 +600,7 @@ class WorkloadsPage extends React.Component {
           open={!!this.state.hoveredResource}
           handlers={{
             logs: ()=> { this.props.viewResource(this.state.hoveredResource,'logs') },
-            term: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
+            terminal: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
             suspend: ()=>{ this.handleSuspend(this.state.hoveredResource)},
             scale: this.handleScale,
             edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
