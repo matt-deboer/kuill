@@ -33,18 +33,18 @@ export default class AccessEvaluator {
     this.initialize()
   }
 
-  initialize = () => {
+  initialize = async () => {
     this.swagger = this.swagger || this.getState().apimodels.swagger
     this.kubeKinds = this.kubeKinds || this.getState().apimodels.kinds
     let that = this
     if (this.getState().session.user && this.swagger && this.swagger.definitions) {
-      if (!('useRulesReview' in this) && rulesReviewType in this.swagger.definitions) {
-        doRequest(this.dispatch, this.getState, rulesReviewType + ':test', async () => {
-          await rulesReview().then(resp => {
+      if (!('useRulesReview' in that) && rulesReviewType in that.swagger.definitions) {
+        await doRequest(that.dispatch, that.getState, rulesReviewType + ':test', async () => {
+          await rulesReview().then(async (resp) => {
             if (resp.status === 403) {
               that.useRulesReview = false
             } else {
-              that.getRules().then(rules => {
+              await that.getRules().then(rules => {
                 that.rules = rules
                 that.useRulesReview = true
               }).catch(error => {
@@ -75,7 +75,7 @@ export default class AccessEvaluator {
           edit: permissions.put,
           delete: permissions.delete,
           logs: permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
-          exec: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
+          terminal: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
           detach: permissions.put && resource.kind === 'Pod' 
             && resource.metadata.annotations 
             && !(detachedOwnerRefsAnnotation in resource.metadata.annotations),
@@ -86,7 +86,7 @@ export default class AccessEvaluator {
   }
 
   getObjectPermissions = async (resource) => {
-    this.initialize()
+    await this.initialize()
 
     if (this.useRulesReview) {
       return resolveNamespacePermissions(resource, this.rules, this.kubeKinds)
@@ -148,7 +148,7 @@ export default class AccessEvaluator {
 
   getRules = async () => {
 
-    let requests = [rulesReview()]
+    let requests = []
     let namespaces = this.getState().resources.namespaces
     if (!namespaces) {
       await this.dispatchEvent(requestNamespaces())
@@ -202,7 +202,7 @@ export default class AccessEvaluator {
    * @param {String} kind 
    */
   getWatchableNamespaces = async (kind) => {
-    this.initialize()
+    await this.initialize()
 
     let kubeKind = this.kubeKinds[kind]
     if (!kubeKind.verbs.includes('watch')) {
