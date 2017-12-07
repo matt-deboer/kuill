@@ -312,7 +312,7 @@ class ResourceInfoPage extends React.Component {
       })
     }
 
-    if (resourceAccess && resourceAccess.exec) {
+    if (resourceAccess && resourceAccess.terminal) {
       tabs.push({
         name: 'terminal',
         component: AsyncTerminalViewer,
@@ -393,6 +393,7 @@ class ResourceInfoPage extends React.Component {
             tabItemContainerStyle={styles.tabs}
             contentContainerStyle={{overflow: 'hidden'}}
             inkBarStyle={styles.tabsInkBar}
+            contentContainerClassName={`resource-tabs-content`}
             className={`resource-tabs ${activeTab.replace(" ","-")}`}
             value={activeTab}
             ref={ (ref) => {
