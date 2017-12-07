@@ -62,6 +62,18 @@
   revision = "1909bc2f63dc92bb931deace8b8312c4db72d12f"
 
 [[projects]]
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+  version = "v1.1"
+
+[[projects]]
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
+  version = "v1.6.0"
+
+[[projects]]
   name = "github.com/gorilla/websocket"
   packages = ["."]
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
@@ -178,6 +190,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c59398cf8d7917048b4d42918b395023fbf961960bae14c2287572f8190c2eeb"
+  inputs-digest = "500df92945ad728a0535aadcbbea31f4789e22c22d57736498694f633dc1af8d"
   solver-name = "gps-cdcl"
   solver-version = 1
