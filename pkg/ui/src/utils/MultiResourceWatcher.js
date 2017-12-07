@@ -3,8 +3,7 @@ import { addError } from '../state/actions/errors'
 import { invalidateSession } from '../state/actions/session'
 import { receiveEvents } from '../state/actions/events'
 import { defaultFetchParams } from './request-utils'
-import queryString from 'query-string'
-
+// import queryString from 'query-string'
 
 const throttles = {
   'Endpoints/MODIFIED': 10000,
