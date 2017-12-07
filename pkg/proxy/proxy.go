@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/helpers"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,12 +31,15 @@ type KubeAPIProxy struct {
 	proxyBasePath       string
 	reverseProxy        *httputil.ReverseProxy
 	websocketProxy      *WebsocketProxy
+	multiKindWatchProxy *KubeKindAggregatingWatchProxy
 	traceRequests       bool
+	traceWebsockets     bool
 	authenticatedGroups []string
 }
 
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
-	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string, traceRequests bool) (*KubeAPIProxy, error) {
+	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string,
+	traceRequests, traceWebsockets bool, kindLister *helpers.KindLister) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -80,7 +84,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		wsURL.Scheme = "ws"
 	}
 
-	wsp := NewWebsocketProxy(wsURL)
+	wsp := NewWebsocketProxy(wsURL, traceWebsockets)
 	wsp.Dialer = &websocket.Dialer{
 		TLSClientConfig: tlsConfig,
 	}
@@ -93,18 +97,23 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	}
 	wsp.Director = func(incoming *http.Request, out http.Header) {
 		out.Set(usernameHeader, incoming.Header.Get(usernameHeader))
-		if traceRequests {
+		if traceWebsockets {
 			log.Debugf("Director: adding header %s: %s", usernameHeader, incoming.Header.Get(usernameHeader))
 		}
 		out.Set(groupHeader, incoming.Header.Get(groupHeader))
-		if traceRequests {
+		if traceWebsockets {
 			log.Debugf("Director: adding header %s: %s", groupHeader, incoming.Header.Get(groupHeader))
 		}
 		out.Set("Origin", kubernetesURL)
-		if traceRequests {
+		if traceWebsockets {
 			log.Debugf("Director: adding header %s: %s", "Origin", kubernetesURL)
 		}
 	}
+
+	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister)
+	mwp.Dialer = wsp.Dialer
+	mwp.Upgrader = wsp.Upgrader
+	mwp.Director = wsp.Director
 
 	log.Infof("Enabled kubernetes api proxy for %s", kubeURL)
 
@@ -117,8 +126,17 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		proxyBasePath:       proxyBasePath,
 		reverseProxy:        httputil.NewSingleHostReverseProxy(kubeURL),
 		websocketProxy:      wsp,
+		multiKindWatchProxy: mwp,
 		traceRequests:       traceRequests,
+		traceWebsockets:     traceWebsockets,
 		authenticatedGroups: authenticatedGroups,
+	}
+
+	if traceRequests {
+		log.Infof("KubeAPIProxy: tracing requests...")
+	}
+	if traceWebsockets {
+		log.Infof("KubeAPIProxy: tracing websockets...")
 	}
 
 	kp.reverseProxy.Director = kp.filterRequest
@@ -143,14 +161,26 @@ var authContextKey AuthContextKey = "kuill.authContext"
 func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, authContext auth.Context) {
 
 	if strings.HasPrefix(r.URL.Scheme, "ws") || strings.ToLower(r.Header.Get("Connection")) == "upgrade" {
-		r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
-		r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
-		r.Header.Del("Origin")
+		r.Header.Set("Origin", p.kubernetesURL.String())
+		if len(r.Header.Get("User-Agent")) == 0 {
+			r.Header.Set("User-Agent", "kuill")
+		}
 		p.traceRequest(r, authContext)
 		p.addAuthHeaders(r, authContext)
-		p.websocketProxy.ServeHTTP(w, r)
+
+		if r.URL.Path == "/proxy/multiwatch" {
+			p.multiKindWatchProxy.ServeHTTP(w, r)
+		} else {
+			r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
+			r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
+			p.websocketProxy.ServeHTTP(w, r)
+		}
 	} else {
-		p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
+		if r.URL.Path == "/proxy/multiwatch" {
+			p.multiKindWatchProxy.ServeHTTP(w, r)
+		} else {
+			p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
+		}
 	}
 }
 
@@ -171,7 +201,7 @@ func (p *KubeAPIProxy) filterRequest(r *http.Request) {
 
 func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context) {
 
-	if p.traceRequests {
+	if p.traceWebsockets {
 		lctx := log.WithFields(log.Fields{
 			"method": "ProxyRequest",
 			"req":    r.URL.String(),
@@ -181,7 +211,7 @@ func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context) {
 		if err != nil {
 			lctx.Warnf("Error dumping request : %v", err)
 		} else {
-			lctx.Debugf("Proxying request for %s: %s\n%s", authContext.User(), r.URL, string(data))
+			lctx.Infof("Proxying request for %s: %s\n%s", authContext.User(), r.URL, string(data))
 		}
 	}
 }

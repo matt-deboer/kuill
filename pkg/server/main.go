@@ -263,6 +263,11 @@ func main() {
 			EnvVar: envBase + "TRACE_REQUESTS",
 		},
 		cli.BoolFlag{
+			Name:   "trace-websockets, W",
+			Usage:  "Log information about all websocket actions",
+			EnvVar: envBase + "TRACE_WEBSOCKETS",
+		},
+		cli.BoolFlag{
 			Name:   "verbose, V",
 			Usage:  "Log extra information about steps taken",
 			EnvVar: envBase + "VERBOSE",
@@ -288,7 +293,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = helpers.ServeKinds(c.String("kubeconfig"))
+		kindLister, err := helpers.ServeKinds(c.String("kubeconfig"))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -299,7 +304,7 @@ func main() {
 
 		authManager, _ := auth.NewAuthManager(sessionTimeout)
 		setupAuthenticators(c, authManager)
-		setupProxy(c, authManager)
+		setupProxy(c, authManager, kindLister)
 		setupTemplates(c)
 		setupMetrics(c, authManager)
 
@@ -482,7 +487,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 }
 
-func setupProxy(c *cli.Context, authManager *auth.Manager) {
+func setupProxy(c *cli.Context, authManager *auth.Manager, kindLister *helpers.KindLister) {
 
 	flags, err := getRequiredFlags(c, map[string]string{
 		"kubernetes-api":         "string",
@@ -493,6 +498,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 		"group-header":           "string",
 		"extra-headers-prefix":   "string",
 		"trace-requests":         "bool",
+		"trace-websockets":       "bool",
 		"authenticated-groups":   "string",
 	})
 
@@ -512,6 +518,8 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 			flags["extra-headers-prefix"].(string),
 			authenticatedGroups,
 			flags["trace-requests"].(bool),
+			flags["trace-websockets"].(bool),
+			kindLister,
 		)
 		if err != nil {
 			log.Fatal(err)

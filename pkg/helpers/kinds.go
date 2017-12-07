@@ -36,9 +36,11 @@ var namespacedCluster = map[string]bool{
 	"ServiceAccount":     true,
 }
 
-type kindLister struct {
+type KindLister struct {
 	client        *k8s.Client
 	mutex         sync.RWMutex
+	kinds         map[string]*KubeKind
+	kindNames     []string
 	kindsResponse []byte
 	frequency     time.Duration
 }
@@ -55,29 +57,75 @@ type KubeKind struct {
 	Verbs         []string `json:"verbs"`
 }
 
+var possibleNamespace = regexp.MustCompile("([a-z]+-?)+")
+
+// GetPath returns the path for the given kind in the specified namespace;
+// if the namespace value is not recognized as a possible valid namespace, then the
+// path returned is for the resource at the cluster scope
+func (k *KubeKind) GetPath(namespace string) string {
+	path := k.APIBase
+	if possibleNamespace.MatchString(namespace) {
+		path += fmt.Sprintf("/namespaces/%s", namespace)
+	}
+	path += "/" + k.Plural
+	return path
+}
+
+// GetWatchPath returns the watch path for the given kind in the specified namespace;
+// if the namespace value is not recognized as a possible valid namespace, then the
+// path returned is for the resource at the cluster scope
+// If 'watch' is not contained among the verbs for the kind, then "" is returned
+func (k *KubeKind) GetWatchPath(namespace string) string {
+	canWatch := false
+	for _, v := range k.Verbs {
+		if v == "watch" {
+			canWatch = true
+			break
+		}
+	}
+	if !canWatch {
+		return ""
+	}
+
+	path := fmt.Sprintf("%s/watch", k.APIBase)
+	if possibleNamespace.MatchString(namespace) {
+		path += fmt.Sprintf("/namespaces/%s", namespace)
+	}
+	path += "/" + k.Plural
+	return path
+}
+
 type KindList struct {
 	Items []*KubeKind `json:"items"`
 }
 
 // ServeKinds provides swagger information for kuill
-func ServeKinds(kubeconfig string) error {
+func ServeKinds(kubeconfig string) (*KindLister, error) {
 
 	client, _, err := NewKubeClient(kubeconfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	k := &kindLister{client: client, frequency: time.Minute * 10}
+	k := &KindLister{client: client, frequency: time.Minute * 10}
 	err = k.update()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	go k.doUpdates()
 
 	http.HandleFunc("/kinds", k.serveKinds)
-	return nil
+	return k, nil
 }
 
-func (k *kindLister) doUpdates() {
+// GetKind returns the kind mapped to the provided name,
+// or nil if no such kind exists
+func (k *KindLister) GetKind(name string) *KubeKind {
+	k.mutex.RLock()
+	defer k.mutex.RUnlock()
+	return k.kinds[name]
+}
+
+func (k *KindLister) doUpdates() {
 	for {
 		time.Sleep(k.frequency)
 		k.update()
@@ -85,7 +133,7 @@ func (k *kindLister) doUpdates() {
 }
 
 // initialize the set of kinds
-func (k *kindLister) update() error {
+func (k *KindLister) update() error {
 
 	kinds := make(map[string]*KubeKind)
 	ctx := context.Background()
@@ -173,6 +221,7 @@ func (k *kindLister) update() error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 	k.kindsResponse = data
+	k.kinds = kinds
 
 	return nil
 }
@@ -227,7 +276,7 @@ func containsVerb(verbs []string, verb string) bool {
 	return false
 }
 
-func (k *kindLister) serveKinds(w http.ResponseWriter, r *http.Request) {
+func (k *KindLister) serveKinds(w http.ResponseWriter, r *http.Request) {
 
 	k.mutex.RLock()
 	defer k.mutex.RUnlock()
@@ -241,7 +290,7 @@ func (k *kindLister) serveKinds(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (k *kindLister) coreAPIGroup() (*unversioned.APIResourceList, error) {
+func (k *KindLister) coreAPIGroup() (*unversioned.APIResourceList, error) {
 
 	r, err := http.NewRequest("GET", fmt.Sprintf(`%s/api/v1`, k.client.Endpoint), nil)
 	if err != nil {
@@ -291,7 +340,7 @@ func unmarshalPB(b []byte, obj interface{}) error {
 	return proto.Unmarshal(u.Raw, message)
 }
 
-func (k *kindLister) fallbackAPIGroup(groupVersion string) (*unversioned.APIResourceList, error) {
+func (k *KindLister) fallbackAPIGroup(groupVersion string) (*unversioned.APIResourceList, error) {
 
 	r, err := http.NewRequest("GET", fmt.Sprintf(`%s/apis/%s`, k.client.Endpoint, groupVersion), nil)
 	if err != nil {

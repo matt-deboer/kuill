@@ -8,6 +8,7 @@ import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
+import MultiResourceWatcher from '../../utils/MultiResourceWatcher'
 import { watchEvents, selectEventsFor, reconcileEvents } from './events'
 import { addError } from './errors'
 import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
@@ -567,58 +568,71 @@ function watchResources(dispatch, getState) {
   let watches = getState().resources.watches || {}
   let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
   let kubeKinds = getState().apimodels.kinds
-  let watchRequests = []
 
   if (!objectEmpty(watches)) {
-    // Update/reset any existing watches
-    for (let kind in kubeKinds) {
-      if (kind in excludedKinds) {
-        continue
-      }
-      watchRequests.push(
-          accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-          if (watchableNamespaces && watchableNamespaces.length > 0) {
-            let watch = watches[kind]
-            if (!!watch && watch.closed()) {
-              watch.destroy()
-              watches[kind] = new ResourceKindWatcher({
-                kind: kind,
-                dispatch: dispatch,
-                getState: getState,
-                resourceVersion: maxResourceVersionByKind[kind] || 0,
-                namespaces: watchableNamespaces,
-              })
-            }
-          }
-        })
-      )
-    }
-  } else {
-    for (let kind in kubeKinds) {
-      if (kind in excludedKinds) {
-        continue
-      }
-      watchRequests.push(
-        accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-          if (watchableNamespaces && watchableNamespaces.length > 0) {
-            watches[kind] = new ResourceKindWatcher({
-              kind: kind, 
-              dispatch: dispatch,
-              getState: getState,
-              resourceVersion: maxResourceVersionByKind[kind] || 0,
-              namespaces: watchableNamespaces,
-            })
-          }
-        })
-      )
-    }
+    watches.destroy()
   }
-  Promise.all(watchRequests).then( () => {
-    dispatch({
-      type: types.SET_WATCHES,
-      watches: watches,
-    })
+
+  dispatch({
+    type: types.SET_WATCHES,
+    watches: new MultiResourceWatcher({
+      maxResourceVersionByKind,
+      kubeKinds,
+      accessEvaluator,
+      dispatch,
+    }),
   })
+
+  // if (!objectEmpty(watches)) {
+  //   // Update/reset any existing watches
+  //   for (let kind in kubeKinds) {
+  //     if (kind in excludedKinds) {
+  //       continue
+  //     }
+  //     watchRequests.push(
+  //         accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
+  //         if (watchableNamespaces && watchableNamespaces.length > 0) {
+  //           let watch = watches[kind]
+  //           if (!!watch && watch.closed()) {
+  //             watch.destroy()
+  //             watches[kind] = new ResourceKindWatcher({
+  //               kind: kind,
+  //               dispatch: dispatch,
+  //               getState: getState,
+  //               resourceVersion: maxResourceVersionByKind[kind] || 0,
+  //               namespaces: watchableNamespaces,
+  //             })
+  //           }
+  //         }
+  //       })
+  //     )
+  //   }
+  // } else {
+  //   for (let kind in kubeKinds) {
+  //     if (kind in excludedKinds) {
+  //       continue
+  //     }
+  //     watchRequests.push(
+  //       accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
+  //         if (watchableNamespaces && watchableNamespaces.length > 0) {
+  //           watches[kind] = new ResourceKindWatcher({
+  //             kind: kind, 
+  //             dispatch: dispatch,
+  //             getState: getState,
+  //             resourceVersion: maxResourceVersionByKind[kind] || 0,
+  //             namespaces: watchableNamespaces,
+  //           })
+  //         }
+  //       })
+  //     )
+  //   }
+  // }
+  // Promise.all(watchRequests).then( () => {
+  //   dispatch({
+  //     type: types.SET_WATCHES,
+  //     watches: watches,
+  //   })
+  // })
 }
 
 

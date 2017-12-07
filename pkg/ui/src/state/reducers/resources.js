@@ -124,11 +124,7 @@ export default (state = initialState, action) => {
 }
 
 function doCleanup(state) {
-  if (state.watches) {
-    for (let w in state.watches) {
-      state.watches[w].destroy()
-    }
-  }
+  state.watches && state.watches.destroy()
 }
 
 function doReceiveNewLocation(state, location) {
