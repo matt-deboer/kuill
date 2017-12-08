@@ -1,5 +1,6 @@
 import { invalidateSession } from './session'
 import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
+import { defaultFetchParams } from '../../utils/request-utils'
 
 export var types = {}
 for (let type of [
@@ -8,11 +9,6 @@ for (let type of [
   'SELECT_EVENTS_FOR',
 ]) {
   types[type] = `events.${type}`
-}
-
-const defaultFetchParams = {
-  credentials: 'same-origin',
-  timeout: 5000,
 }
 
 export function receiveEvents(resources, ...events) {
