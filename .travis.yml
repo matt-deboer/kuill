@@ -29,7 +29,8 @@ install:
 script:
 - make release
 - upx bin/kuill
-- MINIKUBE_OPTIONS="--vm-driver none"
+- CHANGE_MINIKUBE_NONE_USER=true
+  MINIKUBE_OPTIONS="--vm-driver none"
   MINIKUBE_SUDO="sudo"
   CYPRESS_RECORD_KEY="af06fb10-13c0-443c-8f3e-3b2ea3221ee1"
   make acceptance
