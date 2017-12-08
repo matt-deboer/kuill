@@ -6,25 +6,25 @@ MINIKUBE_SUDO=${MINIKUBE_SUDO:-}
 VERBOSE=${VERBOSE:-}
 
 # launch a new minikube environment
-CI=true KUILL_PORT=${KUILL_PORT} VERBOSE="${VERBOSE}" ${MINIKUBE_SUDO} ${SCRIPT_DIR}/minikube-dev.sh &
+CI=true KUILL_PORT=${KUILL_PORT} VERBOSE="${VERBOSE}" ${SCRIPT_DIR}/minikube-dev.sh &
 
 # Save the PID of the server to a variable
 KUILL_PID=$!
 echo "KUILL pid: ${KUILL_PID}"
 
-echo "Waiting for minikube context..."
-while [ "$(${MINIKUBE_SUDO} kubectl config current-context)" != "minikube" ]; do sleep 2; done
+JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
 
-apiserver=$(${MINIKUBE_SUDO} kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
+echo "Waiting for minikube context..."
+while [ "$(kubectl config current-context)" != "minikube" ]; do sleep 2; done
+
+apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
 echo "Waiting for minikube to be available at ${apiserver}..."
 while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 
 echo "Installing manifests:"
 ls -la ${SCRIPT_DIR}/acceptance-tests/manifests/
-${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
-
-JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
 
 export KUILL_URL="http://localhost:${KUILL_PORT}"
 echo "Waiting for kuill to be available at ${KUILL_URL}..."

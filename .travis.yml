@@ -24,7 +24,7 @@ before_install:
 install:
 - go get github.com/golang/dep/cmd/dep
 - dep ensure
-- hack/travis/setup.sh
+- export CHANGE_MINIKUBE_NONE_USER=true; hack/travis/setup.sh
 
 script:
 - make release

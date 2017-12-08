@@ -4,7 +4,7 @@ MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
-  minikube start ${MINIKUBE_OPTIONS} \
+  ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
    --kubernetes-version v1.8.0 \
     --extra-config apiserver.Authorization.Mode=RBAC \
     --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
@@ -13,6 +13,12 @@ if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
     --extra-config apiserver.Authentication.RequestHeader.GroupHeaders=X-Remote-Group \
     --extra-config apiserver.Authentication.RequestHeader.ExtraHeaderPrefixes=X-Remote-Extra-
 fi
+
+minikube update-context
+
+JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+
 
 echo "Waiting for minikube apiserver..."
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
