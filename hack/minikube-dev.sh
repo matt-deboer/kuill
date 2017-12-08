@@ -47,7 +47,7 @@ ${ROOT}/bin/kuill \
   --kubernetes-client-key ${ROOT}/certs/minikube/server-key.pem \
   --kubernetes-api $apiserver \
   --anonymous-groups system:masters \
-  --kubeconfig ~/.kube/config | tee kuill.log
+  --kubeconfig ~/.kube/config
 
 function finish {
   kill -9 $UI_PID 2>/dev/null

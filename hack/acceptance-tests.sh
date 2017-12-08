@@ -23,7 +23,7 @@ echo "Installing manifests:"
 ls -la ${SCRIPT_DIR}/acceptance-tests/manifests/
 ${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
 
-export KUILL_URL="https://localhost:${KUILL_PORT}"
+export KUILL_URL="http://localhost:${KUILL_PORT}"
 echo "Waiting for kuill to be available at ${KUILL_URL}..."
 while ! curl -skL --fail "${KUILL_URL}/"; do sleep 2; done
 
