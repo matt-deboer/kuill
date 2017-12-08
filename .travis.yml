@@ -7,6 +7,7 @@ go:
 node_js:
 - 7
 addons:
+  chrome: stable
   apt:
     packages:
     - upx-ucl

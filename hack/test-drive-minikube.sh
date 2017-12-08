@@ -62,7 +62,7 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
   ls -la ~/.minikube/certs/auth-proxy/
 
   if [ "$(ls -l ~/.minikube/certs/auth-proxy/auth-proxy.pem | awk '{print $3}')" != "$(id -u $USER)" ]; then
-    sudo chown -R $(id -u $USER):$(id -g $USER) ~/.minikube/certs/auth-proxy/
+    ${MINIKUBE_SUDO} chown -R $(id -u $USER):$(id -g $USER) ~/.minikube/certs/auth-proxy/
   fi
 
   echo "Creating kube secret for auth proxy certs..."
