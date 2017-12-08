@@ -19,8 +19,12 @@ while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 echo "Pulling certificates for use by kuill..."
 ${SCRIPT_DIR}/get-certs.sh "minikube"
 
+JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+
 echo "Waiting for kube-dns"
 while [ "$(kubectl get deploy -n kube-system kube-dns -o json | jq '.status.readyReplicas')" != "1" ]; do sleep 2; done
+
 
 UI_PID=""
 if [ "${CI}" != "true" ]; then

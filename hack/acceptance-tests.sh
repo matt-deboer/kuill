@@ -23,6 +23,9 @@ echo "Installing manifests:"
 ls -la ${SCRIPT_DIR}/acceptance-tests/manifests/
 ${MINIKUBE_SUDO} kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
 
+JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+
 export KUILL_URL="http://localhost:${KUILL_PORT}"
 echo "Waiting for kuill to be available at ${KUILL_URL}..."
 while ! curl -skL --fail "${KUILL_URL}/"; do sleep 2; done
