@@ -5,6 +5,11 @@ context('Cluster Admin', function(){
     cy.login('admin', 'password')
   })
 
+  it('should be able to request pods and deployments (sanity check)', function() {    
+    cy.request('/proxy/api/v1/pods').its('status').should('equal', 200)
+    cy.request('/proxy/apis/extensions/v1beta1/deployments').its('status').should('equal', 200)
+  })
+
   it('should see all supported actions', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')

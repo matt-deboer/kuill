@@ -8,6 +8,11 @@ context('Namespace Admin', function(){
   afterEach(function(){
     // cy.logout()
   })
+
+  it('should be able to request pods and deployments (sanity check)', function() {    
+    cy.request('/proxy/api/v1/namespaces/kube-system/pods').its('status').should('equal', 200)
+    cy.request('/proxy/apis/extensions/v1beta1/namespaces/kube-system/deployments').its('status').should('equal', 200)
+  })
   
   it('should only see resources in 2 namespaces', function() {
     cy.get('#goto-workloads').click()
