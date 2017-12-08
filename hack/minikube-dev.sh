@@ -19,6 +19,9 @@ while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
 echo "Pulling certificates for use by kuill..."
 ${SCRIPT_DIR}/get-certs.sh "minikube"
 
+echo "Waiting for kube-dns"
+while [ "$(kubectl get deploy -n kube-system kube-dns -o json | jq '.status.readyReplicas')" != "1" ]; do sleep 2; done
+
 UI_PID=""
 if [ "${CI}" != "true" ]; then
   PORT=${KUILL_FRONTEND_PORT} make -s -C ${ROOT} start-ui &
