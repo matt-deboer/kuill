@@ -36,6 +36,9 @@ script:
   make acceptance
 - make docker
 
+after_failure:
+- echo "Minikube logs:" && sudo minikube logs | grep -v '[auth-proxy]'
+
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
