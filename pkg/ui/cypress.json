@@ -1,5 +1,5 @@
 {
-  "defaultCommandTimeout": 15000,
-  "pageLoadTimeout": 15000,
+  "defaultCommandTimeout": 30000,
+  "pageLoadTimeout": 30000,
   "projectId": "ss59sy"
 }
