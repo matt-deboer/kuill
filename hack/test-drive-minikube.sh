@@ -17,7 +17,10 @@ fi
 minikube update-context
 
 JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
-until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
+until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do 
+  printf "Waiting for minikube: %s" "$(kubectl get nodes -o jsonpath="$JSONPATH" 2>&1)"
+  sleep 2; 
+done
 
 
 echo "Waiting for minikube apiserver..."
