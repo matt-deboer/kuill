@@ -247,11 +247,11 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *S
 			volCapacityBytes,
 			"bytes"),
 		NetRx: newSummaryStat(
-			summary.Node.Network.RxBytes/networkSeconds,
+			safeDivide(summary.Node.Network.RxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			summary.Node.Network.TxBytes/networkSeconds,
+			safeDivide(summary.Node.Network.TxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
@@ -263,6 +263,13 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *S
 	}, summaryByNs
 }
 
+func safeDivide(dividend, divisor uint64) uint64 {
+	if divisor == 0 {
+		return 0
+	}
+	return dividend / divisor
+}
+
 func convertPodSummary(pod PodStats) *Summary {
 
 	networkSeconds := uint64(pod.Network.Time.Unix() - pod.StartTime.Unix())
@@ -272,11 +279,11 @@ func convertPodSummary(pod PodStats) *Summary {
 		Volumes: &SummaryStat{Units: "bytes"},
 		Disk:    &SummaryStat{Units: "bytes"},
 		NetRx: newSummaryStat(
-			pod.Network.RxBytes/networkSeconds,
+			safeDivide(pod.Network.RxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			pod.Network.TxBytes/networkSeconds,
+			safeDivide(pod.Network.TxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
@@ -347,11 +354,11 @@ func makeSummary(prefix string, aggregates map[string]uint64) *Summary {
 			volCapacityBytes,
 			"bytes"),
 		NetRx: newSummaryStat(
-			networkRxBytes/networkSeconds,
+			safeDivide(networkRxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			networkTxBytes/networkSeconds,
+			safeDivide(networkTxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
