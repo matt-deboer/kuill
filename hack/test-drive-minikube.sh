@@ -50,7 +50,7 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 
 
   echo "Generating auth proxy certs..."
-  docker run --rm -u "$(id -u $USER):$(id -g $USER)" \
+  docker run --rm \
     -v ~/.minikube/certs/auth-proxy:/certs/auth-proxy \
     -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
     -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
@@ -60,6 +60,10 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 
   echo "Certs in ~/.minikube/certs/auth-proxy/ (after generation):"
   ls -la ~/.minikube/certs/auth-proxy/
+
+  if [ "$(ls -l ~/.minikube/certs/auth-proxy/auth-proxy.pem | awk '{print $3}')" != "$(id -u $USER)" ]; then
+    sudo chown -R $(id -u $USER):$(id -g $USER) ~/.minikube/certs/auth-proxy/
+  fi
 
   echo "Creating kube secret for auth proxy certs..."
   ${MINIKUBE_SUDO} kubectl --context minikube create secret generic auth-proxy-certs \
