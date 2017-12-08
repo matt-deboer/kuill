@@ -58,8 +58,11 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
       cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /ca-config.json - | \
       cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && rm -f ca.key && mv ca.crt ca.pem'
 
+  echo "Certs in ~/.minikube/certs/auth-proxy/ (after generation):"
+  ls -la ~/.minikube/certs/auth-proxy/
+
   echo "Creating kube secret for auth proxy certs..."
-  kubectl --context minikube create secret generic auth-proxy-certs \
+  ${MINIKUBE_SUDO} kubectl --context minikube create secret generic auth-proxy-certs \
     --from-file  ~/.minikube/certs/auth-proxy -n kube-system
 fi
 
