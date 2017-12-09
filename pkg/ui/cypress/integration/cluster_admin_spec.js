@@ -52,7 +52,7 @@ context('Cluster Admin', function(){
     cy.get('button.terminal-start').should('be.visible')
   })
 
-  it('can create new resources', function() {
+  it('can create new workload resource', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
     
@@ -78,6 +78,34 @@ context('Cluster Admin', function(){
 
     cy.get('.resource-tabs.logs')
     cy.get('.xterm-react.logs').should('be.visible')
+  })
+
+  it('can autocomplete the access/resources search', function() {
+    cy.get('#goto-access').click()
+    cy.get('.access-page')
+    cy.get('.access-page .access-tabs.resources').click({force: true})
+
+    cy.get('.access-page .filters.resources input[name=filters]').type('{downarrow}', {force: true})
+
+    cy.get('.filters.resources.autocomplete')
+      .children('div')
+      .each(function(div) {
+        expect(div.context.innerText).to.match(/^(kind|role|subject|namespace):.*/)
+      })
+  })
+
+  it('can autocomplete the access/subjects search', function() {
+    cy.get('#goto-access').click()
+    cy.get('.access-page')
+    cy.get('.access-page .access-tabs.subjects').click({force: true})
+
+    cy.get('.access-page .filters.subjects input[name=filters]').type('{downarrow}', {force: true})
+
+    cy.get('.filters.subjects.autocomplete')
+      .children('div')
+      .each(function(div) {
+        expect(div.context.innerText).to.match(/^(Group|User):.*/)
+      })
   })
 
 })
