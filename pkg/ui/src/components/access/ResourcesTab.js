@@ -362,6 +362,7 @@ class ResourcesTab extends React.Component {
       <div style={styles.wrapper}>
         
         <FilterBox
+          className={'resources'}
           addFilter={props.addFilter} 
           removeFilter={props.removeFilter}
           filterNames={props.filterNames}
