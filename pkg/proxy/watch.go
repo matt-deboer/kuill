@@ -3,7 +3,6 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -70,7 +69,7 @@ func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindL
 		u := *target
 		u.Fragment = ""
 		u.Path = watchPath
-		u.RawQuery = fmt.Sprintf("resourceVersion=%d", resourceVersion)
+		u.RawQuery = fmt.Sprintf("watch=true&resourceVersion=%d", resourceVersion)
 		return &u
 	}
 
@@ -217,8 +216,12 @@ func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *h
 		http.Error(rw, "Missing required multiwatch cookies", http.StatusBadRequest)
 		return
 	} else if log.GetLevel() >= log.DebugLevel {
+		data, err := json.Marshal(watchesRequest)
+		if err != nil {
+			log.Errorf("Failed to marshal watchesRequest: %v", err)
+		}
 		log.Debugf("KubeKindAggregatingWatchProxy: handling multiwatch for %#v",
-			watchesRequest)
+			string(data))
 	}
 
 	dialer := w.Dialer
@@ -267,8 +270,10 @@ func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *h
 		w.Director(req, requestHeader)
 	}
 
-	errors := []error{}
+	backendErrors := make(chan error, len(watchesRequest.Watches))
 	var clientConn *websocket.Conn
+
+	outbound := make(chan []byte, 32)
 
 	for _, watch := range watchesRequest.Watches {
 		// Connect to the backend URL, also pass the headers we get from the requst
@@ -276,10 +281,13 @@ func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *h
 		kubeKind := w.kindLister.GetKind(watch.Kind)
 		for _, ns := range watch.Namespaces {
 			kindPath := kubeKind.GetWatchPath(ns)
-
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Got kindPath %s for ns: %s, kind: %s", kindPath, ns, watch.Kind)
+			}
 			backendURL := w.Backend(kindPath, watch.ResourceRevision)
 			if backendURL == nil {
 				log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
+				// TODO: should we just log this and move on to the next?
 				http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
 				return
 			} else if log.GetLevel() >= log.DebugLevel {
@@ -304,57 +312,89 @@ func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *h
 						body = buff.String()
 					}
 				}
-				errors = append(errors,
-					fmt.Errorf("KubeKindAggregatingWatchProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body))
+				backendErrors <- fmt.Errorf("KubeKindAggregatingWatchProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
 				continue
 			}
 			defer connBackend.Close()
 
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Starting socket reader for %v => %v...", req.URL, backendURL)
+			}
+			go w.readMessages(backendURL, connBackend, outbound, backendErrors)
+
 			if clientConn == nil {
-
-				upgrader := w.Upgrader
-				if w.Upgrader == nil {
-					upgrader = DefaultUpgrader
-				}
-
-				// Only pass those headers to the upgrader.
-				upgradeHeader := http.Header{}
-				if hdr := resp.Header.Get("Sec-Websocket-Protocol"); hdr != "" {
-					upgradeHeader.Set("Sec-Websocket-Protocol", hdr)
-				}
-				if hdr := resp.Header.Get("Set-Cookie"); hdr != "" {
-					upgradeHeader.Set("Set-Cookie", hdr)
-				}
-
-				// Now upgrade the existing incoming request to a WebSocket connection.
-				// Also pass the header that we gathered from the Dial handshake.
-				if w.traceRequests {
-					log.Infof("KubeKindAggregatingWatchProxy: upgrading request %v => %v { %v }",
-						backendURL, req.URL, upgradeHeader)
-				}
-				clientConn, err = upgrader.Upgrade(rw, req, upgradeHeader)
+				clientConn, err = w.upgradeClient(req, resp, rw)
 				if err != nil {
 					log.Errorf("KubeKindAggregatingWatchProxy: couldn't upgrade %s\n", err)
 					return
 				}
 				defer clientConn.Close()
 			}
-			if w.traceRequests {
-				log.Infof("KubeKindAggregatingWatchProxy: dialing backend url %v for request %v",
-					backendURL, req.URL)
-			}
-
-			errc := make(chan error, 1)
-
-			// Start our proxy now, everything is ready...
-			// go copyToFrom(connBackend.UnderlyingConn(), clientConn.UnderlyingConn(), errc)
-			go copyToFrom(clientConn.UnderlyingConn(), connBackend.UnderlyingConn(), errc)
-			<-errc
 		}
+	}
+
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Starting aggregating socket writer for %v...", req.URL)
+	}
+	errOutbound := make(chan error, 1)
+	go w.writeMessages(clientConn, outbound, errOutbound)
+	<-errOutbound
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Closed aggregating socket writer for %v", req.URL)
 	}
 }
 
-func copyToFrom(dst io.Writer, src io.Reader, errc chan error) {
-	_, err := io.Copy(dst, src)
-	errc <- err
+func (w *KubeKindAggregatingWatchProxy) upgradeClient(req *http.Request, resp *http.Response, rw http.ResponseWriter) (*websocket.Conn, error) {
+	upgrader := w.Upgrader
+	if w.Upgrader == nil {
+		upgrader = DefaultUpgrader
+	}
+
+	// Only pass those headers to the upgrader.
+	upgradeHeader := http.Header{}
+	if hdr := resp.Header.Get("Sec-Websocket-Protocol"); hdr != "" {
+		upgradeHeader.Set("Sec-Websocket-Protocol", hdr)
+	}
+	if hdr := resp.Header.Get("Set-Cookie"); hdr != "" {
+		upgradeHeader.Set("Set-Cookie", hdr)
+	}
+
+	// Now upgrade the existing incoming request to a WebSocket connection.
+	// Also pass the header that we gathered from the Dial handshake.
+	if w.traceRequests {
+		log.Infof("KubeKindAggregatingWatchProxy: upgrading request %v { %v }", req.URL, upgradeHeader)
+	}
+	return upgrader.Upgrade(rw, req, upgradeHeader)
+}
+
+func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL *url.URL, socket *websocket.Conn, outbound chan []byte, errc chan error) {
+	for {
+		mt, message, err := socket.ReadMessage()
+		if err != nil {
+			errc <- err
+			return
+		}
+		if w.traceRequests {
+			log.Infof("Read message of type %d from %v: %s", mt, backendURL, string(message))
+		}
+		outbound <- message
+	}
+}
+
+func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, outbound chan []byte, errc chan error) {
+
+	for {
+		select {
+		case message := <-outbound:
+			err := socket.WriteMessage(websocket.TextMessage, message)
+			if err != nil {
+				errc <- err
+				return
+			}
+			if w.traceRequests {
+				log.Infof("Writing message to client: %s", string(message))
+			}
+		default:
+		}
+	}
 }
