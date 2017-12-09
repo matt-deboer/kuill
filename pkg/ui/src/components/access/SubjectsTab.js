@@ -25,7 +25,7 @@ class SubjectsTab extends React.PureComponent {
     let query = queryString.parse(this.props.location.search)
     this.state = {
       selection: ('subject' in query ? [query.subject] : []),
-      subjects: Object.keys(props.autocomplete).filter(e=> !e.startsWith('ServiceAccount:')),
+      subjects: this.filterServiceAccounts(props.autocomplete),
     }
   }
 
@@ -50,9 +50,19 @@ class SubjectsTab extends React.PureComponent {
   componentWillReceiveProps = (props) => {
     let query = queryString.parse(this.props.location.search)
     this.setState({
-      subjects: Object.keys(props.autocomplete).filter(e=> !e.startsWith('ServiceAccount:')),
+      subjects: this.filterServiceAccounts(props.autocomplete),
       selection: ('subject' in query ? [query.subject] : []),
     })
+  }
+
+  filterServiceAccounts = (subjects) => {
+    let filtered = {}
+    for (let s in subjects) {
+      if (!s.startsWith('ServiceAccount:')) {
+        filtered[s] = true
+      }
+    }
+    return filtered
   }
 
   render() {
@@ -111,6 +121,7 @@ class SubjectsTab extends React.PureComponent {
       <div style={styles.wrapper}>
         
         <FilterBox
+          className={'subjects'}
           addFilter={this.addSubject} 
           removeFilter={this.removeSubject}
           filterNames={this.state.selection}
