@@ -92,6 +92,10 @@ context('Cluster Admin', function(){
       .each(function(div) {
         expect(div.context.innerText).to.match(/^(kind|role|subject|namespace):.*/)
       })
+    
+    cy.get('.access-page .filters.resources input[name=filters]').type('subject:system:masters{enter}{esc}', {force: true})
+    cy.get(`table.filter-table.access > tbody 
+        tr.ClusterRoleBinding_-_cluster-admin`)
   })
 
   it('can autocomplete the access/subjects search', function() {
@@ -106,6 +110,9 @@ context('Cluster Admin', function(){
       .each(function(div) {
         expect(div.context.innerText).to.match(/^(Group|User):.*/)
       })
+    
+    cy.get('.access-page .filters.subjects input[name=filters]').type('User:reader{enter}{esc}', {force: true})
+        cy.get('.permissions.user')
   })
 
 })

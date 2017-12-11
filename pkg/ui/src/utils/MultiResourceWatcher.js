@@ -3,10 +3,11 @@ import { addError } from '../state/actions/errors'
 import { invalidateSession } from '../state/actions/session'
 import { receiveEvents } from '../state/actions/events'
 import { defaultFetchParams } from './request-utils'
-// import queryString from 'query-string'
 
+// these endpoints behave in a particularly chatty manner
 const throttles = {
-  'Endpoints/MODIFIED': 10000,
+  'MODIFIED/Endpoints/kube-system/kube-controller-manager': 10000,
+  'MODIFIED/Endpoints/kube-system/kube-scheduler': 10000,
 }
 const throttlePurgeInterval = 2 * 60 * 1000
 const aggregationInterval = 1000
@@ -24,7 +25,7 @@ export default class MultiResourceWatcher {
 
   initialize = async () => {
     let { props } = this
-    let { maxResourceVersionByKind, kubeKinds, accessEvaluator } = props
+    let { maxResourceVersion, kubeKinds, accessEvaluator } = props
 
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
@@ -43,11 +44,11 @@ export default class MultiResourceWatcher {
       req.watches.push({
         kind: result.kind, 
         namespaces: result.namespaces, 
-        resourceRevision: maxResourceVersionByKind[result.kind]
+        resourceRevision: maxResourceVersion,
       })
     }
 
-    fetch('/proxy/multiwatch', { ...defaultFetchParams,
+    fetch('/proxy/_/multiwatch', { ...defaultFetchParams,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -59,7 +60,7 @@ export default class MultiResourceWatcher {
           this.dispatch(invalidateSession())
         }
       } else {
-        this.initSocket(`${scheme}://${loc.host}/proxy/multiwatch`)
+        this.initSocket(`${scheme}://${loc.host}/proxy/_/multiwatch`)
       }
     })
     
@@ -68,16 +69,6 @@ export default class MultiResourceWatcher {
     this.events = []
     this.interval = window.setInterval(this.processEvents.bind(this), props.interval || aggregationInterval)
   }
-
-  // websocketUrl(scheme, host, kubeKind, resourceVersion, ns) {
-  //   let url = `/${kubeKind.base}/`
-  //   if (!!ns && ns !== '*') {
-  //     url += `namespaces/${ns}/`
-  //   }
-  //   url += `${kubeKind.plural}`
-  //   url += `?watch=true&resourceVersion=${resourceVersion}`
-  //   return url
-  // }
 
   processEvents = () => {
     while (this.events.length) {
@@ -153,7 +144,7 @@ export default class MultiResourceWatcher {
    */
   applyThrottles = (data) => {
     let resource = data.object
-    let throttle = throttles[`${resource.kind}/${data.type}`]
+    let throttle = throttles[`${data.type}/${resource.kind}/${resource.metadata.name}/${resource.metadata.name}`] || throttles[`${data.type}/${resource.kind}`]
     if (!!throttle) {
       let key = `${resource.metadata.namespace}/${resource.kind}/${resource.metadata.name}/${data.type}`
       let lastSeen = this.throttled[key] || 0

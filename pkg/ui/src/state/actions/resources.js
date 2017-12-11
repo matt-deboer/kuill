@@ -313,7 +313,7 @@ export function requestNamespaces() {
 
 async function fetchNamespaces(dispatch, getState) {
   
-  let url = '/namespaces'
+  let url = '/proxy/_/namespaces'
   let result = await fetch(url, defaultFetchParams
   ).then(resp => {
     if (!resp.ok) {
@@ -566,7 +566,7 @@ function watchResources(dispatch, getState) {
   
   let accessEvaluator = getState().session.accessEvaluator
   let watches = getState().resources.watches || {}
-  let maxResourceVersionByKind = getState().resources.maxResourceVersionByKind
+  let maxResourceVersion = getState().resources.maxResourceVersion
   let kubeKinds = getState().apimodels.kinds
 
   if (!objectEmpty(watches)) {
@@ -576,63 +576,12 @@ function watchResources(dispatch, getState) {
   dispatch({
     type: types.SET_WATCHES,
     watches: new MultiResourceWatcher({
-      maxResourceVersionByKind,
+      maxResourceVersion,
       kubeKinds,
       accessEvaluator,
       dispatch,
     }),
   })
-
-  // if (!objectEmpty(watches)) {
-  //   // Update/reset any existing watches
-  //   for (let kind in kubeKinds) {
-  //     if (kind in excludedKinds) {
-  //       continue
-  //     }
-  //     watchRequests.push(
-  //         accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-  //         if (watchableNamespaces && watchableNamespaces.length > 0) {
-  //           let watch = watches[kind]
-  //           if (!!watch && watch.closed()) {
-  //             watch.destroy()
-  //             watches[kind] = new ResourceKindWatcher({
-  //               kind: kind,
-  //               dispatch: dispatch,
-  //               getState: getState,
-  //               resourceVersion: maxResourceVersionByKind[kind] || 0,
-  //               namespaces: watchableNamespaces,
-  //             })
-  //           }
-  //         }
-  //       })
-  //     )
-  //   }
-  // } else {
-  //   for (let kind in kubeKinds) {
-  //     if (kind in excludedKinds) {
-  //       continue
-  //     }
-  //     watchRequests.push(
-  //       accessEvaluator.getWatchableNamespaces(kind).then(watchableNamespaces => {
-  //         if (watchableNamespaces && watchableNamespaces.length > 0) {
-  //           watches[kind] = new ResourceKindWatcher({
-  //             kind: kind, 
-  //             dispatch: dispatch,
-  //             getState: getState,
-  //             resourceVersion: maxResourceVersionByKind[kind] || 0,
-  //             namespaces: watchableNamespaces,
-  //           })
-  //         }
-  //       })
-  //     )
-  //   }
-  // }
-  // Promise.all(watchRequests).then( () => {
-  //   dispatch({
-  //     type: types.SET_WATCHES,
-  //     watches: watches,
-  //   })
-  // })
 }
 
 

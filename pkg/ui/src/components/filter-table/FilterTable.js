@@ -190,7 +190,7 @@ export default class FilterTable extends React.PureComponent {
             <TableRow key={id} 
               hovered={props.hoveredRow === rowIndex} 
               selected={id in props.selectedIds}
-              className={className(id.replace(/\//g,"_"), (props.hoveredRow === rowIndex ? 'hovered' : ''))}
+              className={className(id.replace(/\//g,"_").replace(/~/g,"-"), (props.hoveredRow === rowIndex ? 'hovered' : ''))}
               >
                 {props.columns.map(col =>
                   <TableRowColumn key={col.id} style={{...styles.cell, ...col.style, ...col.cellStyle}} className={col.className || col.id}>

@@ -47,7 +47,7 @@ export function requestKinds(force) {
 
 async function fetchKinds(dispatch, getState) {
   
-  let url = '/kinds'
+  let url = '/proxy/_/kinds'
   let kinds = await fetch(url, defaultFetchParams)
     .then(resp => {
       if (!resp.ok) {

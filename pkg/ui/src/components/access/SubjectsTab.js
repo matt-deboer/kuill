@@ -105,6 +105,7 @@ class SubjectsTab extends React.PureComponent {
     let permsView
     if (userName || groupName) {
       permsView = (<PermissionsPane
+        className={'permissions ' + (userName ? 'user' : 'group')}
         resources={props.resources}
         userName={userName}
         groupName={groupName}

@@ -36,6 +36,7 @@ const (
 	UnspecifiedNameIDFormat  NameIDFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified"
 	TransientNameIDFormat    NameIDFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
 	EmailAddressNameIDFormat NameIDFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"
+	PersistentNameIDFormat   NameIDFormat = "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"
 )
 
 // ServiceProvider implements SAML Service provider.
@@ -75,6 +76,10 @@ type ServiceProvider struct {
 
 	// Logger is used to log messages for example in the event of errors
 	Logger logger.Interface
+
+	// ForceAuthn allows you to force re-authentication of users even if the user
+	// has a SSO session at the IdP.
+	ForceAuthn *bool
 }
 
 // MaxIssueDelay is the longest allowed time between when a SAML assertion is
@@ -273,6 +278,7 @@ func (sp *ServiceProvider) MakeAuthenticationRequest(idpURL string) (*AuthnReque
 			// urn:oasis:names:tc:SAML:2.0:nameid-format:transient
 			Format: &nameIDFormat,
 		},
+		ForceAuthn: sp.ForceAuthn,
 	}
 	return &req, nil
 }
@@ -304,8 +310,8 @@ func (req *AuthnRequest) Post(relayState string) []byte {
 		`<input type="hidden" name="RelayState" value="{{.RelayState}}" />` +
 		`<input id="SAMLSubmitButton" type="submit" value="Submit" />` +
 		`</form>` +
-		`<script>document.getElementById('SAMLSubmitButton').style.visibility="hidden";</script>` +
-		`<script>document.getElementById('SAMLRequestForm').submit();</script>`))
+		`<script>document.getElementById('SAMLSubmitButton').style.visibility="hidden";` +
+		`document.getElementById('SAMLRequestForm').submit();</script>`))
 	data := struct {
 		URL         string
 		SAMLRequest string

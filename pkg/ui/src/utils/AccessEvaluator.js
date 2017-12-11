@@ -42,7 +42,8 @@ export default class AccessEvaluator {
         await doRequest(that.dispatch, that.getState, rulesReviewType + ':test', async () => {
           await rulesReview().then(async (resp) => {
             if (resp.status === 403) {
-              that.useRulesReview = false
+              that.useRulesReview = true
+              that.rules = []
             } else {
               await that.getRules().then(rules => {
                 that.rules = rules

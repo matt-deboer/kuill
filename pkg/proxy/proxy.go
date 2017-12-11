@@ -15,7 +15,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/matt-deboer/kuill/pkg/auth"
-	"github.com/matt-deboer/kuill/pkg/helpers"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -39,7 +38,7 @@ type KubeAPIProxy struct {
 
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
 	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string,
-	traceRequests, traceWebsockets bool, kindLister *helpers.KindLister) (*KubeAPIProxy, error) {
+	traceRequests, traceWebsockets bool, kindLister *KindLister) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -168,7 +167,7 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 		p.traceRequest(r, authContext)
 		p.addAuthHeaders(r, authContext)
 
-		if r.URL.Path == "/proxy/multiwatch" {
+		if r.URL.Path == "/proxy/_/multiwatch" {
 			p.multiKindWatchProxy.ServeHTTP(w, r)
 		} else {
 			r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
@@ -176,7 +175,7 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 			p.websocketProxy.ServeHTTP(w, r)
 		}
 	} else {
-		if r.URL.Path == "/proxy/multiwatch" {
+		if r.URL.Path == "/proxy/_/multiwatch" {
 			p.multiKindWatchProxy.ServeHTTP(w, r)
 		} else {
 			p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))

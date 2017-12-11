@@ -1,5 +1,4 @@
 import { invalidateSession } from './session'
-import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import { defaultFetchParams } from '../../utils/request-utils'
 
 export var types = {}
@@ -66,7 +65,6 @@ async function setEventWatches(dispatch, getState) {
   let { watch } = getState().events
   if (!watch) {
     let eventsUrl = `/proxy/api/v1/events`
-    let resourceVersion = 0
     // Need to fetch current events in order to find latest resourceVersion
     let result = await fetch(eventsUrl, defaultFetchParams
         ).then(resp => {
@@ -80,22 +78,8 @@ async function setEventWatches(dispatch, getState) {
         })
 
     if (!!result && result.kind === 'EventList') {
-      resourceVersion = result.metadata.resourceVersion
       dispatch(receiveEvents(getState().resources.resources, ...result.items))   
-      
-      getState().session.accessEvaluator.getWatchableNamespaces('Event').then(watchableNamespaces => {
-        if (watchableNamespaces.length > 0) {
-          
-          watch = new ResourceKindWatcher({
-            kind: 'Event',
-            dispatch: dispatch,
-            getState: getState,
-            resourceVersion: resourceVersion || 0,
-            namespaces: watchableNamespaces,
-          })
-          dispatch(setWatch(watch))
-        }
-      })
+      // event watch is now handled by MultiResourceWatcher in actions/resources.js
     }
 
   }

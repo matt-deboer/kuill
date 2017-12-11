@@ -14,7 +14,7 @@ import (
 	"encoding/base64"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
-	"github.com/matt-deboer/kuill/pkg/helpers"
+	"github.com/matt-deboer/kuill/pkg/clients"
 	"github.com/matt-deboer/kuill/pkg/metrics"
 	"github.com/matt-deboer/kuill/pkg/proxy"
 	"github.com/matt-deboer/kuill/pkg/templates"
@@ -285,28 +285,20 @@ func main() {
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
-		err := helpers.ServeNamespaces(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = helpers.ServeApiModels(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		kindLister, err := helpers.ServeKinds(c.String("kubeconfig"))
+		kubeClients, err := clients.Create(c.String("kubeconfig"))
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		helpers.ServeVersion()
+		version.Serve()
 
 		sessionTimeout := c.Duration("session-timeout")
 
 		authManager, _ := auth.NewAuthManager(sessionTimeout)
 		setupAuthenticators(c, authManager)
-		setupProxy(c, authManager, kindLister)
+		setupProxy(c, authManager, kubeClients)
 		setupTemplates(c)
-		setupMetrics(c, authManager)
+		setupMetrics(c, authManager, kubeClients)
 
 		http.HandleFunc("/", serveUI)
 
@@ -487,7 +479,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 }
 
-func setupProxy(c *cli.Context, authManager *auth.Manager, kindLister *helpers.KindLister) {
+func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
 
 	flags, err := getRequiredFlags(c, map[string]string{
 		"kubernetes-api":         "string",
@@ -509,6 +501,10 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kindLister *helpers.K
 			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
 		}
 
+		kindLister, _, err := proxy.SetupAggregators(kubeClients)
+		if err != nil {
+			log.Fatal(err)
+		}
 		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
 			flags["kubernetes-client-ca"].(string),
 			flags["kubernetes-client-cert"].(string),
@@ -524,14 +520,15 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kindLister *helpers.K
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		http.HandleFunc("/proxy/", authManager.NewAuthDelegate(apiProxy.ProxyRequest))
 	} else {
 		log.Warnf("Kubernetes proxy is not enabled; %s", err)
 	}
 }
 
-func setupMetrics(c *cli.Context, authManager *auth.Manager) {
-	provider, err := metrics.NewMetricsProvider(c.String("kubeconfig"))
+func setupMetrics(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
+	provider, err := metrics.NewMetricsProvider(kubeClients)
 	if err != nil {
 		log.Errorf("Failed to configure metrics adapter: %v", err)
 	} else {

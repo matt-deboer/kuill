@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/matt-deboer/kuill/pkg/helpers"
 	log "github.com/sirupsen/logrus"
 
 	"bytes"
@@ -18,7 +17,7 @@ import (
 )
 
 // MultiwatchPath is the url path at which multiwatch is served
-const MultiwatchPath = "/proxy/multiwatch"
+const MultiwatchPath = "/proxy/_/multiwatch"
 
 // CreateWatchesRequest represents a request to
 // create a watch for a set of kinds and associated
@@ -58,12 +57,12 @@ type KubeKindAggregatingWatchProxy struct {
 
 	traceRequests bool
 
-	kindLister *helpers.KindLister
+	kindLister *KindLister
 }
 
 // NewKubeKindAggregatingWatchProxy returns a new Websocket reverse proxy that rewrites the
 // URL's to the scheme, host and base path provider in target.
-func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *helpers.KindLister) *KubeKindAggregatingWatchProxy {
+func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *KindLister) *KubeKindAggregatingWatchProxy {
 	backend := func(watchPath string, resourceVersion int) *url.URL {
 		// Shallow copy
 		u := *target
