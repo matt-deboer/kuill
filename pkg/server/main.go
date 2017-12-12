@@ -501,7 +501,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
 		}
 
-		kindLister, _, err := proxy.SetupAggregators(kubeClients)
+		kindLister, _, err := proxy.SetupAggregators(kubeClients, authManager)
 		if err != nil {
 			log.Fatal(err)
 		}

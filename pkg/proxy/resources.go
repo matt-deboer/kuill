@@ -1,7 +1,9 @@
 package proxy
 
 import (
+	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 
 	"k8s.io/client-go/dynamic"
@@ -10,7 +12,9 @@ import (
 	"github.com/matt-deboer/kuill/pkg/auth"
 	"github.com/matt-deboer/kuill/pkg/clients"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -46,31 +50,51 @@ func (l *ResourceLister) ListResources(w http.ResponseWriter, r *http.Request, a
 		return
 	}
 
-	lists := make(chan runtime.Object, len(l.kindLister.kinds)*len(namespaces))
+	lists := make(chan *unstructured.UnstructuredList, len(l.kindLister.kinds)*len(namespaces))
 	var wg sync.WaitGroup
 
 	l.kindLister.mutex.RLock()
 	for _, kind := range l.kindLister.kinds {
 		wg.Add(1)
-		go l.fetchKind(kind, "", namespaces, lists, &wg, nil)
+		go l.fetchKind(kind, "", namespaces, authContext, lists, &wg, nil)
 	}
 	l.kindLister.mutex.RUnlock()
 
 	wg.Wait()
 	// wait for all results:
-
+	var result unstructured.UnstructuredList
+	// var result resourceLists
+AssembleResults:
+	for {
+		select {
+		case list := <-lists:
+			result.Items = append(result.Items, list.Items...)
+		default:
+			break AssembleResults
+		}
+	}
+	json.NewEncoder(w).Encode(result)
 }
 
-func (l *ResourceLister) fetchKind(kind *KubeKind, namespace string, namespaces []string, lists chan runtime.Object, wg *sync.WaitGroup, dynClient *dynamic.Client) {
+func (l *ResourceLister) fetchKind(kind *KubeKind, namespace string, namespaces []string, authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup, dynClient *dynamic.Client) {
 
 	var err error
 	if dynClient == nil {
-		var config rest.Config
+		var config = *l.kubeClients.Config
 		l.kubeClients.Config.DeepCopyInto(&config.TLSClientConfig)
+		config.Impersonate = rest.ImpersonationConfig{
+			UserName: authContext.User(),
+			Groups:   authContext.Groups(),
+		}
+		if strings.Contains(kind.Version, "/") {
+			config.APIPath = "/apis"
+		}
+		config.Host = l.kubeClients.Config.Host
 		config.GroupVersion = &schema.GroupVersion{
 			Group:   kind.Group,
 			Version: kind.Version,
 		}
+
 		dynClient, err = dynamic.NewClient(&config)
 		if err != nil {
 			log.Fatalf("Failed to create dynamic client for config %v; %v", config, err)
@@ -79,15 +103,32 @@ func (l *ResourceLister) fetchKind(kind *KubeKind, namespace string, namespaces 
 
 	obj, err := dynClient.Resource(&kind.APIResource, namespace).List(meta_v1.ListOptions{})
 	if err != nil {
-		log.Warnf("Error fetching %s (namespace: %s); %v", err)
-		if kind.Namespaced && namespace == "" {
-			for _, namespace := range namespaces {
-				wg.Add(1)
-				go l.fetchKind(kind, namespace, namespaces, lists, wg, dynClient)
+		if statusErr, ok := err.(*errors.StatusError); ok {
+			if statusErr.ErrStatus.Code == 403 {
+				if kind.Namespaced && namespace == "" {
+					if log.GetLevel() >= log.DebugLevel {
+						log.Debugf("User %s[groups: %v] cannot fetch %s at the cluster level; fetching at namespace level...",
+							authContext.User(), authContext.Groups(), kind.Plural)
+					}
+					for _, namespace := range namespaces {
+						wg.Add(1)
+						go l.fetchKind(kind, namespace, namespaces, authContext, lists, wg, dynClient)
+					}
+				} else if log.GetLevel() >= log.DebugLevel {
+					log.Debugf("User %s[groups: %v] cannot fetch %s/%s; %s",
+						authContext.User(), authContext.Groups(),
+						namespace, kind.Plural, statusErr.ErrStatus.Message)
+				}
 			}
+		} else {
+			log.Warnf("Error fetching %s (namespace: '%s'); %v", kind.APIResource.Kind, namespace, err)
+		}
+	} else if ul, ok := obj.(*unstructured.UnstructuredList); ok && ul.IsList() {
+		if len(ul.Items) > 0 {
+			lists <- ul
 		}
 	} else {
-		lists <- obj
+		log.Warnf("Received unexpected result (%T): %v", obj, obj)
 	}
 	wg.Done()
 }
