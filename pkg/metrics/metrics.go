@@ -164,9 +164,9 @@ func (m *Provider) summarize() *Summaries {
 
 		// To be replaced by resource quota for the NS, should one exist
 		nsSummary.CPU.Total = summary.Cluster.CPU.Total
-		nsSummary.CPU.Ratio = float64(nsSummary.CPU.Usage) / float64(nsSummary.CPU.Total)
+		nsSummary.CPU.Ratio = safeDivideFloat(float64(nsSummary.CPU.Usage), float64(nsSummary.CPU.Total))
 		nsSummary.Memory.Total = summary.Cluster.Memory.Total
-		nsSummary.Memory.Ratio = float64(nsSummary.Memory.Usage) / float64(nsSummary.Memory.Total)
+		nsSummary.Memory.Ratio = safeDivideFloat(float64(nsSummary.Memory.Usage), float64(nsSummary.Memory.Total))
 
 		summary.Namespace[ns] = nsSummary
 	}
@@ -179,6 +179,20 @@ func safeGet(ref *uint64) uint64 {
 		return *ref
 	}
 	return 0
+}
+
+func safeDivideInt(dividend, divisor uint64) uint64 {
+	if divisor == 0 {
+		return 0
+	}
+	return dividend / divisor
+}
+
+func safeDivideFloat(dividend, divisor float64) float64 {
+	if divisor == 0.0 {
+		return 0.0
+	}
+	return dividend / divisor
 }
 
 func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *Summaries) (*Summary, map[string]*Summary) {
@@ -247,11 +261,11 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *S
 			volCapacityBytes,
 			"bytes"),
 		NetRx: newSummaryStat(
-			summary.Node.Network.RxBytes/networkSeconds,
+			safeDivideInt(summary.Node.Network.RxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			summary.Node.Network.TxBytes/networkSeconds,
+			safeDivideInt(summary.Node.Network.TxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
@@ -272,11 +286,11 @@ func convertPodSummary(pod PodStats) *Summary {
 		Volumes: &SummaryStat{Units: "bytes"},
 		Disk:    &SummaryStat{Units: "bytes"},
 		NetRx: newSummaryStat(
-			pod.Network.RxBytes/networkSeconds,
+			safeDivideInt(pod.Network.RxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			pod.Network.TxBytes/networkSeconds,
+			safeDivideInt(pod.Network.TxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
@@ -347,11 +361,11 @@ func makeSummary(prefix string, aggregates map[string]uint64) *Summary {
 			volCapacityBytes,
 			"bytes"),
 		NetRx: newSummaryStat(
-			networkRxBytes/networkSeconds,
+			safeDivideInt(networkRxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		NetTx: newSummaryStat(
-			networkTxBytes/networkSeconds,
+			safeDivideInt(networkTxBytes, networkSeconds),
 			1,
 			"bytes/sec"),
 		Pods: &SummaryStat{
