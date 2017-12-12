@@ -16,8 +16,6 @@ var (
 )
 
 // Serve presents the version as text response from the /version path
-func Serve() {
-	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(Version))
-	})
+func Serve(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(Version))
 }

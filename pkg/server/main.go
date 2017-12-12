@@ -290,16 +290,19 @@ func main() {
 			log.Fatal(err)
 		}
 
-		version.Serve()
-
 		sessionTimeout := c.Duration("session-timeout")
 
-		authManager, _ := auth.NewAuthManager(sessionTimeout)
+		authManager, err := auth.NewAuthManager(sessionTimeout)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		setupAuthenticators(c, authManager)
 		setupProxy(c, authManager, kubeClients)
 		setupTemplates(c)
 		setupMetrics(c, authManager, kubeClients)
 
+		http.HandleFunc("/version", version.Serve)
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
@@ -501,10 +504,15 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
 		}
 
-		kindLister, _, err := proxy.SetupAggregators(kubeClients, authManager)
+		kinds, err := proxy.NewKindsProxy(kubeClients)
 		if err != nil {
 			log.Fatal(err)
 		}
+		namespaces := proxy.NewNamespacesProxy(kubeClients)
+		swagger := proxy.NewSwaggerProxy(kubeClients)
+		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces)
+		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
+
 		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
 			flags["kubernetes-client-ca"].(string),
 			flags["kubernetes-client-cert"].(string),
@@ -515,13 +523,21 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 			authenticatedGroups,
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),
-			kindLister,
+			kinds,
+			access,
 		)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		http.HandleFunc("/proxy/swagger.json", swagger.Serve)
+		http.HandleFunc("/proxy/_/kinds", kinds.Serve)
+		http.HandleFunc("/proxy/_/namespaces", namespaces.Serve)
+
+		http.HandleFunc("/proxy/_/resources/list", authManager.NewAuthDelegate(resources.Serve))
+		http.HandleFunc("/proxy/_/accessreview", authManager.NewAuthDelegate(access.Serve))
 		http.HandleFunc("/proxy/", authManager.NewAuthDelegate(apiProxy.ProxyRequest))
+
 	} else {
 		log.Warnf("Kubernetes proxy is not enabled; %s", err)
 	}

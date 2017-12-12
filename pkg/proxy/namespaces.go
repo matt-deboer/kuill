@@ -10,14 +10,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ServeNamespaces provides version information for kuill
-func ServeNamespaces(kubeClients *clients.KubeClients) (*NamespaceLister, error) {
-	ns := &NamespaceLister{kubeClients}
-	http.HandleFunc("/proxy/_/namespaces", ns.serve)
-	return ns, nil
+// NewNamespacesProxy creates a new NamespaceProxy which simply returns a
+// list of all known namespaces
+func NewNamespacesProxy(kubeClients *clients.KubeClients) *NamespaceProxy {
+	return &NamespaceProxy{kubeClients}
 }
 
-type NamespaceLister struct {
+type NamespaceProxy struct {
 	kubeClients *clients.KubeClients
 }
 
@@ -25,7 +24,7 @@ type nsList struct {
 	Namespaces []string `json:"namespaces"`
 }
 
-func (n *NamespaceLister) getNamespaces() ([]string, error) {
+func (n *NamespaceProxy) getNamespaces() ([]string, error) {
 	var list []string
 	nss, err := n.kubeClients.Standard.Core().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
@@ -37,7 +36,7 @@ func (n *NamespaceLister) getNamespaces() ([]string, error) {
 	return list, nil
 }
 
-func (n *NamespaceLister) serve(w http.ResponseWriter, r *http.Request) {
+func (n *NamespaceProxy) Serve(w http.ResponseWriter, r *http.Request) {
 
 	var list nsList
 	nss, err := n.getNamespaces()

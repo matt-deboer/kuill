@@ -19,31 +19,30 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-type ResourceLister struct {
+type ResourcesProxy struct {
 	kubeClients     *clients.KubeClients
 	authManager     *auth.Manager
-	kindLister      *KindLister
-	namespaceLister *NamespaceLister
+	kindLister      *KindsProxy
+	namespaceLister *NamespaceProxy
 	bearerToken     string
 }
 
-func ServeResources(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindLister, namespaceLister *NamespaceLister) error {
-	l := &ResourceLister{
+// NewResourcesProxy creates  a new ResourcesProxy object
+func NewResourcesProxy(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindsProxy, namespaceLister *NamespaceProxy) *ResourcesProxy {
+	return &ResourcesProxy{
 		authManager:     authManager,
 		kindLister:      kindLister,
 		namespaceLister: namespaceLister,
 		kubeClients:     kubeClients,
 	}
-	http.HandleFunc("/proxy/_/resources/list", authManager.NewAuthDelegate(l.ListResources))
-	return nil
 }
 
 type resourceLists struct {
 	Lists []runtime.Object `json:"lists"`
 }
 
-// ListResources fetches all resources visible to the authenticated user and returns them in a single response list
-func (l *ResourceLister) ListResources(w http.ResponseWriter, r *http.Request, authContext auth.Context) {
+// Serve fetches all resources visible to the authenticated user and returns them in a single response list
+func (l *ResourcesProxy) Serve(w http.ResponseWriter, r *http.Request, authContext auth.Context) {
 	namespaces, err := l.namespaceLister.getNamespaces()
 	if err != nil {
 		http.Error(w, "Failed to list namespaces", http.StatusInternalServerError)
@@ -62,13 +61,13 @@ func (l *ResourceLister) ListResources(w http.ResponseWriter, r *http.Request, a
 
 	wg.Wait()
 	// wait for all results:
-	var result unstructured.UnstructuredList
+	var result resourceLists
 	// var result resourceLists
 AssembleResults:
 	for {
 		select {
 		case list := <-lists:
-			result.Items = append(result.Items, list.Items...)
+			result.Lists = append(result.Lists, list)
 		default:
 			break AssembleResults
 		}
@@ -76,7 +75,9 @@ AssembleResults:
 	json.NewEncoder(w).Encode(result)
 }
 
-func (l *ResourceLister) fetchKind(kind *KubeKind, namespace string, namespaces []string, authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup, dynClient *dynamic.Client) {
+func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces []string,
+	authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup,
+	dynClient *dynamic.Client) {
 
 	var err error
 	if dynClient == nil {

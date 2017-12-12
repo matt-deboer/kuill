@@ -38,7 +38,8 @@ type KubeAPIProxy struct {
 
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
 	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string,
-	traceRequests, traceWebsockets bool, kindLister *KindLister) (*KubeAPIProxy, error) {
+	traceRequests, traceWebsockets bool, kindLister *KindsProxy,
+	accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -109,7 +110,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		}
 	}
 
-	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister)
+	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister, accessAggregator)
 	mwp.Dialer = wsp.Dialer
 	mwp.Upgrader = wsp.Upgrader
 	mwp.Director = wsp.Director
@@ -168,18 +169,14 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 		p.addAuthHeaders(r, authContext)
 
 		if r.URL.Path == "/proxy/_/multiwatch" {
-			p.multiKindWatchProxy.ServeHTTP(w, r)
+			p.multiKindWatchProxy.AggregateWatches(w, r, authContext)
 		} else {
 			r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
 			r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
 			p.websocketProxy.ServeHTTP(w, r)
 		}
 	} else {
-		if r.URL.Path == "/proxy/_/multiwatch" {
-			p.multiKindWatchProxy.ServeHTTP(w, r)
-		} else {
-			p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
-		}
+		p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
 	}
 }
 

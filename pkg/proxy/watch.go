@@ -1,38 +1,19 @@
 package proxy
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
+	"github.com/matt-deboer/kuill/pkg/auth"
 	log "github.com/sirupsen/logrus"
 
 	"bytes"
 
 	"github.com/gorilla/websocket"
 )
-
-// MultiwatchPath is the url path at which multiwatch is served
-const MultiwatchPath = "/proxy/_/multiwatch"
-
-// CreateWatchesRequest represents a request to
-// create a watch for a set of kinds and associated
-// namespaces
-type CreateWatchesRequest struct {
-	Watches []*NamespacedKind `json:"watches"`
-}
-
-// NamespacedKind represents a kind
-// and a set of associated namespaces
-type NamespacedKind struct {
-	Kind             string   `json:"kind"`
-	ResourceRevision int      `json:"resourceRevision"`
-	Namespaces       []string `json:"namespaces"`
-}
 
 // KubeKindAggregatingWatchProxy is an HTTP Handler that takes an incoming WebSocket
 // connection and proxies it to another server.
@@ -55,14 +36,14 @@ type KubeKindAggregatingWatchProxy struct {
 	//  If nil, DefaultDialer is used.
 	Dialer *websocket.Dialer
 
-	traceRequests bool
-
-	kindLister *KindLister
+	traceRequests    bool
+	kindLister       *KindsProxy
+	accessAggregator *AccessAggregator
 }
 
 // NewKubeKindAggregatingWatchProxy returns a new Websocket reverse proxy that rewrites the
 // URL's to the scheme, host and base path provider in target.
-func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *KindLister) *KubeKindAggregatingWatchProxy {
+func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *KindsProxy, accessAggregator *AccessAggregator) *KubeKindAggregatingWatchProxy {
 	backend := func(watchPath string, resourceVersion int) *url.URL {
 		// Shallow copy
 		u := *target
@@ -72,155 +53,23 @@ func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindL
 		return &u
 	}
 
-	return &KubeKindAggregatingWatchProxy{Backend: backend, kindLister: kindLister}
+	return &KubeKindAggregatingWatchProxy{Backend: backend, kindLister: kindLister, accessAggregator: accessAggregator}
 }
 
-// split up the watch request into 3 separate parts, each of which will be
-// encoded into it's own separate cookie
-func splitWatchesRequest(watchesRequest *CreateWatchesRequest) (kinds []string, namespaces []string, namespaceIndexesByKindIndex [][]int) {
-
-	indexesByKind := make(map[string]int)
-	indexesByNs := make(map[string]int)
-	nextKindIndex := 0
-	nextNsIndex := 0
-
-	for _, watch := range watchesRequest.Watches {
-		kinds = append(kinds, fmt.Sprintf("%s:%d", watch.Kind, watch.ResourceRevision))
-		indexesByKind[watch.Kind] = nextKindIndex
-		nextKindIndex++
-
-		nsIndicies := make([]int, 0, len(watch.Namespaces))
-		for _, ns := range watch.Namespaces {
-			if index, ok := indexesByNs[ns]; ok {
-				nsIndicies = append(nsIndicies, index)
-			} else {
-				namespaces = append(namespaces, ns)
-				nsIndicies = append(nsIndicies, nextNsIndex)
-				indexesByNs[ns] = nextNsIndex
-				nextNsIndex++
-			}
-		}
-		namespaceIndexesByKindIndex = append(namespaceIndexesByKindIndex, nsIndicies)
-	}
-
-	return
-}
-
-// convets the watches request to a gob-base64 encoded cookie to be passed
-// on a subsequent websocket request; this allows passing all of the information
-// necessary for a multiwatch which would not otherwise fit in the URL
-func (w *KubeKindAggregatingWatchProxy) convertWatchesRequestToCookies(rw http.ResponseWriter, req *http.Request) {
-	contentType := req.Header.Get("Content-Type")
-	if strings.Contains(contentType, "application/json") {
-		decoder := json.NewDecoder(req.Body)
-		defer req.Body.Close()
-		var watchesRequest CreateWatchesRequest
-		err := decoder.Decode(&watchesRequest)
-		if err != nil {
-			http.Error(rw, "Failed to decode request", http.StatusBadRequest)
-		} else {
-			kinds, namespaces, namespaceIndexesByKindIndex := splitWatchesRequest(&watchesRequest)
-			http.SetCookie(rw, &http.Cookie{
-				Name:     "multiwatch.kinds",
-				Value:    strings.Join(kinds, ","),
-				HttpOnly: true,
-				Path:     MultiwatchPath,
-			})
-			http.SetCookie(rw, &http.Cookie{
-				Name:     "multiwatch.namespaces",
-				Value:    strings.Join(namespaces, ","),
-				HttpOnly: true,
-				Path:     MultiwatchPath,
-			})
-			nsByKindBytes, err := json.Marshal(namespaceIndexesByKindIndex)
-			if err != nil {
-				http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			http.SetCookie(rw, &http.Cookie{
-				Name:     "multiwatch.nsByKind",
-				Value:    string(nsByKindBytes),
-				HttpOnly: true,
-				Path:     MultiwatchPath,
-			})
-			// success; the cookies are actually the response
-			rw.WriteHeader(http.StatusCreated)
-		}
-	} else {
-		http.Error(rw, "Only 'application/json' is supported for this resource", http.StatusUnsupportedMediaType)
-	}
-	return
-}
-
-// rebuild the watches request from the separate cookie values
-func extractWatchesRequestFromCookies(req *http.Request) (*CreateWatchesRequest, error) {
-
-	var watchesRequest CreateWatchesRequest
-
-	ckKinds, err := req.Cookie("multiwatch.kinds")
-	if err != nil {
-		return nil, fmt.Errorf("Missing 'multiwatch.kinds' cookie; %v", err)
-	}
-	kinds := strings.Split(ckKinds.Value, ",")
-
-	ckNamespaces, err := req.Cookie("multiwatch.namespaces")
-	if err != nil {
-		return nil, fmt.Errorf("Missing 'multiwatch.namespaces' cookie; %v", err)
-	}
-	namespaces := strings.Split(ckNamespaces.Value, ",")
-
-	ckNsByKind, err := req.Cookie("multiwatch.nsByKind")
-	if err != nil {
-		return nil, fmt.Errorf("Missing 'multiwatch.nsByKind' cookie; %v", err)
-	}
-	var nsByKind [][]int
-	err = json.Unmarshal([]byte(ckNsByKind.Value), &nsByKind)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse 'multiwatch.nsByKind' cookie; %v", err)
-	}
-
-	for i, nss := range nsByKind {
-		nsForKind := make([]string, 0, len(nss))
-		for _, nsi := range nss {
-			nsForKind = append(nsForKind, namespaces[nsi])
-		}
-		parts := strings.Split(kinds[i], ":")
-		rev, _ := strconv.Atoi(parts[1])
-		watchesRequest.Watches = append(watchesRequest.Watches,
-			&NamespacedKind{Kind: parts[0], ResourceRevision: rev, Namespaces: nsForKind})
-	}
-
-	return &watchesRequest, nil
-}
-
-// ServeHTTP implements the http.Handler that proxies WebSocket connections.
-func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-
-	if req.Method == "POST" {
-		// User is creating the cookies that will be used by a subsequent
-		// websocket GET request
-		w.convertWatchesRequestToCookies(rw, req)
-		return
-	}
+// AggregateWatches implements the http.Handler that proxies multiple WebSocket connections.
+func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter, req *http.Request, authContext auth.Context) {
 
 	if w.Backend == nil {
 		log.Error("KubeKindAggregatingWatchProxy: backend function is not defined")
-		http.Error(rw, "internal server error (code: 1)", http.StatusInternalServerError)
+		http.Error(rw, "Internal server error (code: 1)", http.StatusInternalServerError)
 		return
 	}
 
-	watchesRequest, err := extractWatchesRequestFromCookies(req)
+	watchable, watchCount, err := w.accessAggregator.GetWatchableResources(authContext)
 	if err != nil {
-		log.Errorf("KubeKindAggregatingWatchProxy: missing required multiwatch cookies; %v", err)
-		http.Error(rw, "Missing required multiwatch cookies", http.StatusBadRequest)
+		log.Errorf("KubeKindAggregatingWatchProxy: error recovering watchable resources; %v", err)
+		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
-	} else if log.GetLevel() >= log.DebugLevel {
-		data, err := json.Marshal(watchesRequest)
-		if err != nil {
-			log.Errorf("Failed to marshal watchesRequest: %v", err)
-		}
-		log.Debugf("KubeKindAggregatingWatchProxy: handling multiwatch for %#v",
-			string(data))
 	}
 
 	dialer := w.Dialer
@@ -269,21 +118,20 @@ func (w *KubeKindAggregatingWatchProxy) ServeHTTP(rw http.ResponseWriter, req *h
 		w.Director(req, requestHeader)
 	}
 
-	backendErrors := make(chan error, len(watchesRequest.Watches))
+	backendErrors := make(chan error, watchCount)
 	var clientConn *websocket.Conn
 
 	outbound := make(chan []byte, 32)
 
-	for _, watch := range watchesRequest.Watches {
+	for _, watchableKind := range watchable {
 		// Connect to the backend URL, also pass the headers we get from the requst
 		// together with the Forwarded headers we prepared above.
-		kubeKind := w.kindLister.GetKind(watch.Kind)
-		for _, ns := range watch.Namespaces {
-			kindPath := kubeKind.GetWatchPath(ns)
+		for _, ns := range watchableKind.Namespaces {
+			kindPath := watchableKind.GetWatchPath(ns)
 			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Got kindPath %s for ns: %s, kind: %s", kindPath, ns, watch.Kind)
+				log.Debugf("Got kindPath %s for ns: %s, kind: %s", kindPath, ns, watchableKind.Kind)
 			}
-			backendURL := w.Backend(kindPath, watch.ResourceRevision)
+			backendURL := w.Backend(kindPath, 0)
 			if backendURL == nil {
 				log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
 				// TODO: should we just log this and move on to the next?

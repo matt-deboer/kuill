@@ -31,38 +31,7 @@ export default class MultiResourceWatcher {
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
     this.onEvent = this.onEvent.bind(this)
 
-    let requests = []
-    for (let kind in kubeKinds) {
-      let kubeKind = kubeKinds[kind]
-      if (kubeKind.verbs.indexOf('watch') !== -1) {
-        requests.push(accessEvaluator.getWatchableNamespaces(kind).then(nss => ({kind: kind, namespaces: nss})))
-      }
-    }
-    let req = {watches: []}
-    let results = await Promise.all(requests)   
-    for (let result of results) {
-      req.watches.push({
-        kind: result.kind, 
-        namespaces: result.namespaces, 
-        resourceRevision: maxResourceVersion,
-      })
-    }
-
-    fetch('/proxy/_/multiwatch', { ...defaultFetchParams,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST',
-      body: JSON.stringify(req),
-    }).then(resp => {
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          this.dispatch(invalidateSession())
-        }
-      } else {
-        this.initSocket(`${scheme}://${loc.host}/proxy/_/multiwatch`)
-      }
-    })
+    this.initSocket(`${scheme}://${loc.host}/proxy/_/multiwatch`)
     
     this.throttled = {}
     this.lastPurge = Date.now()
