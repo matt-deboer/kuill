@@ -108,7 +108,7 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 			if statusErr.ErrStatus.Code == 403 {
 				if kind.Namespaced && namespace == "" {
 					if log.GetLevel() >= log.DebugLevel {
-						log.Debugf("User %s[groups: %v] cannot fetch %s at the cluster level; fetching at namespace level...",
+						log.Debugf("User %s %v cannot list %s at the cluster level; fetching at namespace level...",
 							authContext.User(), authContext.Groups(), kind.Plural)
 					}
 					for _, namespace := range namespaces {
@@ -116,7 +116,7 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 						go l.fetchKind(kind, namespace, namespaces, authContext, lists, wg, dynClient)
 					}
 				} else if log.GetLevel() >= log.DebugLevel {
-					log.Debugf("User %s[groups: %v] cannot fetch %s/%s; %s",
+					log.Debugf("User %s %v cannot list %s/%s; %s",
 						authContext.User(), authContext.Groups(),
 						namespace, kind.Plural, statusErr.ErrStatus.Message)
 				}

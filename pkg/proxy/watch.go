@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
@@ -120,8 +121,8 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 
 	backendErrors := make(chan error, watchCount)
 	var clientConn *websocket.Conn
-
 	outbound := make(chan []byte, 32)
+	resourceVersion, _ := strconv.Atoi(req.URL.Query().Get("resourceVersion"))
 
 	for _, watchableKind := range watchable {
 		// Connect to the backend URL, also pass the headers we get from the requst
@@ -131,7 +132,7 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Got kindPath %s for ns: %s, kind: %s", kindPath, ns, watchableKind.Kind)
 			}
-			backendURL := w.Backend(kindPath, 0)
+			backendURL := w.Backend(kindPath, resourceVersion)
 			if backendURL == nil {
 				log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
 				// TODO: should we just log this and move on to the next?

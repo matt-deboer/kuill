@@ -537,6 +537,7 @@ function watchResources(dispatch, getState) {
       kubeKinds,
       accessEvaluator,
       dispatch,
+      getState,
     }),
   })
 }

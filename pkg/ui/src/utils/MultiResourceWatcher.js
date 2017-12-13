@@ -1,8 +1,6 @@
 import { putResource, removeResource } from '../state/actions/resources'
 import { addError } from '../state/actions/errors'
-import { invalidateSession } from '../state/actions/session'
 import { receiveEvents } from '../state/actions/events'
-import { defaultFetchParams } from './request-utils'
 
 // these endpoints behave in a particularly chatty manner
 const throttles = {
@@ -19,14 +17,13 @@ export default class MultiResourceWatcher {
     this.props = props
     this.tries = 0
     this.dispatch = props.dispatch
+    this.getState = props.getState
     this.initialize = this.initialize.bind(this)
     this.initialize()
   }
 
   initialize = async () => {
     let { props } = this
-    let { maxResourceVersion, kubeKinds, accessEvaluator } = props
-
     let loc = window.location
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
     this.onEvent = this.onEvent.bind(this)

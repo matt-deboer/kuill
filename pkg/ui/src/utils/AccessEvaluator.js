@@ -1,7 +1,8 @@
 import { defaultFetchParams } from './request-utils'
-import { keyForResource } from './resource-utils'
+// import { keyForResource } from './resource-utils'
 import { detachedOwnerRefsAnnotation, requestNamespaces } from '../state/actions/resources'
 import { doRequest } from '../state/actions/requests'
+import queryString from 'query-string'
 
 const rulesReviewType = 'io.k8s.api.authorization.v1.SelfSubjectRulesReview'
 
@@ -89,62 +90,76 @@ export default class AccessEvaluator {
   getObjectPermissions = async (resource) => {
     await this.initialize()
 
-    if (this.useRulesReview) {
-      return resolveNamespacePermissions(resource, this.rules, this.kubeKinds)
+    let params = {
+      kind: resource.kind, 
+      namespace: resource.metadata.namespace.replace(/~/, ""),
+      name: resource.metadata.name
     }
-
-    let kubeKind = this.kubeKinds[resource.kind]
-    let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
-    let namespacePerms = {}
-    if (resource.metadata && resource.metadata.namespace) {
-      namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] =
-      this.permissions[`${resource.kind}/${resource.metadata.namespace}`] || {}
-    }
-    let key = keyForResource(resource)
-    let objectPerms = this.permissions[key] = this.permissions[key] || {}
-    let permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
-
-    if ('get' in permissions && 
-        'put' in permissions && 
-        'delete' in permissions &&
-        'logs' in permissions &&
-        'exec' in permissions) {
-      return permissions
-    }
-
-    let results = await resolveResourcePermissions(resource, permissions, kubeKind, this.kubeKinds)
-    for (let result of results) {
-      let allowed = result.status.allowed
-      let attrs = result.spec.resourceAttributes
-      if (allowed) {
-        let action = (attrs.subresource || attrs.verb).replace('log', 'logs')
-        if (!('namespace' in attrs)) {
-          clusterPerms[action] = true
-        } else if (!('name' in attrs)) {
-          namespacePerms[action] = true
+    let url = '/proxy/_/accessreview?' + queryString.stringify(params)
+    return fetch(url, defaultFetchParams)
+      .then(resp => {
+        if (!resp.ok) {
+          
         } else {
-          objectPerms[action] = true
+          return resp.json()
         }
-      }
-    }
+      })
+    // if (this.useRulesReview) {
+    //   return resolveNamespacePermissions(resource, this.rules, this.kubeKinds)
+    // }
 
-    permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
-    if (!('get' in permissions)) {
-      objectPerms.get = permissions.get = false
-    }
-    if (!('put' in permissions)) {
-      objectPerms.put = permissions.put = false
-    }
-    if (!('delete' in permissions)) {
-      objectPerms.delete = permissions.delete = false
-    }
-    if (!('logs' in permissions)) {
-      objectPerms.logs = permissions.logs = false
-    }
-    if (!('exec' in permissions)) {
-      objectPerms.exec = permissions.exec = false
-    }
-    return permissions
+    // let kubeKind = this.kubeKinds[resource.kind]
+    // let clusterPerms = this.permissions[`${resource.kind}`] = this.permissions[`${resource.kind}`] || {}
+    // let namespacePerms = {}
+    // if (resource.metadata && resource.metadata.namespace) {
+    //   namespacePerms = this.permissions[`${resource.kind}/${resource.metadata.namespace}`] =
+    //   this.permissions[`${resource.kind}/${resource.metadata.namespace}`] || {}
+    // }
+    // let key = keyForResource(resource)
+    // let objectPerms = this.permissions[key] = this.permissions[key] || {}
+    // let permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
+
+    // if ('get' in permissions && 
+    //     'put' in permissions && 
+    //     'delete' in permissions &&
+    //     'logs' in permissions &&
+    //     'exec' in permissions) {
+    //   return permissions
+    // }
+
+    // let results = await resolveResourcePermissions(resource, permissions, kubeKind, this.kubeKinds)
+    // for (let result of results) {
+    //   let allowed = result.status.allowed
+    //   let attrs = result.spec.resourceAttributes
+    //   if (allowed) {
+    //     let action = (attrs.subresource || attrs.verb).replace('log', 'logs')
+    //     if (!('namespace' in attrs)) {
+    //       clusterPerms[action] = true
+    //     } else if (!('name' in attrs)) {
+    //       namespacePerms[action] = true
+    //     } else {
+    //       objectPerms[action] = true
+    //     }
+    //   }
+    // }
+
+    // permissions = {...clusterPerms, ...namespacePerms, ...objectPerms}
+    // if (!('get' in permissions)) {
+    //   objectPerms.get = permissions.get = false
+    // }
+    // if (!('put' in permissions)) {
+    //   objectPerms.put = permissions.put = false
+    // }
+    // if (!('delete' in permissions)) {
+    //   objectPerms.delete = permissions.delete = false
+    // }
+    // if (!('logs' in permissions)) {
+    //   objectPerms.logs = permissions.logs = false
+    // }
+    // if (!('exec' in permissions)) {
+    //   objectPerms.exec = permissions.exec = false
+    // }
+    // return permissions
   }
 
   getRules = async () => {
@@ -287,45 +302,45 @@ function resolveVerbs(verbs) {
   }
 }
 
-async function resolveResourcePermissions(resource, permissions, kubeKind, kubeKinds) {
-  let requests = []
-  if (!('get' in permissions)) {
-    requests.push(accessReview(kubeKind, 'get'))
-    requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace))
-    requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace, resource.metadata.name))
-  }
-  if (!('watch' in permissions)) {
-    requests.push(accessReview(kubeKind, 'watch'))
-    requests.push(accessReview(kubeKind, 'watch', resource.metadata.namespace))
-  }
-  if (!('edit' in permissions)) {
-    requests.push(accessReview(kubeKind, 'put'))
-    requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace))
-    requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace, resource.metadata.name))
-  }
-  if (!('delete' in permissions)) {
-    requests.push(accessReview(kubeKind, 'delete'))
-    requests.push(accessReview(kubeKind, 'delete', 
-      resource.metadata.namespace))
-    requests.push(accessReview(kubeKind, 'delete', 
-      resource.metadata.namespace, resource.metadata.name))
-  }
-  if (!('logs' in permissions)) {
-    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'log'))
-    requests.push(accessReview(kubeKinds.Pod, 'get', 
-      resource.metadata.namespace, '', 'log'))
-    requests.push(accessReview(kubeKinds.Pod, 'get', 
-      resource.metadata.namespace, resource.metadata.name, 'log'))
-  }
-  if (!('exec' in permissions)) {
-    requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'exec'))
-    requests.push(accessReview(kubeKinds.Pod, 'get', 
-      resource.metadata.namespace, '', 'exec'))
-    requests.push(accessReview(kubeKinds.Pod, 'get', 
-      resource.metadata.namespace, resource.metadata.name, 'exec'))
-  }
-  return Promise.all(requests)
-}
+// async function resolveResourcePermissions(resource, permissions, kubeKind, kubeKinds) {
+//   let requests = []
+//   if (!('get' in permissions)) {
+//     requests.push(accessReview(kubeKind, 'get'))
+//     requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace))
+//     requests.push(accessReview(kubeKind, 'get', resource.metadata.namespace, resource.metadata.name))
+//   }
+//   if (!('watch' in permissions)) {
+//     requests.push(accessReview(kubeKind, 'watch'))
+//     requests.push(accessReview(kubeKind, 'watch', resource.metadata.namespace))
+//   }
+//   if (!('edit' in permissions)) {
+//     requests.push(accessReview(kubeKind, 'put'))
+//     requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace))
+//     requests.push(accessReview(kubeKind, 'put', resource.metadata.namespace, resource.metadata.name))
+//   }
+//   if (!('delete' in permissions)) {
+//     requests.push(accessReview(kubeKind, 'delete'))
+//     requests.push(accessReview(kubeKind, 'delete', 
+//       resource.metadata.namespace))
+//     requests.push(accessReview(kubeKind, 'delete', 
+//       resource.metadata.namespace, resource.metadata.name))
+//   }
+//   if (!('logs' in permissions)) {
+//     requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'log'))
+//     requests.push(accessReview(kubeKinds.Pod, 'get', 
+//       resource.metadata.namespace, '', 'log'))
+//     requests.push(accessReview(kubeKinds.Pod, 'get', 
+//       resource.metadata.namespace, resource.metadata.name, 'log'))
+//   }
+//   if (!('exec' in permissions)) {
+//     requests.push(accessReview(kubeKinds.Pod, 'get', '', '', 'exec'))
+//     requests.push(accessReview(kubeKinds.Pod, 'get', 
+//       resource.metadata.namespace, '', 'exec'))
+//     requests.push(accessReview(kubeKinds.Pod, 'get', 
+//       resource.metadata.namespace, resource.metadata.name, 'exec'))
+//   }
+//   return Promise.all(requests)
+// }
 
 async function accessReview(kubeKind, verb, namespace='', name='', subresource='') {
   
