@@ -92,7 +92,7 @@ export default class AccessEvaluator {
 
     let params = {
       kind: resource.kind, 
-      namespace: resource.metadata.namespace.replace(/~/, ""),
+      namespace: (resource.metadata.namespace && resource.metadata.namespace.replace(/~/, "")) || "",
       name: resource.metadata.name
     }
     let url = '/proxy/_/accessreview?' + queryString.stringify(params)

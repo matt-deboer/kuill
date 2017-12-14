@@ -121,7 +121,7 @@ class EditorPage extends React.Component {
   }
 
   getResourceAccess = (resource, resourceGroup) => {
-    if (resourceGroup && resourceReady(resource)) {
+    if (resourceGroup && resourceReady(resource, this.contents, this.props.detectVariables)) {
       this.props.accessEvaluator.getObjectAccess(resource, resourceGroup).then((access) => {
         this.setState({
           resourceAccess: access,
@@ -168,15 +168,16 @@ class EditorPage extends React.Component {
   }
 
   validateOnChange = () => {
+    let that = this
     this.validator && this.validator.validate(this.contents).then(result=> {
       
-      this.setState({
+      that.setState({
         errors: result.errors,
         resource: result.resource,
       })
 
       if (!!result.resource) {
-        this.getResourceAccess(result.resource, this.props.resourceGroup)
+        that.getResourceAccess(result.resource, that.props.resourceGroup)
       }
     })
   }
@@ -380,6 +381,14 @@ function debounce(func, wait, immediate) {
 	}
 }
 
-function resourceReady(resource) {
-  return resource && resource.metadata && resource.metadata.name && resource.kind
+function resourceReady(resource, contents, detectVariables) {
+  if (resource && resource.metadata && resource.metadata.name && resource.kind) {
+    if (!!detectVariables) {
+      let result = detectVariables(contents)
+      return !result.length
+    } else {
+      return true
+    }
+  }
+  return false
 }

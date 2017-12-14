@@ -68,7 +68,7 @@ func (a *AccessAggregator) permissionsForResource(kind, namespace, name string, 
 	}
 
 	if log.GetLevel() >= log.DebugLevel {
-		log.Debugf("Evaluating permissions to %s/%s/%s for user %s [ groups: %v ]",
+		log.Debugf("Evaluating permissions to %s/%s/%s for user %s %v",
 			kind, namespace, name, authContext.User(), authContext.Groups())
 	}
 
@@ -86,27 +86,23 @@ func (a *AccessAggregator) permissionsForResource(kind, namespace, name string, 
 	go a.getAccess(kubeKind, namespace, kubeKind.Plural, "", name, "delete", namespaces, authContext, permissions, &wg)
 	go a.getAccess(podKind, namespace, "pods", "log", "", "get", namespaces, authContext, permissions, &wg)
 	go a.getAccess(podKind, namespace, "pods", "exec", "", "get", namespaces, authContext, permissions, &wg)
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(permissions)
+	}()
 
 	var result kindPermissions
-AssembleResults:
-	for {
-		select {
-		case permission := <-permissions:
-			if permission.Subresource == "log" && permission.Verb == "get" {
-				result.Logs = true
-			} else if permission.Subresource == "exec" && permission.Verb == "get" {
-				result.Exec = true
-			} else if permission.Verb == "put" {
-				result.Put = true
-			} else if permission.Verb == "delete" {
-				result.Delete = true
-			} else if permission.Verb == "get" {
-				result.Get = true
-			}
-			break
-		default:
-			break AssembleResults
+	for permission := range permissions {
+		if permission.Subresource == "log" && permission.Verb == "get" {
+			result.Logs = true
+		} else if permission.Subresource == "exec" && permission.Verb == "get" {
+			result.Exec = true
+		} else if permission.Verb == "put" {
+			result.Put = true
+		} else if permission.Verb == "delete" {
+			result.Delete = true
+		} else if permission.Verb == "get" {
+			result.Get = true
 		}
 	}
 	return &result, nil
@@ -150,28 +146,27 @@ func (a *AccessAggregator) GetWatchableResources(authContext auth.Context) (watc
 	var wg sync.WaitGroup
 	a.kindLister.mutex.RLock()
 	for _, kind := range a.kindLister.kinds {
-		wg.Add(1)
-		go a.getAccess(kind, "", kind.Plural, "", "", "watch", namespaces, authContext, watchable, &wg)
+		if canWatch(kind) {
+			wg.Add(1)
+			go a.getAccess(kind, "", kind.Plural, "", "", "watch", namespaces, authContext, watchable, &wg)
+		}
 	}
 	a.kindLister.mutex.RUnlock()
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(watchable)
+	}()
 
 	result := make(map[string]*WatchableAPIResource)
-AssembleResults:
-	for {
-		select {
-		case permission := <-watchable:
-			count++
-			if w, exists := result[permission.Kind]; exists {
-				w.Namespaces = append(w.Namespaces, permission.Namespace)
-			} else {
-				result[permission.Kind] = &WatchableAPIResource{
-					KubeKind:   a.kindLister.GetKind(permission.Kind),
-					Namespaces: []string{permission.Namespace},
-				}
+	for permission := range watchable {
+		count++
+		if w, exists := result[permission.Kind]; exists {
+			w.Namespaces = append(w.Namespaces, permission.Namespace)
+		} else {
+			result[permission.Kind] = &WatchableAPIResource{
+				KubeKind:   a.kindLister.GetKind(permission.Kind),
+				Namespaces: []string{permission.Namespace},
 			}
-		default:
-			break AssembleResults
 		}
 	}
 	return result, count, nil
@@ -223,9 +218,6 @@ func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, su
 				go a.getAccess(kubeKind, ns, resource, subresource, name, verb,
 					namespaces, authContext, results, wg)
 			}
-		} else if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("User %s %v is NOT allowed to '%s' %s/%s/%s",
-				authContext.User(), authContext.Groups(), verb, kubeKind.Kind, namespace, name)
 		}
 	} else {
 		if log.GetLevel() >= log.DebugLevel {
@@ -241,4 +233,13 @@ func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, su
 	}
 
 	wg.Done()
+}
+
+func canWatch(kubeKind *KubeKind) bool {
+	for _, verb := range kubeKind.Verbs {
+		if verb == "watch" {
+			return true
+		}
+	}
+	return false
 }
