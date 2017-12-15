@@ -346,7 +346,7 @@ class EditorPage extends React.Component {
           tabSize={2}
           height={`${window.innerHeight - 300}px`}
           width={`100%`}
-          editorProps={{$blockScrolling: true}}
+          editorProps={{$blockScrolling: Infinity}}
           enableBasicAutocompletion={true}
           enableLiveAutocompletion={true}
           value={this.contents}

@@ -303,7 +303,6 @@ class NewResource extends React.Component {
           style={styles.applyButton}
           labelColor={grey300}
           backgroundColor={grey800}
-          hoverColor={grey700}
           onTouchTap={this.onApplyTemplate.bind(this)}
         />
 

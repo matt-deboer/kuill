@@ -134,7 +134,13 @@ export default class ManifestAutocompleter {
       // this is truly terrible :( we may need to just make the definition part of KubeKinds,
       let base = k.base.split(/\//g).map(b=>b.split(/[.]/)[0]).join('.')
       let fqName = `io.k8s.kubernetes.pkg.${base}.${kind}`
-      return this.swagger.definitions[fqName]
+      let def = this.swagger.definitions[fqName]
+      if (def.$ref) {
+        fqName = def.$ref.replace(/#\/definitions\//,"")
+        def = this.swagger.definitions[fqName]
+      }
+      
+      return def
     }
     return null
   }
