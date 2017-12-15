@@ -125,10 +125,47 @@ type WatchableAPIResource struct {
 // Permission represents permission to perform a specific action
 // on a kind in a namespace, with an optional subresource
 type Permission struct {
-	Kind        string
+	Kind        *KubeKind
 	Namespace   string
 	Verb        string
 	Subresource string
+}
+
+// GetPermittedWatchPaths adds url paths to a channel
+// representing all resources (and associated namespaces) for which the
+// user specified in the provided authContext has permission to watch; this method
+// will close the provided watchPaths channel when all permissions have been
+// evaluated
+func (a *AccessAggregator) GetPermittedWatchPaths(authContext auth.Context, watchPaths chan string) error {
+
+	namespaces, err := a.namespaceLister.getNamespaces()
+	if err != nil {
+		return fmt.Errorf("Failed to list namespaces; %v", err)
+	}
+
+	watchable := make(chan Permission, len(a.kindLister.kinds)*len(namespaces))
+
+	var wg sync.WaitGroup
+	a.kindLister.mutex.RLock()
+	for _, kind := range a.kindLister.kinds {
+		if canWatch(kind) {
+			wg.Add(1)
+			go a.getAccess(kind, "", kind.Plural, "", "", "watch", namespaces, authContext, watchable, &wg)
+		}
+	}
+	a.kindLister.mutex.RUnlock()
+	go func() {
+		wg.Wait()
+		close(watchable)
+	}()
+
+	for permission := range watchable {
+		watchPaths <- permission.Kind.GetWatchPath(permission.Namespace)
+	}
+
+	close(watchPaths)
+
+	return nil
 }
 
 // GetWatchableResources returns a map of Kind => WatchableAPIResource
@@ -160,11 +197,11 @@ func (a *AccessAggregator) GetWatchableResources(authContext auth.Context) (watc
 	result := make(map[string]*WatchableAPIResource)
 	for permission := range watchable {
 		count++
-		if w, exists := result[permission.Kind]; exists {
+		if w, exists := result[permission.Kind.Name]; exists {
 			w.Namespaces = append(w.Namespaces, permission.Namespace)
 		} else {
-			result[permission.Kind] = &WatchableAPIResource{
-				KubeKind:   a.kindLister.GetKind(permission.Kind),
+			result[permission.Kind.Name] = &WatchableAPIResource{
+				KubeKind:   permission.Kind,
 				Namespaces: []string{permission.Namespace},
 			}
 		}
@@ -172,6 +209,13 @@ func (a *AccessAggregator) GetWatchableResources(authContext auth.Context) (watc
 	return result, count, nil
 }
 
+// test the user's access to a particular resource; if acess is not granted at
+// the cluster scope, make recursive tests over each namespace provided in the
+// namespaces array
+//
+// TODO: we may need to inspect roles and rolebindings directly as the current
+// approach (although prescribed by the kube api) will not scale under a large
+// number of namespaces
 func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, subresource, name, verb string,
 	namespaces []string, authContext auth.Context, results chan Permission, wg *sync.WaitGroup) {
 
@@ -225,14 +269,15 @@ func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, su
 				authContext.User(), authContext.Groups(), verb, kubeKind.Kind, namespace, name)
 		}
 		results <- Permission{
-			Kind:        kubeKind.Kind,
+			Kind:        kubeKind,
 			Verb:        verb,
 			Namespace:   namespace,
 			Subresource: subresource,
 		}
 	}
-
-	wg.Done()
+	if wg != nil {
+		wg.Done()
+	}
 }
 
 func canWatch(kubeKind *KubeKind) bool {

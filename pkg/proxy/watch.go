@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
 	log "github.com/sirupsen/logrus"
@@ -39,12 +40,15 @@ type KubeKindAggregatingWatchProxy struct {
 
 	traceRequests    bool
 	kindLister       *KindsProxy
+	namespaceLister  *NamespaceProxy
 	accessAggregator *AccessAggregator
 }
 
 // NewKubeKindAggregatingWatchProxy returns a new Websocket reverse proxy that rewrites the
 // URL's to the scheme, host and base path provider in target.
-func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *KindsProxy, accessAggregator *AccessAggregator) *KubeKindAggregatingWatchProxy {
+func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindLister *KindsProxy,
+	namespaceLister *NamespaceProxy, accessAggregator *AccessAggregator) *KubeKindAggregatingWatchProxy {
+
 	backend := func(watchPath string, resourceVersion int) *url.URL {
 		// Shallow copy
 		u := *target
@@ -54,7 +58,8 @@ func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindL
 		return &u
 	}
 
-	return &KubeKindAggregatingWatchProxy{Backend: backend, kindLister: kindLister, accessAggregator: accessAggregator}
+	return &KubeKindAggregatingWatchProxy{Backend: backend, kindLister: kindLister,
+		accessAggregator: accessAggregator, namespaceLister: namespaceLister}
 }
 
 // AggregateWatches implements the http.Handler that proxies multiple WebSocket connections.
@@ -63,13 +68,6 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 	if w.Backend == nil {
 		log.Error("KubeKindAggregatingWatchProxy: backend function is not defined")
 		http.Error(rw, "Internal server error (code: 1)", http.StatusInternalServerError)
-		return
-	}
-
-	watchable, watchCount, err := w.accessAggregator.GetWatchableResources(authContext)
-	if err != nil {
-		log.Errorf("KubeKindAggregatingWatchProxy: error recovering watchable resources; %v", err)
-		http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -119,65 +117,84 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 		w.Director(req, requestHeader)
 	}
 
-	backendErrors := make(chan error, watchCount)
 	var clientConn *websocket.Conn
 	outbound := make(chan []byte, 32)
 	resourceVersion, _ := strconv.Atoi(req.URL.Query().Get("resourceVersion"))
 
-	for _, watchableKind := range watchable {
+	namespaces, err := w.namespaceLister.getNamespaces()
+	if err != nil {
+		log.Errorf("KubeKindAggregatingWatchProxy: Failed to list namespaces; %v", err)
+		http.Error(rw, "Internal server error (Failed to list namespaces)", http.StatusInternalServerError)
+		return
+	}
+
+	backendErrors := make(chan error, 50)
+	watchPaths := make(chan string, 50)
+	go w.getWatchPaths(watchPaths)
+
+	stopChannels := make([]chan struct{}, 0)
+
+	for kindPath := range watchPaths {
 		// Connect to the backend URL, also pass the headers we get from the requst
 		// together with the Forwarded headers we prepared above.
-		for _, ns := range watchableKind.Namespaces {
-			kindPath := watchableKind.GetWatchPath(ns)
-			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Got kindPath %s for ns: %s, kind: %s", kindPath, ns, watchableKind.Kind)
-			}
-			backendURL := w.Backend(kindPath, resourceVersion)
-			if backendURL == nil {
-				log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
-				// TODO: should we just log this and move on to the next?
-				http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
-				return
-			} else if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Got backend url of %v for request url of %v",
-					backendURL, req.URL)
-			}
 
-			if w.traceRequests {
-				log.Infof("KubeKindAggregatingWatchProxy: adding ws backend to multiwatch: %v",
-					backendURL)
-			}
+		backendURL := w.Backend(kindPath, resourceVersion).String()
+		if backendURL == "" {
+			log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
+			// TODO: should we just log this and move on to the next?
+			http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
+			return
+		}
 
-			connBackend, resp, err := dialer.Dial(backendURL.String(), requestHeader)
-			if err != nil {
-				status := "<none>"
-				body := ""
-				if resp != nil {
-					status = resp.Status
-					if resp.Body != nil {
-						buff := &bytes.Buffer{}
-						buff.ReadFrom(resp.Body)
-						body = buff.String()
+		if w.traceRequests {
+			log.Infof("KubeKindAggregatingWatchProxy: adding ws backend to multiwatch: %v",
+				backendURL)
+		}
+
+		connBackend, resp, err := dialer.Dial(backendURL, requestHeader)
+		if err != nil {
+			status := "<none>"
+			body := ""
+			if resp != nil {
+				status = resp.Status
+				if resp.Body != nil {
+					buff := &bytes.Buffer{}
+					buff.ReadFrom(resp.Body)
+					body = buff.String()
+				}
+			}
+			log.Warnf("KubeKindAggregatingWatchProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
+			if !strings.Contains(backendURL, "/namespaces/") {
+				parts := strings.Split(backendURL, "/watch/")
+				go func() {
+					for _, namespace := range namespaces {
+						path := fmt.Sprintf("%s/watch/namespaces/%s/%s", parts[0], namespace, parts[1])
+						if log.GetLevel() >= log.DebugLevel {
+							log.Debugf("Adding namespaced watchPath %s", path)
+						}
+						watchPaths <- path
 					}
-				}
-				backendErrors <- fmt.Errorf("KubeKindAggregatingWatchProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
-				continue
+				}()
 			}
-			defer connBackend.Close()
+			continue
+		}
+		defer connBackend.Close()
 
-			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Starting socket reader for %v => %v...", req.URL, backendURL)
-			}
-			go w.readMessages(backendURL, connBackend, outbound, backendErrors)
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Starting socket reader for %v => %v...", req.URL, backendURL)
+		}
 
-			if clientConn == nil {
-				clientConn, err = w.upgradeClient(req, resp, rw)
-				if err != nil {
-					log.Errorf("KubeKindAggregatingWatchProxy: couldn't upgrade %s\n", err)
-					return
-				}
-				defer clientConn.Close()
+		stop := make(chan struct{})
+		stopChannels = append(stopChannels, stop)
+		go w.readMessages(backendURL, connBackend, outbound, backendErrors, stop)
+
+		if clientConn == nil {
+			clientConn, err = w.upgradeClient(req, resp, rw)
+			if err != nil {
+				log.Errorf("KubeKindAggregatingWatchProxy: couldn't upgrade %s\n", err)
+				return
 			}
+			defer clientConn.Close()
 		}
 	}
 
@@ -187,9 +204,23 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 	errOutbound := make(chan error, 1)
 	go w.writeMessages(clientConn, outbound, errOutbound)
 	<-errOutbound
+	for _, stop := range stopChannels {
+		stop <- struct{}{}
+	}
+
 	if log.GetLevel() >= log.DebugLevel {
 		log.Debugf("Closed aggregating socket writer for %v", req.URL)
 	}
+}
+
+func (w *KubeKindAggregatingWatchProxy) getWatchPaths(watchPaths chan string) {
+	w.kindLister.mutex.RLock()
+	for _, kind := range w.kindLister.kinds {
+		if canWatch(kind) {
+			watchPaths <- kind.GetWatchPath("")
+		}
+	}
+	w.kindLister.mutex.RUnlock()
 }
 
 func (w *KubeKindAggregatingWatchProxy) upgradeClient(req *http.Request, resp *http.Response, rw http.ResponseWriter) (*websocket.Conn, error) {
@@ -215,7 +246,22 @@ func (w *KubeKindAggregatingWatchProxy) upgradeClient(req *http.Request, resp *h
 	return upgrader.Upgrade(rw, req, upgradeHeader)
 }
 
-func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL *url.URL, socket *websocket.Conn, outbound chan []byte, errc chan error) {
+func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *websocket.Conn,
+	outbound chan []byte, errc chan error, stop chan struct{}) {
+
+	go func() {
+		select {
+		case _ = <-stop:
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Closing reader for %s", backendURL)
+			}
+			socket.Close()
+			return
+		default:
+			time.Sleep(time.Second)
+		}
+	}()
+
 	for {
 		mt, message, err := socket.ReadMessage()
 		if err != nil {

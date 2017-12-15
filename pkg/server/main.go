@@ -524,6 +524,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),
 			kinds,
+			namespaces,
 			access,
 		)
 		if err != nil {

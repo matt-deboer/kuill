@@ -39,7 +39,7 @@ type KubeAPIProxy struct {
 func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
 	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string,
 	traceRequests, traceWebsockets bool, kindLister *KindsProxy,
-	accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
+	namespaceLister *NamespaceProxy, accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
 
 	// Load our TLS key pair to use for authentication
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
@@ -110,7 +110,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		}
 	}
 
-	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister, accessAggregator)
+	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister, namespaceLister, accessAggregator)
 	mwp.Dialer = wsp.Dialer
 	mwp.Upgrader = wsp.Upgrader
 	mwp.Director = wsp.Director
