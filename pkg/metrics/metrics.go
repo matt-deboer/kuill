@@ -188,7 +188,7 @@ func safeDivideFloat(dividend, divisor float64) float64 {
 	return dividend / divisor
 }
 
-func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *Summaries) (*Summary, map[string]*Summary) {
+func convertSummary(summary *KubeletStatsSummary, node v1.Node, summaries *Summaries) (*Summary, map[string]*Summary) {
 
 	summaryByNs := make(map[string]*Summary)
 	networkSeconds := uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Unix())
