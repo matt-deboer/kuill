@@ -2,7 +2,6 @@
 
 context('Namespace Admin', function(){
   beforeEach(function(){
-    cy.window().then(win => win.onbeforeunload = undefined)
     cy.login('nsadmin', 'nsadmin')
   })
 

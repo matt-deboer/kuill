@@ -2,7 +2,6 @@
 
 context('Readonly User', function(){
   beforeEach(function(){
-    cy.window().then(win => win.onbeforeunload = undefined)
     cy.login('reader', 'reader')
   })
 

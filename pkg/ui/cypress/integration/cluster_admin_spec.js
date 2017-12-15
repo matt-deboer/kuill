@@ -2,7 +2,6 @@
 
 context('Cluster Admin', function(){
   beforeEach(function(){
-    cy.window().then(win => win.onbeforeunload = undefined)
     cy.login('admin', 'password')
   })
 
