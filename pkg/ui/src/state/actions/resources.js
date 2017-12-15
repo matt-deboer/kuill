@@ -759,7 +759,6 @@ async function fetchResourceContents(dispatch, getState, namespace, kind, name) 
           } else {
             dispatch(addError(resp,'error',`Failed to load contents for ${kind}/${namespace}/${name}: ${resp.statusText}`))
           }
-          // dispatch(receiveResource(resource, null, resp.statusText))
         } else {
           return resp.json()
         }
