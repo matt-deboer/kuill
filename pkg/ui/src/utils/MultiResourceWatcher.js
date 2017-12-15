@@ -28,7 +28,7 @@ export default class MultiResourceWatcher {
     let scheme = (loc.protocol === 'https:' ? 'wss' : 'ws')
     this.onEvent = this.onEvent.bind(this)
 
-    this.initSocket(`${scheme}://${loc.host}/proxy/_/multiwatch`)
+    this.initSocket(`${scheme}://${loc.host}/proxy/_/multiwatch?resourceVersion=${this.props.maxResourceVersion}`)
     
     this.throttled = {}
     this.lastPurge = Date.now()
