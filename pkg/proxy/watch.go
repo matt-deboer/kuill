@@ -133,69 +133,83 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 	go w.getWatchPaths(watchPaths)
 
 	stopChannels := make([]chan struct{}, 0)
+	readFirstPath := false
 
-	for kindPath := range watchPaths {
-		// Connect to the backend URL, also pass the headers we get from the requst
-		// together with the Forwarded headers we prepared above.
+WatchKinds:
+	for {
+		select {
+		case kindPath := <-watchPaths:
+			readFirstPath = true
+			// Connect to the backend URL, also pass the headers we get from the requst
+			// together with the Forwarded headers we prepared above.
 
-		backendURL := w.Backend(kindPath, resourceVersion).String()
-		if backendURL == "" {
-			log.Error("Backend URL is nil")
-			http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
-			return
-		}
-
-		if w.traceRequests {
-			log.Infof("Adding ws backend to multiwatch: %v",
-				backendURL)
-		}
-
-		connBackend, resp, err := dialer.Dial(backendURL, requestHeader)
-		if err != nil {
-			status := "<none>"
-			body := ""
-			if resp != nil {
-				status = resp.Status
-				if resp.Body != nil {
-					buff := &bytes.Buffer{}
-					buff.ReadFrom(resp.Body)
-					body = buff.String()
-				}
-			}
-			if log.GetLevel() >= log.DebugLevel {
-				log.Warnf("Couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
-			}
-			if !strings.Contains(backendURL, "/namespaces/") {
-				parts := strings.Split(backendURL, "/watch/")
-				go func() {
-					for _, namespace := range namespaces {
-						path := fmt.Sprintf("%s/watch/namespaces/%s/%s", parts[0], namespace, parts[1])
-						if log.GetLevel() >= log.DebugLevel {
-							log.Debugf("Adding namespaced watchPath %s", path)
-						}
-						watchPaths <- path
-					}
-				}()
-			}
-			continue
-		}
-		defer connBackend.Close()
-
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Starting socket reader for %v => %v...", req.URL, backendURL)
-		}
-
-		stop := make(chan struct{})
-		stopChannels = append(stopChannels, stop)
-		go w.readMessages(backendURL, connBackend, outbound, backendErrors, stop)
-
-		if clientConn == nil {
-			clientConn, err = w.upgradeClient(req, resp, rw)
-			if err != nil {
-				log.Errorf("KubeKindAggregatingWatchProxy: couldn't upgrade %s\n", err)
+			backendURL := w.Backend(kindPath, resourceVersion).String()
+			if backendURL == "" {
+				log.Error("Backend URL is nil")
+				http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
 				return
 			}
-			defer clientConn.Close()
+
+			if w.traceRequests {
+				log.Infof("Adding ws backend to multiwatch: %v",
+					backendURL)
+			}
+
+			connBackend, resp, err := dialer.Dial(backendURL, requestHeader)
+			if err != nil {
+				status := "<none>"
+				body := ""
+				if resp != nil {
+					status = resp.Status
+					if resp.Body != nil {
+						buff := &bytes.Buffer{}
+						buff.ReadFrom(resp.Body)
+						body = buff.String()
+					}
+				}
+				if log.GetLevel() >= log.DebugLevel {
+					log.Warnf("Couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
+				}
+				if strings.Contains(err.Error(), "Forbidden") && !strings.Contains(backendURL, "/namespaces/") {
+					parts := strings.Split(backendURL, "/watch/")
+					go func() {
+						for _, namespace := range namespaces {
+							path := fmt.Sprintf("%s/watch/namespaces/%s/%s", parts[0], namespace, parts[1])
+							if log.GetLevel() >= log.DebugLevel {
+								log.Debugf("Adding namespaced watchPath %s", path)
+							}
+							watchPaths <- path
+						}
+					}()
+				}
+				continue
+			}
+			defer connBackend.Close()
+
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Starting socket reader for %v => %v...", req.URL, backendURL)
+			}
+
+			stop := make(chan struct{})
+			stopChannels = append(stopChannels, stop)
+			go w.readMessages(backendURL, connBackend, outbound, backendErrors, stop)
+
+			if clientConn == nil {
+				clientConn, err = w.upgradeClient(req, resp, rw)
+				if err != nil {
+					log.Errorf("Couldn't upgrade %s\n", err)
+					return
+				}
+				defer clientConn.Close()
+			}
+			break
+		default:
+			if readFirstPath {
+				close(watchPaths)
+				break WatchKinds
+			} else {
+				time.Sleep(50 * time.Millisecond)
+			}
 		}
 	}
 
@@ -251,16 +265,8 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 	outbound chan []byte, errc chan error, stop chan struct{}) {
 
 	go func() {
-		select {
-		case _ = <-stop:
-			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Closing reader for %s", backendURL)
-			}
-			socket.Close()
-			return
-		default:
-			time.Sleep(time.Second)
-		}
+		<-stop
+		socket.Close()
 	}()
 
 	for {
