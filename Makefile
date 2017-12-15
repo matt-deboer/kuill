@@ -1,14 +1,16 @@
-VERSION        ?= $(shell git describe --tags --always )
-TARGET         ?= $(shell basename `git rev-parse --show-toplevel`)
-TEST           ?= $(shell go list ./... | grep -v /vendor/)
-REPOSITORY     := mattdeboer/${TARGET}
-DOCKER_IMAGE   ?= ${REPOSITORY}:${VERSION}
-BRANCH         ?= $(shell git rev-parse --abbrev-ref HEAD)
-REVISION       ?= $(shell git rev-parse HEAD)
-LD_FLAGS       ?= -s -X github.com/matt-deboer/${TARGET}/pkg/version.Name=$(TARGET) \
-	-X github.com/matt-deboer/${TARGET}/pkg/version.Revision=$(REVISION) \
-	-X github.com/matt-deboer/${TARGET}/pkg/version.Branch=$(BRANCH) \
-	-X github.com/matt-deboer/${TARGET}/pkg/version.Version=$(VERSION)
+VERSION           ?= $(shell git describe --tags --always )
+TARGET            ?= $(shell basename `git rev-parse --show-toplevel`)
+TEST              ?= $(shell go list ./... | grep -v /vendor/)
+RECORD_ACCEPTANCE ?= false
+REPOSITORY        := mattdeboer/${TARGET}
+DOCKER_IMAGE      ?= ${REPOSITORY}:${VERSION}
+BRANCH            ?= $(shell git rev-parse --abbrev-ref HEAD)
+REVISION          ?= $(shell git rev-parse HEAD)
+LD_FLAGS          ?= -s -X github.com/matt-deboer/${TARGET}/pkg/version.Name=$(TARGET) \
+					-X github.com/matt-deboer/${TARGET}/pkg/version.Revision=$(REVISION) \
+					-X github.com/matt-deboer/${TARGET}/pkg/version.Branch=$(BRANCH) \
+					-X github.com/matt-deboer/${TARGET}/pkg/version.Version=$(VERSION)
+
 
 default: test build
 
@@ -62,7 +64,7 @@ currentdev: build pkg/ui/node_modules
 	hack/current-context-dev.sh
 
 acceptance:
-	VERBOSE=${VERBOSE} KUILL_DISABLE_TLS=true hack/acceptance-tests.sh
+	VERBOSE=${VERBOSE} RECORD_ACCEPTANCE=${RECORD_ACCEPTANCE} KUILL_DISABLE_TLS=true hack/acceptance-tests.sh
 
 acceptance-dev:
 	cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open
