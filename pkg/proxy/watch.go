@@ -140,14 +140,13 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 
 		backendURL := w.Backend(kindPath, resourceVersion).String()
 		if backendURL == "" {
-			log.Error("KubeKindAggregatingWatchProxy: backend URL is nil")
-			// TODO: should we just log this and move on to the next?
+			log.Error("Backend URL is nil")
 			http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
 			return
 		}
 
 		if w.traceRequests {
-			log.Infof("KubeKindAggregatingWatchProxy: adding ws backend to multiwatch: %v",
+			log.Infof("Adding ws backend to multiwatch: %v",
 				backendURL)
 		}
 
@@ -163,7 +162,9 @@ func (w *KubeKindAggregatingWatchProxy) AggregateWatches(rw http.ResponseWriter,
 					body = buff.String()
 				}
 			}
-			log.Warnf("KubeKindAggregatingWatchProxy: couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
+			if log.GetLevel() >= log.DebugLevel {
+				log.Warnf("Couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
+			}
 			if !strings.Contains(backendURL, "/namespaces/") {
 				parts := strings.Split(backendURL, "/watch/")
 				go func() {
