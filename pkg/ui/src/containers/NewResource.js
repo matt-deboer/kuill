@@ -6,6 +6,7 @@ import { white, blueA700, grey100, grey300, grey700, grey800 } from 'material-ui
 import EditorPage from '../components/EditorPage'
 import { requestTemplates } from '../state/actions/templates'
 import { requestSwagger } from '../state/actions/apimodels'
+import { requestResources } from '../state/actions/resources'
 import { tryGoBack } from '../state/actions/location'
 import MenuItem from 'material-ui/MenuItem'
 import FlatButton from 'material-ui/FlatButton'
@@ -43,6 +44,9 @@ const mapDispatchToProps = function(dispatch, ownProps) {
     requestSwagger: function() {
       dispatch(requestSwagger())
     },
+    requestResources: function() {
+      dispatch(requestResources())
+    },
   }
 }
 
@@ -63,6 +67,7 @@ class NewResource extends React.Component {
 
     props.requestTemplates()
     props.requestSwagger()
+    props.requestResources()
 
     let templateNames = this.getSortedTemplateNames(props.templatesByGroup[props.resourceGroup])
     let selectedTemplate = templateNames && templateNames[0]
