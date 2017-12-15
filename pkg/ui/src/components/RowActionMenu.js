@@ -14,11 +14,11 @@ import IconSuspend from 'material-ui/svg-icons/content/block'
 import { connect } from 'react-redux'
 import Popover from 'material-ui/Popover'
 
-const orderedActions = ['logs', 'exec', 'suspend', 'scale', 'detach', 'edit', 'get', 'delete']
+const orderedActions = ['logs', 'terminal', 'suspend', 'scale', 'detach', 'edit', 'get', 'delete']
 
 const actionIcons = {
   logs: <IconLogs/>,
-  exec: <IconTerminal/>,
+  terminal: <IconTerminal/>,
   suspend: <IconSuspend/>, 
   scale: <IconScale/>, 
   edit: <IconEdit/>, 
@@ -120,7 +120,6 @@ class RowActionMenu extends React.PureComponent {
           <div style={styles.actionContainer} key={action}>
             <div style={styles.actionLabel}>{text}</div>
             <IconButton
-              id={`row-action:${action}`}
               className={`row-action ${action}`}
               onTouchTap={closeAndHandle}
               style={styles.actionButton}

@@ -95,6 +95,10 @@ export default class ResourceInfoActionsMenu extends React.PureComponent {
       }
     }
 
+    if (!actions) {
+      return null
+    }
+
     return (
       <div> 
         <RaisedButton

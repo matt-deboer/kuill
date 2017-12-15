@@ -201,6 +201,9 @@ class PermissionsPane extends React.Component {
     if (!!height) {
       extraProps.height = height
     }
+    if (this.props.className) {
+      extraProps.className = this.props.className
+    }
 
     return (
       <Table selectable={false} style={{ border: '0', margin: 0}}

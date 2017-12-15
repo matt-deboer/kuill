@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { removeResource, requestResources, viewResource, addFilter, removeFilter, detachResource } from '../../state/actions/resources'
 import { red900 } from 'material-ui/styles/colors'
 import { requestMetrics } from '../../state/actions/metrics'
@@ -83,7 +82,6 @@ connect(mapStateToProps, mapDispatchToProps) (
 class RelatedResourcesPane extends React.PureComponent {
   
   static propTypes = {
-    node: PropTypes.object.isRequired,
   }
 
   static defaultProps = {
@@ -360,11 +358,11 @@ class RelatedResourcesPane extends React.PureComponent {
   }
 
   resolveRelated = (resource, resources) => {
-    let related = []
+    let related = {}
     if (!!resources) {
       // resolved owned resources
       this.resolveOwned(resource, related)
-      let relKeys = [].concat.apply([], related.map(r=>r.related ? Object.keys(r.related) : []))
+      let relKeys = [].concat.apply([], Object.values(related).map(r=>r.related ? Object.keys(r.related) : []))
       let relatedResources = {}
       while (relKeys.length > 0) {
         let key = relKeys.shift()
@@ -380,9 +378,9 @@ class RelatedResourcesPane extends React.PureComponent {
           }
         }
       }
-      related.push(...Object.values(relatedResources))
+      related = {...related, ...relatedResources}
     }
-    return related.filter(e=>!e.isFiltered)
+    return Object.values(related).filter(e=>!e.isFiltered)
   }
 
   resolveOwned = (resource, related) => {
@@ -393,7 +391,7 @@ class RelatedResourcesPane extends React.PureComponent {
         if (r.owned) {
           owned.push(...Object.values(r.owned))
         }
-        related.push(r)
+        related[r.key] = r
       }
     }
   }

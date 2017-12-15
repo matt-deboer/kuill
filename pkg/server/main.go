@@ -14,7 +14,7 @@ import (
 	"encoding/base64"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
-	"github.com/matt-deboer/kuill/pkg/helpers"
+	"github.com/matt-deboer/kuill/pkg/clients"
 	"github.com/matt-deboer/kuill/pkg/metrics"
 	"github.com/matt-deboer/kuill/pkg/proxy"
 	"github.com/matt-deboer/kuill/pkg/templates"
@@ -263,6 +263,11 @@ func main() {
 			EnvVar: envBase + "TRACE_REQUESTS",
 		},
 		cli.BoolFlag{
+			Name:   "trace-websockets, W",
+			Usage:  "Log information about all websocket actions",
+			EnvVar: envBase + "TRACE_WEBSOCKETS",
+		},
+		cli.BoolFlag{
 			Name:   "verbose, V",
 			Usage:  "Log extra information about steps taken",
 			EnvVar: envBase + "VERBOSE",
@@ -280,29 +285,24 @@ func main() {
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
-		err := helpers.ServeNamespaces(c.String("kubeconfig"))
+		kubeClients, err := clients.Create(c.String("kubeconfig"))
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = helpers.ServeApiModels(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = helpers.ServeKinds(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		helpers.ServeVersion()
 
 		sessionTimeout := c.Duration("session-timeout")
 
-		authManager, _ := auth.NewAuthManager(sessionTimeout)
-		setupAuthenticators(c, authManager)
-		setupProxy(c, authManager)
-		setupTemplates(c)
-		setupMetrics(c, authManager)
+		authManager, err := auth.NewAuthManager(sessionTimeout)
+		if err != nil {
+			log.Fatal(err)
+		}
 
+		setupAuthenticators(c, authManager)
+		setupProxy(c, authManager, kubeClients)
+		setupTemplates(c)
+		setupMetrics(c, authManager, kubeClients)
+
+		http.HandleFunc("/version", version.Serve)
 		http.HandleFunc("/", serveUI)
 
 		addr := fmt.Sprintf(":%d", port)
@@ -482,7 +482,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 }
 
-func setupProxy(c *cli.Context, authManager *auth.Manager) {
+func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
 
 	flags, err := getRequiredFlags(c, map[string]string{
 		"kubernetes-api":         "string",
@@ -493,6 +493,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 		"group-header":           "string",
 		"extra-headers-prefix":   "string",
 		"trace-requests":         "bool",
+		"trace-websockets":       "bool",
 		"authenticated-groups":   "string",
 	})
 
@@ -503,6 +504,15 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
 		}
 
+		kinds, err := proxy.NewKindsProxy(kubeClients)
+		if err != nil {
+			log.Fatal(err)
+		}
+		namespaces := proxy.NewNamespacesProxy(kubeClients)
+		swagger := proxy.NewSwaggerProxy(kubeClients)
+		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces)
+		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
+
 		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
 			flags["kubernetes-client-ca"].(string),
 			flags["kubernetes-client-cert"].(string),
@@ -512,18 +522,30 @@ func setupProxy(c *cli.Context, authManager *auth.Manager) {
 			flags["extra-headers-prefix"].(string),
 			authenticatedGroups,
 			flags["trace-requests"].(bool),
+			flags["trace-websockets"].(bool),
+			kinds,
+			namespaces,
+			access,
 		)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		http.HandleFunc("/proxy/swagger.json", swagger.Serve)
+		http.HandleFunc("/proxy/_/kinds", kinds.Serve)
+		http.HandleFunc("/proxy/_/namespaces", namespaces.Serve)
+
+		http.HandleFunc("/proxy/_/resources/list", authManager.NewAuthDelegate(resources.Serve))
+		http.HandleFunc("/proxy/_/accessreview", authManager.NewAuthDelegate(access.Serve))
 		http.HandleFunc("/proxy/", authManager.NewAuthDelegate(apiProxy.ProxyRequest))
+
 	} else {
 		log.Warnf("Kubernetes proxy is not enabled; %s", err)
 	}
 }
 
-func setupMetrics(c *cli.Context, authManager *auth.Manager) {
-	provider, err := metrics.NewMetricsProvider(c.String("kubeconfig"))
+func setupMetrics(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
+	provider, err := metrics.NewMetricsProvider(kubeClients)
 	if err != nil {
 		log.Errorf("Failed to configure metrics adapter: %v", err)
 	} else {

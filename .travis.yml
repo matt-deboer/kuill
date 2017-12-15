@@ -7,6 +7,7 @@ go:
 node_js:
 - 7
 addons:
+  chrome: stable
   apt:
     packages:
     - upx-ucl
@@ -24,13 +25,20 @@ before_install:
 install:
 - go get github.com/golang/dep/cmd/dep
 - dep ensure
-- hack/travis/setup.sh
+- export CHANGE_MINIKUBE_NONE_USER=true; hack/travis/setup.sh
 
 script:
 - make release
 - upx bin/kuill
-# - MINIKUBE_OPTIONS="--vm-driver none" MINIKUBE_SUDO="sudo" make acceptance
+- CHANGE_MINIKUBE_NONE_USER=true
+  MINIKUBE_OPTIONS="--vm-driver none"
+  MINIKUBE_SUDO="sudo"
+  CYPRESS_RECORD_KEY="af06fb10-13c0-443c-8f3e-3b2ea3221ee1"
+  make acceptance
 - make docker
+
+after_failure:
+- echo "Minikube logs:" && sudo minikube logs | grep -v '[auth-proxy]'
 
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG

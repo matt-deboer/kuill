@@ -1,5 +1,5 @@
 import { invalidateSession } from './session'
-import EventsWatcher from '../../utils/EventsWatcher'
+import { defaultFetchParams } from '../../utils/request-utils'
 
 export var types = {}
 for (let type of [
@@ -8,11 +8,6 @@ for (let type of [
   'SELECT_EVENTS_FOR',
 ]) {
   types[type] = `events.${type}`
-}
-
-const defaultFetchParams = {
-  credentials: 'same-origin',
-  timeout: 5000,
 }
 
 export function receiveEvents(resources, ...events) {
@@ -70,7 +65,6 @@ async function setEventWatches(dispatch, getState) {
   let { watch } = getState().events
   if (!watch) {
     let eventsUrl = `/proxy/api/v1/events`
-    let resourceVersion = 0
     // Need to fetch current events in order to find latest resourceVersion
     let result = await fetch(eventsUrl, defaultFetchParams
         ).then(resp => {
@@ -84,15 +78,8 @@ async function setEventWatches(dispatch, getState) {
         })
 
     if (!!result && result.kind === 'EventList') {
-      resourceVersion = result.metadata.resourceVersion
       dispatch(receiveEvents(getState().resources.resources, ...result.items))   
-      
-      watch = new EventsWatcher({
-        dispatch: dispatch,
-        getState: getState,
-        resourceVersion: resourceVersion,
-      })
-      dispatch(setWatch(watch))
+      // event watch is now handled by MultiResourceWatcher in actions/resources.js
     }
 
   }

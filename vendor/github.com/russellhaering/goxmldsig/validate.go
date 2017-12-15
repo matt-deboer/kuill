@@ -15,6 +15,7 @@ import (
 )
 
 var uriRegexp = regexp.MustCompile("^#[a-zA-Z_][\\w.-]*$")
+var whiteSpace = regexp.MustCompile("\\s+")
 
 var (
 	// ErrMissingSignature indicates that no enveloped signature was found referencing
@@ -367,7 +368,8 @@ func (ctx *ValidationContext) verifyCertificate(sig *types.Signature) (*x509.Cer
 			return nil, errors.New("missing X509Certificate within KeyInfo")
 		}
 
-		certData, err := base64.StdEncoding.DecodeString(sig.KeyInfo.X509Data.X509Certificate.Data)
+		certData, err := base64.StdEncoding.DecodeString(
+			whiteSpace.ReplaceAllString(sig.KeyInfo.X509Data.X509Certificate.Data, ""))
 		if err != nil {
 			return nil, errors.New("Failed to parse certificate")
 		}

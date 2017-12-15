@@ -56,13 +56,13 @@ dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules
 	cd pkg/ui && npm run dev
 
 minidev: build pkg/ui/node_modules
-	hack/minikube-dev.sh
+	QUIET_UI=${QUIET_UI} hack/minikube-dev.sh
 
 currentdev: build pkg/ui/node_modules
 	hack/current-context-dev.sh
 
 acceptance:
-	hack/acceptance-tests.sh
+	VERBOSE=${VERBOSE} KUILL_DISABLE_TLS=true hack/acceptance-tests.sh
 
 acceptance-dev:
 	cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open

@@ -23,3 +23,12 @@ Cypress.Commands.add("login", (username, password) => {
     .should('contain.text', 'Allocated Resource Usage')
 })
 
+Cypress.Commands.add("logout", () => {
+
+  cy.get('body').click('top')
+  cy.get('button.profile').click()
+  cy.get('.logout').click({force: true})
+    
+
+})
+

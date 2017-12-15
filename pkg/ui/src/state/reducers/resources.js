@@ -61,10 +61,10 @@ const initialState = {
 
   podsByService: {},
   // the maximum resourceVersion value seen across all resource fetches
-  // by kind--this allows us to set watches more efficiently; 
-  // TODO: we may need to store this on a per-resource basis, 
-  // as the fetches for different resource kinds occur independently
+  // by kind--this allows us to set watches more efficiently
   maxResourceVersionByKind: {},
+  // the maximum resourceVersion seen across all resources of any kind
+  maxResourceVersion: 0,
   // a value used internally to handle fast notification of when the
   // resources have changed in a way such that they should be re-rendered
   resourceRevision: 0,
@@ -124,11 +124,7 @@ export default (state = initialState, action) => {
 }
 
 function doCleanup(state) {
-  if (state.watches) {
-    for (let w in state.watches) {
-      state.watches[w].destroy()
-    }
-  }
+  state.watches && state.watches.destroy()
 }
 
 function doReceiveNewLocation(state, location) {
@@ -244,7 +240,7 @@ function updateWorkloadsAutocomplete(possible, resource) {
   possible[`status:${resource.statusSummary}`]=true
   if (resource.kind === 'Pod') {
     possible[`node:${resource.spec.nodeName}`]=true
-    if (resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
+    if (resource.metadata.annotations && resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
       possible['detached:true']=true
     }
   }
@@ -258,7 +254,7 @@ function updatePodsAutocomplete(possible, resource) {
     possible[`app:${resource.metadata.labels.app}`]=true
   }
   possible[`status:${resource.statusSummary}`]=true
-  if (resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
+  if (resource.metadata.annotations && resource.metadata.annotations[detachedOwnerRefsAnnotation]) {
     possible['detached:true']=true
   }
 }
@@ -279,7 +275,7 @@ function updateAccessAutocomplete(access, subjects, resource) {
     access[`app:${resource.metadata.labels.app}`]=true
   }
 
-  if ('subjects' in resource) {
+  if (resource.subjects) {
     for (let subject of resource.subjects) {
       access[`subject:${subject.name}`]=true
       subjects[`${subject.kind}:${subject.name}`]=true
@@ -483,6 +479,7 @@ function updateVersionByKind(state, resource) {
   }
 
   state.maxResourceVersionByKind[resource.kind] = Math.max(currentMax, resourceVersion)
+  state.maxResourceVersion = Math.max(state.maxResourceVersion, resourceVersion)
 }
 
 

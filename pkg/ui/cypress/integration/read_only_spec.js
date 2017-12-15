@@ -5,29 +5,39 @@ context('Readonly User', function(){
     cy.login('reader', 'reader')
   })
 
+  afterEach(function(){
+    // cy.logout()
+  })
+  
+  it('should be able to request pods and deployments (sanity check)', function() {    
+    cy.request('/proxy/api/v1/pods').its('status').should('equal', 200)
+    cy.request('/proxy/apis/extensions/v1beta1/deployments').its('status').should('equal', 200)
+  })
+
   it('should only see read-only context actions', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
 
-    cy.get('table.filter-table.workloads > tbody')
-      .children('tr:nth-child(1)')
-      .children('td:nth-child(8)')
-      .click()
+    cy.get(`table.filter-table.workloads > tbody 
+      tr.Deployment_kube-system_kube-dns
+      td.resource-actions > svg`)
+      .scrollIntoView().click()
     
-    cy.get('.actions-popover')
+    cy.get('div.actions-popover div')
       .children('button.row-action')
       .each(function(button) {
-        expect(button.context.id).to.match(/row-action:get|row-action:logs/)
+        expect(button.context.className).to.match(/row-action (get|logs)/)
       })
   })
 
   it('should only see read-only resource actions', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
-    cy.get('table.filter-table.workloads > tbody')
-      .children('tr:nth-child(1)')
-      .children('td:nth-child(3)')
-      .click()
+    
+    cy.get(`table.filter-table.workloads > tbody 
+      tr.Deployment_kube-system_kube-dns 
+      td.name`)
+      .scrollIntoView().click()
     
     cy.get('#resource-info-action').click()
     cy.get('#resource-info-action-items')

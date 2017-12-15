@@ -26,8 +26,10 @@ export function fetching(isFetching) {
 export function initializeSession(user, authMethod) {
   return async function (dispatch, getState) {
     
-    dispatch(requestSwagger())
-    dispatch(requestNamespaces())
+    await Promise.all([
+      dispatch(requestSwagger()),
+      dispatch(requestNamespaces()),
+    ])
 
     dispatch({
       type: types.INITIALIZE,

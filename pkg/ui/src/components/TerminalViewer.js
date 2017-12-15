@@ -274,6 +274,7 @@ class TerminalViewer extends React.Component {
           <ToolbarGroup>
             <span style={styles.label}>container:</span>
             <FlatButton
+
               fullWidth={false}
               backgroundColor={grey800}
               labelStyle={styles.buttonLabel}
@@ -327,6 +328,7 @@ class TerminalViewer extends React.Component {
             display: this.state.terminalOpen ? 'none' : 'inline-block',
           }}>
           <IconButton
+            className={'terminal-start'}
             hoveredStyle={{backgroundColor: grey300, fill: grey800}}
             iconStyle={{width: '20%', height: '20%'}}
             style={{
@@ -346,6 +348,7 @@ class TerminalViewer extends React.Component {
             padding: '10px 10px 15px 10px',
             fontSize: '12px',
           }}
+          className={'terminal'}
           pasteOnCtrlV={true}
           enabled={this.state.terminalOpen}
           options={{

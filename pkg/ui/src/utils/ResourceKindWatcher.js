@@ -1,6 +1,6 @@
 import { putResource, removeResource } from '../state/actions/resources'
 import { addError } from '../state/actions/errors'
-import { keyForResource } from '../utils/resource-utils'
+import { receiveEvents } from '../state/actions/events'
 
 const throttles = {
   'Endpoints/MODIFIED': 10000,
@@ -14,9 +14,9 @@ export default class ResourceKindWatcher {
 
     this.props = props
     this.tries = 0
-    this.kubeKinds = props.kubeKinds
     this.initialize = this.initialize.bind(this)
-    if (!!props.kind && !!props.dispatch && !!props.resourceGroup) {
+    if (!!props.kind && !!props.dispatch && !!props.getState) {
+      this.kubeKinds = props.getState().apimodels.kinds
       this.initialize()
     }
   }
@@ -26,6 +26,7 @@ export default class ResourceKindWatcher {
     this.namespaces = props.namespaces || []
     this.swagger = props.swagger
     this.dispatch = props.dispatch
+    this.getState = props.getState
     this.kind = this.kubeKinds[props.kind]
     let resourceVersion = props.resourceVersion || 0
     let loc = window.location
@@ -44,7 +45,7 @@ export default class ResourceKindWatcher {
 
     this.throttled = {}
     this.lastPurge = Date.now()
-    this.events = {}
+    this.events = []
     this.interval = window.setInterval(this.processEvents.bind(this), props.interval || aggregationInterval)
   }
 
@@ -60,9 +61,12 @@ export default class ResourceKindWatcher {
   }
 
   processEvents = () => {
-    if (Object.keys(this.events).length) {
-      for (let key in this.events) {
-        let data = this.events[key]
+    while (this.events.length) {
+      let data = this.events.shift()
+      if (data.object && data.object.kind === 'Event') {
+        let resources = this.getState().resources.resources
+        this.dispatch(receiveEvents(resources, data))
+      } else {
         switch(data.type) {
           case 'ADDED':
             this.dispatch(putResource(data.object, true))  
@@ -77,7 +81,6 @@ export default class ResourceKindWatcher {
             return 
         }
       }
-      this.events = {}
     }
   }
 
@@ -88,8 +91,7 @@ export default class ResourceKindWatcher {
   onEvent = (event) => {
     let data = this.applyThrottles(JSON.parse(event.data))
     if (!!data) {
-      let key = keyForResource(data.object)
-      this.events[key] = data
+      this.events.push(data)
     }
   }
 
@@ -107,12 +109,8 @@ export default class ResourceKindWatcher {
     let socket = this.sockets[url]
     if (socket) {
       socket.close()
-      if (socket.constructor === WebSocket) {
-        this.initSocket(url)
-      } else {
-        this.fallback(url)
-      }
     }
+    this.initSocket(url)
   }
 
   initSocket = (url) => {
@@ -125,7 +123,7 @@ export default class ResourceKindWatcher {
         ++socket.tries
         window.setTimeout(that.reload.bind(that, url), 3000)
       } else {
-        that.fallback(url)
+        that.dispatch(addError(e,'error',`Error occurred in watch for ${url}`))
       }
     }
     socket.onmessage = this.onEvent
@@ -162,30 +160,5 @@ export default class ResourceKindWatcher {
       }
       this.lastPurge = now
     }
-  }
-
-  fallback = (url) => {
-    let socket = this.sockets[url]
-    let tries = 0
-    if (socket) {
-      socket.close()
-      if (socket.constructor === EventSource) {
-        tries = socket.tries
-      }
-    }
-    let that = this
-    let esUrl = url.replace(/ws(s)?/, "http$1")
-    let stream = new EventSource(esUrl)
-    stream.tries = tries
-    stream.onerror = function (e) {
-      if (stream.tries < 3) {
-        ++stream.tries
-        window.setTimeout(that.reload.bind(that, url), 2000)
-      } else {
-        that.dispatch(addError(e,'error',`Error occurred in watch for ${url}`))
-      }
-    }
-    stream.onmessage = this.onEvent
-    this.sockets[url] = stream
   }
 }

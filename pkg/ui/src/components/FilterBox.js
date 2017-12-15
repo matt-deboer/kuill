@@ -5,6 +5,7 @@ import ChipInput from 'material-ui-chip-input'
 import { normalizeFilter } from '../utils/filter-utils'
 import Chip from 'material-ui/Chip'
 import './FilterBox.css'
+import classNames from 'classnames'
 
 export default class FilterBox extends React.PureComponent {
 
@@ -102,11 +103,13 @@ export default class FilterBox extends React.PureComponent {
       value={this.state.filterNames}
       onRequestAdd={this.handleAddFilter}
       onRequestDelete={this.handleRemoveFilter}
+      className={classNames('filters', props.className)}
       name={'filters'}
       dataSource={Object.keys(props.autocomplete)}
       floatingLabelText={props.floatingLabelText}
       defaultValue={['namespace:default']}
       menuProps={{
+        className: classNames('filters', 'autocomplete', props.className),
         desktop: true,
       }}
       chipRenderer={({ value, isFocused, isDisabled, handleClick, handleRequestDelete }, key) => {

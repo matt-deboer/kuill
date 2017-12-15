@@ -46,19 +46,13 @@ type WebsocketProxy struct {
 	//  Dialer contains options for connecting to the backend WebSocket server.
 	//  If nil, DefaultDialer is used.
 	Dialer *websocket.Dialer
+
+	traceRequests bool
 }
 
-// ProxyHandler returns a new http.Handler interface that reverse proxies the
-// request to the given target.
-func WebsocketProxyHandler(target *url.URL) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		NewWebsocketProxy(target).ServeHTTP(rw, req)
-	})
-}
-
-// NewProxy returns a new Websocket reverse proxy that rewrites the
+// NewWebsocketProxy returns a new Websocket reverse proxy that rewrites the
 // URL's to the scheme, host and base path provider in target.
-func NewWebsocketProxy(target *url.URL) *WebsocketProxy {
+func NewWebsocketProxy(target *url.URL, traceRequests bool) *WebsocketProxy {
 	backend := func(r *http.Request) *url.URL {
 		// Shallow copy
 		u := *target
@@ -81,8 +75,11 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	backendURL := w.Backend(req)
 	if backendURL == nil {
 		log.Error("WebsocketProxy: backend URL is nil")
-		http.Error(rw, "internal server error (code: 2)", http.StatusInternalServerError)
+		http.Error(rw, "Internal server error (code: 2)", http.StatusInternalServerError)
 		return
+	} else if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Got backend url of %v for request url of %v",
+			backendURL, req.URL)
 	}
 
 	dialer := w.Dialer
@@ -137,6 +134,10 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// opening a new TCP connection time for each request. This should be
 	// optional:
 	// http://tools.ietf.org/html/draft-ietf-hybi-websocket-multiplexing-01
+	if w.traceRequests {
+		log.Infof("WebsocketProxy: dialing backend url %v for request %v",
+			backendURL, req.URL)
+	}
 	connBackend, resp, err := dialer.Dial(backendURL.String(), requestHeader)
 	if err != nil {
 		status := "<none>"
@@ -170,13 +171,21 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Now upgrade the existing incoming request to a WebSocket connection.
 	// Also pass the header that we gathered from the Dial handshake.
+	if w.traceRequests {
+		log.Infof("WebsocketProxy: upgrading request %v => %v { %v }",
+			backendURL, req.URL, upgradeHeader)
+	}
 	connPub, err := upgrader.Upgrade(rw, req, upgradeHeader)
 	if err != nil {
-		log.Printf("websocketproxy: couldn't upgrade %s\n", err)
+		log.Errorf("WebsocketProxy: couldn't upgrade %s\n", err)
 		return
 	}
 	defer connPub.Close()
 
+	if w.traceRequests {
+		log.Infof("WebsocketProxy: dialing backend url %v for request %v",
+			backendURL, req.URL)
+	}
 	errc := make(chan error, 2)
 	cp := func(dst io.Writer, src io.Reader) {
 		_, err := io.Copy(dst, src)

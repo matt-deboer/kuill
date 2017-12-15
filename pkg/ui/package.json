@@ -57,7 +57,7 @@
     "babel-preset-react": "^6.24.1",
     "babel-register": "^6.26.0",
     "concurrently": "^3.4.0",
-    "cypress": "^0.20.1",
+    "cypress": "^1.1.4",
     "jest-cli": "^21.0.1",
     "nightmare": "^2.10.0",
     "node-sass-chokidar": "0.0.3",
@@ -81,7 +81,7 @@
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "DEBUG=cypress:* cypress run"
   },
   "proxy": {
     "/auth": {

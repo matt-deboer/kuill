@@ -92,6 +92,8 @@ function applyFiltersToResource(filters, resource) {
     } else if (field === 'role') {
       if (resource.metadata.labels && resource.metadata.labels[roleLabel] in values) {
         match = true
+      } else if (resource.roleRef && resource.roleRef.name in values) {
+        match = true
       }
     } else if (field === 'hostname') {
       if (resource.metadata.labels && resource.metadata.labels[hostnameLabel] in values) {
@@ -100,6 +102,15 @@ function applyFiltersToResource(filters, resource) {
     } else if (field === 'node') {
       if (resource.kind === 'Pod' && resource.spec.nodeName in values) {
         match = true
+      }
+    } else if (field === 'subject') {
+      if (resource.subjects) {
+        for (let subj of resource.subjects) {
+          if (subj.name in values) {
+            match = true
+            break
+          }
+        }
       }
     } else if (field === 'freeMemory') {
       // for (let v of values) {
@@ -169,6 +180,6 @@ export function splitFilter(filter) {
     parts[0] = '!' + parts[0]
     parts[1] = parts[1].substr(1)
   }
-  return parts
+  return [parts[0], parts.slice(1).join(':')]
 }
 

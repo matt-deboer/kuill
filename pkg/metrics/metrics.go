@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,36 +12,27 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/ericchiang/k8s"
-	apiv1 "github.com/ericchiang/k8s/api/v1"
 	"github.com/matt-deboer/kuill/pkg/auth"
-	"github.com/matt-deboer/kuill/pkg/helpers"
+	"github.com/matt-deboer/kuill/pkg/clients"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-const serviceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
 // Provider gathers metrics from the underlying kubernetes cluster
 type Provider struct {
 	summary     *Summaries
 	mutex       sync.RWMutex
-	client      *k8s.Client
+	kubeClients *clients.KubeClients
 	killSwitch  chan struct{}
-	bearerToken string
 }
 
 // NewMetricsProvider returns a Provider capable of returning metrics for the cluster
-func NewMetricsProvider(kubeconfig string) (*Provider, error) {
-
-	client, bearerToken, err := helpers.NewKubeClient(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
+func NewMetricsProvider(kubeClients *clients.KubeClients) (*Provider, error) {
 
 	m := &Provider{
-		client:      client,
+		kubeClients: kubeClients,
 		killSwitch:  make(chan struct{}, 1),
-		bearerToken: string(bearerToken),
 	}
 
 	m.summary = m.summarize()
@@ -98,8 +88,10 @@ func (m *Provider) summarize() *Summaries {
 	namespaces := make(map[string]bool)
 
 	for _, node := range m.listNodes() {
-		nodeName := *node.Metadata.Name
-		nodeSummary := m.readNodeSummary(fmt.Sprintf("%s/api/v1/proxy/nodes/%s:10255/stats/summary", m.client.Endpoint, nodeName))
+		nodeName := node.ObjectMeta.Name
+
+		nodeSummary := m.readNodeSummary(fmt.Sprintf("%s/api/v1/proxy/nodes/%s:10255/stats/summary",
+			m.kubeClients.BaseURL, nodeName))
 		if nodeSummary != nil {
 
 			convertedSummary, convertedByNs := convertSummary(nodeSummary, node, summary)
@@ -153,7 +145,8 @@ func (m *Provider) summarize() *Summaries {
 					aggregates["Namespace:"+ns+":networkSeconds"] += uint64(podStats.Network.Time.Unix() - podStats.StartTime.Unix())
 				}
 			}
-			summary.Node[*node.Metadata.Name] = convertedSummary
+
+			summary.Node[node.ObjectMeta.Name] = convertedSummary
 		}
 	}
 
@@ -218,11 +211,11 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *S
 		volCapacityBytes += podSummary.Volumes.Total
 	}
 
-	totalCPUCores, err := strconv.Atoi(*node.Status.Allocatable["cpu"].String_)
+	totalCPUCores, err := strconv.Atoi(node.Status.Allocatable.Cpu().String())
 	if err != nil {
 		log.Errorf("Failed to parse allocatable.cpu; %v", err)
 	}
-	allocatableBytesString := *node.Status.Allocatable["memory"].String_
+	allocatableBytesString := node.Status.Allocatable.Memory().String()
 	if strings.HasSuffix(allocatableBytesString, "i") {
 		allocatableBytesString += "B"
 	}
@@ -275,6 +268,13 @@ func convertSummary(summary *KubeletStatsSummary, node *apiv1.Node, summaries *S
 			Usage: 0,
 		},
 	}, summaryByNs
+}
+
+func safeDivide(dividend, divisor uint64) uint64 {
+	if divisor == 0 {
+		return 0
+	}
+	return dividend / divisor
 }
 
 func convertPodSummary(pod PodStats) *Summary {
@@ -384,11 +384,11 @@ func (m *Provider) readNodeSummary(path string) *KubeletStatsSummary {
 		log.Errorf("Failed to create request for path %s: %v", path, err)
 		return nil
 	}
-	if len(m.bearerToken) > 0 {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", m.bearerToken))
+	if len(m.kubeClients.BearerToken) > 0 {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", string(m.kubeClients.BearerToken)))
 	}
 
-	resp, err := m.client.Client.Do(req)
+	resp, err := m.kubeClients.HTTP.Do(req)
 	if err == nil {
 		if resp.StatusCode != http.StatusOK {
 			log.Errorf("Failed to read node summary response from '%s'; %s: %v", path, resp.Status, err)
@@ -410,11 +410,11 @@ func (m *Provider) readNodeSummary(path string) *KubeletStatsSummary {
 	return nil
 }
 
-func (m *Provider) listNodes() []*apiv1.Node {
-	nodes, err := m.client.CoreV1().ListNodes(context.Background())
+func (m *Provider) listNodes() []v1.Node {
+	nodes, err := m.kubeClients.Standard.Core().Nodes().List(meta_v1.ListOptions{})
 	if err == nil {
 		return nodes.Items
 	}
 	log.Error(err)
-	return []*apiv1.Node{}
+	return []v1.Node{}
 }

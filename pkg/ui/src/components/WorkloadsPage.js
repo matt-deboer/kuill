@@ -600,7 +600,7 @@ class WorkloadsPage extends React.Component {
           open={!!this.state.hoveredResource}
           handlers={{
             logs: ()=> { this.props.viewResource(this.state.hoveredResource,'logs') },
-            term: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
+            terminal: ()=> { this.props.viewResource(this.state.hoveredResource,'terminal') },
             suspend: ()=>{ this.handleSuspend(this.state.hoveredResource)},
             scale: this.handleScale,
             edit: ()=> { this.props.viewResource(this.state.hoveredResource,'edit') },
@@ -613,7 +613,7 @@ class WorkloadsPage extends React.Component {
           />
 
         <Link to="/workloads/new" >
-          <FloatingActionButton style={styles.newResourceButton} backgroundColor={blueA400}>
+          <FloatingActionButton className={'new-workload'} style={styles.newResourceButton} backgroundColor={blueA400}>
             <IconAdd />
           </FloatingActionButton>
         </Link>
