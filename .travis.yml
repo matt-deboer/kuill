@@ -34,7 +34,6 @@ script:
   MINIKUBE_OPTIONS="--vm-driver none"
   MINIKUBE_SUDO="sudo"
   CYPRESS_RECORD_KEY="af06fb10-13c0-443c-8f3e-3b2ea3221ee1"
-  RECORD_ACCEPTANCE="true"
   make acceptance
 - make docker
 

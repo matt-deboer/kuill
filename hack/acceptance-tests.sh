@@ -4,6 +4,7 @@ KUILL_PORT=8889
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 MINIKUBE_SUDO=${MINIKUBE_SUDO:-}
 VERBOSE=${VERBOSE:-}
+RECORD_ACCEPTANCE=${RECORD_ACCEPTANCE:-${TRAVIS_TAG/.+/true}}
 
 # launch a new minikube environment
 CI=true KUILL_PORT=${KUILL_PORT} VERBOSE="${VERBOSE}" ${SCRIPT_DIR}/minikube-dev.sh &
