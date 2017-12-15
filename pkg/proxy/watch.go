@@ -293,3 +293,12 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 		}
 	}
 }
+
+func canWatch(kubeKind *KubeKind) bool {
+	for _, verb := range kubeKind.Verbs {
+		if verb == "watch" {
+			return true
+		}
+	}
+	return false
+}
