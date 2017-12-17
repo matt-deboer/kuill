@@ -313,8 +313,10 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 	nextPing := time.NewTicker(pingPeriod)
 	defer func() {
 		nextPing.Stop()
-		socket.Close()
-		errc <- fmt.Errorf("Socket closed normally")
+		if socket != nil {
+			socket.Close()
+			errc <- fmt.Errorf("Socket closed normally")
+		}
 	}()
 
 	pongs := make(chan string, 1)
