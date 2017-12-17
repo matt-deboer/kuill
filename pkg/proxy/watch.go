@@ -310,17 +310,19 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 
 func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, outbound chan []byte, errc chan error) {
 
+	if socket == nil {
+		errc <- fmt.Errorf("Socket was nil")
+		return
+	}
+
 	nextPing := time.NewTicker(pingPeriod)
 	defer func() {
 		nextPing.Stop()
-		if socket != nil {
-			socket.Close()
-			errc <- fmt.Errorf("Socket closed normally")
-		}
+		socket.Close()
+		errc <- fmt.Errorf("Socket closed normally")
 	}()
 
 	pongs := make(chan string, 1)
-
 	socket.SetReadLimit(maxMessageSize)
 	socket.SetReadDeadline(time.Now().Add(pongWait))
 	socket.SetPongHandler(func(string) error {
