@@ -236,6 +236,7 @@ WatchKinds:
 	errOutbound := make(chan error, 1)
 	go w.writeMessages(clientConn, outbound, errOutbound)
 	<-errOutbound
+
 	if log.GetLevel() >= log.DebugLevel {
 		log.Debugf("Closing %d readers...", len(stopChannels))
 	}
@@ -285,6 +286,8 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 	outbound chan []byte, errc chan error, stop chan struct{}) {
 
 	go func() {
+		// listen for a stop message signaling that the underlying
+		// client connection is closed
 		<-stop
 		if log.GetLevel() >= log.DebugLevel {
 			log.Debugf("Closing socket for %s", backendURL)
@@ -307,9 +310,9 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 
 func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, outbound chan []byte, errc chan error) {
 
-	ticker := time.NewTicker(pingPeriod)
+	nextPing := time.NewTicker(pingPeriod)
 	defer func() {
-		ticker.Stop()
+		nextPing.Stop()
 		socket.Close()
 		errc <- fmt.Errorf("Socket closed normally")
 	}()
@@ -331,10 +334,8 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 				log.Infof("Read type %d message from client", mt)
 			}
 			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-					errc <- err
-					return
-				}
+				errc <- err
+				return
 			}
 		}
 	}()
@@ -352,6 +353,7 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 
 	for {
 		select {
+		// we have pongs needing to be written to the client
 		case m := <-pongs:
 			if w.traceRequests {
 				log.Infof("Writing pong to client")
@@ -364,6 +366,7 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 				errc <- err
 				return
 			}
+		// we have messages pending for the client
 		case message := <-outbound:
 			if w.traceRequests {
 				log.Infof("Writing message to client: %s", string(message))
@@ -377,7 +380,8 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 				errc <- err
 				return
 			}
-		case <-ticker.C:
+		// need to send another ping to the client
+		case <-nextPing.C:
 			if w.traceRequests {
 				log.Infof("Writing ping message to client")
 			}
