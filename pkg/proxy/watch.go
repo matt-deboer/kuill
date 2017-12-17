@@ -17,6 +17,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 30 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from peer.
+	maxMessageSize = 1024
+)
+
 // KubeKindAggregatingWatchProxy is an HTTP Handler that takes an incoming WebSocket
 // connection and proxies it to another server.
 type KubeKindAggregatingWatchProxy struct {
@@ -57,9 +71,12 @@ func NewKubeKindAggregatingWatchProxy(target *url.URL, traceRequests bool, kindL
 		u.RawQuery = fmt.Sprintf("watch=true&resourceVersion=%d", resourceVersion)
 		return &u
 	}
+	if traceRequests {
+		log.Infof("Tracing websockets...")
+	}
 
 	return &KubeKindAggregatingWatchProxy{Backend: backend, kindLister: kindLister,
-		accessAggregator: accessAggregator, namespaceLister: namespaceLister}
+		accessAggregator: accessAggregator, namespaceLister: namespaceLister, traceRequests: traceRequests}
 }
 
 // AggregateWatches implements the http.Handler that proxies multiple WebSocket connections.
@@ -219,6 +236,9 @@ WatchKinds:
 	errOutbound := make(chan error, 1)
 	go w.writeMessages(clientConn, outbound, errOutbound)
 	<-errOutbound
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Closing %d readers...", len(stopChannels))
+	}
 	for _, stop := range stopChannels {
 		stop <- struct{}{}
 	}
@@ -266,6 +286,9 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 
 	go func() {
 		<-stop
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Closing socket for %s", backendURL)
+		}
 		socket.Close()
 	}()
 
@@ -284,16 +307,87 @@ func (w *KubeKindAggregatingWatchProxy) readMessages(backendURL string, socket *
 
 func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, outbound chan []byte, errc chan error) {
 
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		socket.Close()
+		errc <- fmt.Errorf("Socket closed normally")
+	}()
+
+	pongs := make(chan string, 1)
+
+	socket.SetReadLimit(maxMessageSize)
+	socket.SetReadDeadline(time.Now().Add(pongWait))
+	socket.SetPongHandler(func(string) error {
+		socket.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+	// Need to read (ping/pong) messages from the client socket
+	go func() {
+		for {
+			socket.SetReadDeadline(time.Now().Add(pongWait))
+			mt, _, err := socket.ReadMessage()
+			if w.traceRequests {
+				log.Infof("Read type %d message from client", mt)
+			}
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+					errc <- err
+					return
+				}
+			}
+		}
+	}()
+
+	socket.SetPingHandler(func(m string) error {
+		select {
+		case pongs <- m:
+			if w.traceRequests {
+				log.Infof("Received ping from client")
+			}
+		default:
+		}
+		return nil
+	})
+
 	for {
 		select {
-		case message := <-outbound:
-			err := socket.WriteMessage(websocket.TextMessage, message)
-			if err != nil {
+		case m := <-pongs:
+			if w.traceRequests {
+				log.Infof("Writing pong to client")
+			}
+			socket.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := socket.WriteMessage(websocket.PongMessage, []byte(m)); err != nil {
+				if w.traceRequests {
+					log.Infof("Error Writing pong message to; closing connection")
+				}
 				errc <- err
 				return
 			}
+		case message := <-outbound:
 			if w.traceRequests {
 				log.Infof("Writing message to client: %s", string(message))
+			}
+			socket.SetWriteDeadline(time.Now().Add(writeWait))
+			err := socket.WriteMessage(websocket.TextMessage, message)
+			if err != nil {
+				if w.traceRequests {
+					log.Infof("Error Writing message to client; closing connection")
+				}
+				errc <- err
+				return
+			}
+		case <-ticker.C:
+			if w.traceRequests {
+				log.Infof("Writing ping message to client")
+			}
+			socket.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := socket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				if w.traceRequests {
+					log.Infof("Ping message to client failed; closing connection")
+				}
+				errc <- err
+				return
 			}
 		default:
 		}
