@@ -53,13 +53,6 @@ context('Cluster Admin', function(){
     cy.get('button.terminal-start').should('be.visible')
   })
 
-  it('can create new workload resource', function() {
-    cy.get('#goto-workloads').click()
-    cy.get('.workloads-page')
-    
-    cy.get('div.new-workload > button').click()
-  })
-
   it('can launch the logs pane from the action menu', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
@@ -114,6 +107,48 @@ context('Cluster Admin', function(){
     
     cy.get('.access-page .filters.subjects input[name=filters]').type('User:reader{enter}{esc}', {force: true})
         cy.get('.permissions.user')
+  })
+
+  it('can create new workload resource', function() {
+    cy.get('#goto-workloads').click()
+    cy.get('.workloads-page')
+    
+    cy.get('div.new-workload > button').click()
+    cy.get('button.selected-template').click()
+    cy.get('.selected-template-item.Pod').click()
+    cy.get('.replace-with-template').click()
+
+    cy.get('body').type('{shift} ', {release: true, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(5)').click(70, 7, {force: true})
+    cy.get('body').type('{shift}', {release: false, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(5)').click('right', {force: true})
+    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+
+    cy.get('body').type('{shift} ', {release: true, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(6)').click(60, 7, {force: true})
+    cy.get('body').type('{shift}', {release: false, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(6)').click('right', {force: true})
+    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+
+    cy.get('body').type('{shift} ', {release: true, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(7)').click(100, 7, {force: true})
+    cy.get('body').type('{shift}', {release: false, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(7)').click('right', {force: true})
+    cy.get('textarea.ace_text-input').type('{shift} default',{force: true})
+
+    cy.get('body').type('{shift} ', {release: true, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(10)').click(100, 7, {force: true})
+    cy.get('body').type('{shift}', {release: false, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(10)').click('right', {force: true})
+    cy.get('textarea.ace_text-input').type('{shift} "bash:4"',{force: true})
+
+    cy.get('body').type('{shift} ', {release: true, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(12)').click(95, 7, {force: true})
+    cy.get('body').type('{shift}', {release: false, force: true})
+    cy.get('.ace_content .ace_line:nth-of-type(12)').click('right', {force: true})
+    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+
+    cy.get('.editor-apply button')
   })
 
 })
