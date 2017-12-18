@@ -384,7 +384,9 @@ class ResourceInfoPage extends React.Component {
             }}
             />
 
-            <div style={{top: 85, left: 32, position: 'absolute'}}>{resourceStatusIcons[resource.statusSummary]}</div>
+            <div style={{top: 85, left: 32, position: 'absolute'}} className={'resource-status'}>
+              {resourceStatusIcons[resource.statusSummary]}
+            </div>
 
           </CardHeader>
         

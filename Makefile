@@ -44,16 +44,13 @@ docker: ca-certificates.crt release
 	@echo "Building ${DOCKER_IMAGE}..."
 	@docker build -t ${DOCKER_IMAGE} -f Dockerfile .
 
-pkg/ui/test-proxy/node_modules:
-	cd pkg/ui && npm run build-test-proxy
-
 pkg/ui/node_modules:
 	cd pkg/ui && npm install
 
 analyze-ui:
 	cd pkg/ui && npm run build && npm run analyze
 
-dev-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
+dev-ui:
 	# now move to the ui dir and run dev
 	cd pkg/ui && npm run dev
 
@@ -67,9 +64,11 @@ acceptance:
 	VERBOSE=${VERBOSE} RECORD_ACCEPTANCE=${RECORD_ACCEPTANCE} KUILL_DISABLE_TLS=true hack/acceptance-tests.sh
 
 acceptance-dev:
-	cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open
+	# make sure 'bashful' pod is deleted before tests
+	@ kubectl --context minikube delete po bashful -n default &>/dev/null || true
+	@ cd pkg/ui && CYPRESS_baseUrl=http://localhost:3000 npm run cypress:open
 
-start-ui: | pkg/ui/node_modules pkg/ui/test-proxy/node_modules 
+start-ui: | pkg/ui/node_modules
 	cd pkg/ui && npm start
 
 clean-ui:

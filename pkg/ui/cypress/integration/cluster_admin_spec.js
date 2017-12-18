@@ -109,7 +109,7 @@ context('Cluster Admin', function(){
         cy.get('.permissions.user')
   })
 
-  it('can create new workload resource', function() {
+  it('can create (and delete) a new workload resource', function() {
     cy.get('#goto-workloads').click()
     cy.get('.workloads-page')
     
@@ -146,9 +146,25 @@ context('Cluster Admin', function(){
     cy.get('.ace_content .ace_line:nth-of-type(12)').click(95, 7, {force: true})
     cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(12)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+    cy.get('textarea.ace_text-input').type(`{shift} bashful
+`,{force: true})
 
-    cy.get('.editor-apply button')
+    cy.get('textarea.ace_text-input').type(`command:
+`, {force: true})
+    cy.get('textarea.ace_text-input:nth-of-type(1)').first().type(`- "sleep"
+`, {force: true})
+    cy.get('textarea.ace_text-input:nth-of-type(1)').first().type(`"999999"`, {force: true})
+
+    cy.get('.editor-apply button').click()
+    cy.get('.resource-info')
+    cy.get('.resource-status .status.ok')
+
+    cy.get('#resource-info-action').click()
+    cy.get('.resource-info-action-items')
+    cy.get('.resource-info-action.delete').click()
+    cy.get('.confirmation.confirm button').click()
+    cy.get('.workloads-page')
+
   })
 
 })

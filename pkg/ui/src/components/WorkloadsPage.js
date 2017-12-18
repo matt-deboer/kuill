@@ -333,6 +333,7 @@ class WorkloadsPage extends React.Component {
       'getCellValue',
       'handleRowSelection',
       'handleCellClick',
+      'handleDelete',
     ]) {
       this[fn] = this[fn].bind(this)
     }
@@ -408,7 +409,7 @@ class WorkloadsPage extends React.Component {
 
   handleDelete = (resource) => {
     let resources = []
-    if (resource) {
+    if (resource && 'kind' in resource) {
       resources.push(resource)
     } else if (this.selectedIds && Object.keys(this.selectedIds).length > 0) {
       for (let id in this.selectedIds) {

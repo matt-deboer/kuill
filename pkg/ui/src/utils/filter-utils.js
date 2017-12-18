@@ -34,6 +34,11 @@ export function applyFilters(globalFilters, dynamicFilters, resource) {
  */
 function applyFiltersToResource(filters, resource) {
   
+  if (resource.isDeleted) {
+    resource.isFiltered = true
+    return true
+  }
+
   resource.isFiltered = Object.keys(filters).length > 0
   for (var field in filters) {
     var values = filters[field]

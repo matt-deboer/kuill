@@ -134,7 +134,13 @@ class WorkloadInfo extends React.Component {
 
   watchLogs = () => {
     let { props } = this
-    if (!!this.state.resource && !!props.logPodContainers) {
+    if (!!this.state.resource
+        && !!this.state.resource.status
+        && !!this.state.resource.status.containerStatuses
+        && !!props.logPodContainers) {
+
+      
+
       let oldFollowers = this.logFollowers
       this.logFollowers = {}
       for (let key of props.logPodContainers) {
@@ -144,14 +150,24 @@ class WorkloadInfo extends React.Component {
           this.logFollowers[key] = lf
           delete oldFollowers[key]
         } else {
-          // Add new follower
-          this.logFollowers[key] = new LogFollower({
-            logs: this.logs,
-            namespace: this.state.resource.metadata.namespace,
-            pod: pod,
-            container: cnt,
-            dispatch: props.dispatch,
-          })
+          let containerIndex = -1
+          for (let i=0, len=this.state.resource.spec.containers.length; i < len; ++i) {
+            if (this.state.resource.spec.containers[i].name === cnt) {
+              containerIndex = i
+              break
+            }
+          }
+          let containerStatus = this.state.resource.status.containerStatuses[containerIndex]
+          if (containerStatus.ready) {
+            // Add new follower
+            this.logFollowers[key] = new LogFollower({
+              logs: this.logs,
+              namespace: this.state.resource.metadata.namespace,
+              pod: pod,
+              container: cnt,
+              dispatch: props.dispatch,
+            })
+          }
         }
       }
       
@@ -188,6 +204,10 @@ class WorkloadInfo extends React.Component {
     this.watchLogs()
   }
 
+  componentDidUpdate = () => {
+    this.watchLogs()
+  }
+
   // TODO: consider removing this entirely...
   shouldComponentUpdate = (nextProps, nextState) => {
     let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
@@ -201,11 +221,6 @@ class WorkloadInfo extends React.Component {
     )
     return shouldUpdate
   }
-
-  // componentDidUpdate = () => {
-  //   this.ensureResource(this.props)
-  //   this.watchLogs()
-  // }
 
   componentWillUnmount = () => {
     for (let key in this.logFollowers) {

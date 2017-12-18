@@ -27,6 +27,9 @@ echo "Installing manifests:"
 ls -la ${SCRIPT_DIR}/acceptance-tests/manifests/
 kubectl --context minikube apply -f ${SCRIPT_DIR}/acceptance-tests/manifests/
 
+# make sure 'bashful' pod is deleted before tests
+kubectl --context minikube delete po bashful -n default &>/dev/null || true
+
 export KUILL_URL="http://localhost:${KUILL_PORT}"
 echo "Waiting for kuill to be available at ${KUILL_URL}..."
 while ! curl -skL --fail "${KUILL_URL}/"; do sleep 2; done

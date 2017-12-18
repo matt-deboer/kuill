@@ -34,56 +34,56 @@ const styles = {
 
 export const containerStatus = {
   // ok: <IconStatusOK style={{...styles.size, color: 'rgba(0, 150, 61, 0.8)'}} />,
-  'ok': <IconStatusOK style={{...styles.small, color: 'rgba(250,250,250,0.8)'}} data-rh={`status: ok`}/>,
-  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling up`}>
+  'ok': <IconStatusOK style={{...styles.small, color: 'rgba(250,250,250,0.8)'}} className={'status ok'} data-rh={`status: ok`}/>,
+  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} className={'status scaling-up'} data-rh={`status: scaling up`}>
     <IconStatusScalingUp style={{
         width: 14, height: 14, 
         color: 'rgba(250,250,250,0.8)', 
         marginTop: 2,
         display: 'table-cell',}} />
     <div className="scaling small"/></div>,
-  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling down`}>
+  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}}className={'status scaling-down'} data-rh={`status: scaling down`}>
     <IconStatusScalingDown style={{
         width: 14, height: 14, 
         color: 'rgba(250,250,250,0.8)',
         display: 'table-cell',}} />
     <div className="scaling down small"/></div>,
-  'disabled': <IconStatusDisabled style={{...styles.small, color: 'rgba(250,250,250,0.6)'}} data-rh={`status: disabled`}/>,
-  'unknown': <IconStatusUnknown style={{...styles.small, color: 'rgba(250,250,250,0.6)'}} data-rh={`status: unknown`}/>,
+  'disabled': <IconStatusDisabled style={{...styles.small, color: 'rgba(250,250,250,0.6)'}} className={'status disabled'} data-rh={`status: disabled`}/>,
+  'unknown': <IconStatusUnknown style={{...styles.small, color: 'rgba(250,250,250,0.6)'}} className={'status unknown'} data-rh={`status: unknown`}/>,
   'warning': <IconStatusWarning style={{
-    marginLeft: -1, width: 21, height: 21, color: '#FFC107', display: 'table-cell',}} data-rh={`status: warning`}/>,
+    marginLeft: -1, width: 21, height: 21, color: '#FFC107', display: 'table-cell',}} className={'status warning'} data-rh={`status: warning`}/>,
   'error': <IconStatusError style={{
-    marginLeft: -1, height: 21, width: 21, color: '#F44336', display: 'table-cell',}} data-rh={`status: error`}/>,
-  'none': <IconStatusNone style={{...styles.small, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: none`}/>,
+    marginLeft: -1, height: 21, width: 21, color: '#F44336', display: 'table-cell',}} className={'status error'} data-rh={`status: error`}/>,
+  'none': <IconStatusNone style={{...styles.small, color: 'rgba(0, 0,0, 0.3)'}} className={'status none'} data-rh={`status: none`}/>,
   'timed out': <IconStatusTimedOut style={{
-    marginLeft: -1, width: 21, height: 21, color: '#FFC107', display: 'table-cell',}} data-rh={`status: timed out`}/>,
+    marginLeft: -1, width: 21, height: 21, color: '#FFC107', display: 'table-cell',}} className={'status timed-out'} data-rh={`status: timed out`}/>,
 }
 
 export const resourceStatus = {
   // ok: <IconStatusOK style={{...styles.size, color: 'rgba(0, 150, 61, 0.8)'}} />,
-  'ok': <IconStatusOK style={{...styles.size, color: blueA400}} data-rh={`status: ok`}/>,
-  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling up`}>
+  'ok': <IconStatusOK style={{...styles.size, color: blueA400}} className={'status ok'} data-rh={`status: ok`}/>,
+  'scaling up': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} className={'status scaling-up'} data-rh={`status: scaling up`}>
     <IconStatusScalingUp style={{
         width: 21, height: 21, 
         color: 'rgba(0, 0,0, 0.3)', 
         marginTop: 2,
         display: 'table-cell',}} />
     <div className="scaling"/></div>,
-  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} data-rh={`status: scaling down`}>
+  'scaling down': <div style={{position: 'relative', margin: '2px 0px 2px 4px'}} className={'status scaling-down'} data-rh={`status: scaling down`}>
     <IconStatusScalingDown style={{
         width: 21, height: 21, 
         color: 'rgba(0, 0,0, 0.3)',
         display: 'table-cell',}} />
     <div className="scaling down"/></div>,
-  'disabled': <IconStatusDisabled style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: disabled`}/>,
-  'unknown': <IconStatusUnknown style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: unknown`}/>,
+  'disabled': <IconStatusDisabled style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} className={'status disabled'} data-rh={`status: disabled`}/>,
+  'unknown': <IconStatusUnknown style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} className={'status unknown'} data-rh={`status: unknown`}/>,
   'warning': <IconStatusWarning style={{
-    marginLeft: -1, width: 32, height: 32, color: '#FFC107', display: 'table-cell',}} data-rh={`status: warning`}/>,
+    marginLeft: -1, width: 32, height: 32, color: '#FFC107', display: 'table-cell',}} className={'status warning'} data-rh={`status: warning`}/>,
   'error': <IconStatusError style={{
-    marginLeft: -1, height: 32, width: 32, color: '#F44336', display: 'table-cell',}} data-rh={`status: error`}/>,
-  'none': <IconStatusNone style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} data-rh={`status: none`}/>,
+    marginLeft: -1, height: 32, width: 32, color: '#F44336', display: 'table-cell',}} className={'status error'} data-rh={`status: error`}/>,
+  'none': <IconStatusNone style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} className={'status none'} data-rh={`status: none`}/>,
   'timed out': <IconStatusTimedOut style={{
-    marginLeft: -1, width: 32, height: 32, color: '#FFC107', display: 'table-cell',}} data-rh={`status: timed out`}/>,
+    marginLeft: -1, width: 32, height: 32, color: '#FFC107', display: 'table-cell',}} className={'status timed-out'} data-rh={`status: timed out`}/>,
 }
 
 export const eventType = {

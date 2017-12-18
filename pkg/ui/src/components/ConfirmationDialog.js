@@ -18,11 +18,13 @@ export default class ConfirmationDialog extends React.PureComponent {
 
     const actions = [
       <FlatButton
+        className={'confirmation cancel'}
         label={props.cancelText || 'Cancel'}
         labelStyle={{color: grey800}}
         onTouchTap={props.onRequestClose}
       />,
       <RaisedButton
+        className={'confirmation confirm'}
         label={props.confirmText || 'Yes'}
         primary={true}
         keyboardFocused={true}
@@ -41,6 +43,7 @@ export default class ConfirmationDialog extends React.PureComponent {
         modal={false}
         open={props.open}
         onRequestClose={props.onRequestClose}
+        actionsContainerClassName={'confirmation-actions'}
       >
         {props.message}
         {links}

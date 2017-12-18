@@ -82,7 +82,7 @@ export default class ResourceInfoActionsMenu extends React.PureComponent {
         actions.push(
           <MenuItem key={action} primaryText={primaryText}
             id={`resource-info-action:${action}`}
-            className={'resource-info-action menu-item'}
+            className={`resource-info-action menu-item ${action}`}
             onTouchTap={() => {
               that.setState({
                 open: false,
@@ -117,7 +117,7 @@ export default class ResourceInfoActionsMenu extends React.PureComponent {
           anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'right', vertical: 'top'}}
         >
-          <Menu id={'resource-info-action-items'} desktop={true}>
+          <Menu id={'resource-info-action-items'} className={'resource-info-action-items'} desktop={true}>
             {actions}
           </Menu>
         </Popover>

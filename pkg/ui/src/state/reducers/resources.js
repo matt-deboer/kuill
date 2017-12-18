@@ -288,9 +288,15 @@ function updateAccessAutocomplete(access, subjects, resource) {
 
 function doUpdateResource(state, resource, isNew, kubeKinds) {
   resource.key = keyForResource(resource)
-  if (!(resource.key in state.resources) && !isNew && resource.kind !== 'Pod') {
+  if (resource.key in state.resources) {
+    let existing = state.resources[resource.key]
+    if (existing.isDeleted) {
+      return state
+    }
+  } else if (!isNew && resource.kind !== 'Pod') {
     return state
   }
+
   let newState = {...state}
   updateRelatedResources(newState, resource)
   if (resource.kind in excludedKinds) {
@@ -335,7 +341,11 @@ function doRemoveResource(state, resource) {
   
   if (resource.key in state.resources) {
     let resources = { ...state.resources }
-    delete resources[resource.key]
+    // delete resources[resource.key]
+    let r = resources[resource.key]
+    r.isDeleted = true
+    r.isFiltered = true
+
     let podsByNode = {...state.podsByNode}
     if (resource.kind === 'Pod') {
       delete podsByNode[resource.spec.nodeName][resource.key]
@@ -355,6 +365,7 @@ function doRemoveResource(state, resource) {
       resources: resources,
       podCount: (state.podCount - 1),
       podsByNode: podsByNode,
+      resourceRevision: (state.resourceRevision + 1),
     }    
   }
   return state

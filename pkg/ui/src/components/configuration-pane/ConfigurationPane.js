@@ -94,7 +94,7 @@ class ConfigurationPane extends React.Component {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-4" style={{marginBottom: 15, paddingLeft: 0}}>
                       <ContainerPanel container={container} 
                         namespace={resource.metadata.namespace}
-                        status={resource.status.containerStatuses[index]}
+                        status={resource.status.containerStatuses && resource.status.containerStatuses[index]}
                         />
                     </div>
                   })}
