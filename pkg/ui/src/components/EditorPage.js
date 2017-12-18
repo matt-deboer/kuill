@@ -259,12 +259,14 @@ class EditorPage extends React.Component {
       actions = [
         ...additionalActions,
         <FlatButton
+          className={'editor-cancel'}
           label="Cancel"
           labelStyle={{color: 'rgb(220,220,220)'}}
           hoverColor={grey500}
           onTouchTap={props.onEditorCancel}
         />,
         <RaisedButton
+          className={'editor-apply'}
           label="Apply"
           primary={true}
           onTouchTap={this.applyChanges.bind(this)}
@@ -274,6 +276,7 @@ class EditorPage extends React.Component {
     } else {
       actions = [
         <FlatButton
+          className={'editor-dismiss'}
           label="Dismiss"
           labelStyle={{color: 'rgb(220,220,220)'}}
           hoverColor={grey500}

@@ -263,13 +263,14 @@ class NewResource extends React.Component {
 
     let menuItems = []
     for (let key of templateNames) {
-      menuItems.push(<MenuItem key={key} value={key} primaryText={key}/>)
+      menuItems.push(<MenuItem className={`selected-template-item ${key.replace(/[.]yml/, "")}`} key={key} value={key} primaryText={key}/>)
     }
 
     let title = (
       <div>
         <span style={styles.label}>template</span>
         <FlatButton
+          className={'selected-template'}
           fullWidth={false}
           labelStyle={styles.buttonLabel}
           style={styles.button}
@@ -287,6 +288,7 @@ class NewResource extends React.Component {
           anchorEl={this.state.templatesAnchorEl}
         >
           <Menu 
+            className={'template-selection-menu'}
             multiple={false}
             value={selectedTemplate}
             desktop={true}
@@ -304,6 +306,7 @@ class NewResource extends React.Component {
 
         <RaisedButton
           label="Replace"
+          className={'replace-with-template'}
           icon={<IconApply style={{fill: grey300}}/>}
           style={styles.applyButton}
           labelColor={grey300}
