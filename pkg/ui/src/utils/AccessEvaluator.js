@@ -72,17 +72,30 @@ export default class AccessEvaluator {
         // TODO: what about StatefulSet and DaemonSet?
         let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas || resource.status.numberReady)) || -1
 
-        return {
-          get: permissions.get,
-          edit: permissions.put,
-          delete: permissions.delete,
-          logs: permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
-          terminal: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
-          detach: permissions.put && resource.kind === 'Pod' 
-            && resource.metadata.annotations 
-            && !(detachedOwnerRefsAnnotation in resource.metadata.annotations),
-          scale: permissions.put && replicas >= 0,
-          suspend: permissions.put && replicas > 0,
+        if (!permissions) {
+          return {
+            get: false,
+            edit: false,
+            delete: false,
+            logs: false,
+            terminal: false,
+            detach: false,
+            scale: false,
+            suspend: false,
+          }
+        } else {
+          return {
+            get: permissions.get,
+            edit: permissions.put,
+            delete: permissions.delete,
+            logs: permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
+            terminal: permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
+            detach: permissions.put && resource.kind === 'Pod' 
+              && resource.metadata.annotations 
+              && !(detachedOwnerRefsAnnotation in resource.metadata.annotations),
+            scale: permissions.put && replicas >= 0,
+            suspend: permissions.put && replicas > 0,
+          }
         }
       })
   }
