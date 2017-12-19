@@ -1,6 +1,23 @@
 changelog
 ===
 
+
+v0.2-b1 [2017-12-18]
+---
+
+**features:**
+
+- Added initial set of working acceptance tests using cypress.io
+
+**fixes:**
+
+- Watching for resources updates now combined into a single 'multi-watch' websocket to overcome open connection limits in some browsers,
+and to avoid extra permissions checks before creating watches
+- Resource fetching now combined into a single fetch, where allowed access is computed on the server side to avoid client-side errors
+in the normal display process
+- Moved from ericchiang/k8s to kubernetes/client-go for better dynamic resource support
+
+
 v0.1-a6 [2017-09-09]
 ---
 
