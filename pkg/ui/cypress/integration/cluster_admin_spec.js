@@ -118,42 +118,24 @@ context('Cluster Admin', function(){
     cy.get('.selected-template-item.Pod').click()
     cy.get('.replace-with-template').click()
 
-    cy.get('body').type('{shift} ', {release: true, force: true})
-    cy.get('.ace_content .ace_line:nth-of-type(5)').click(70, 7, {force: true})
-    cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(5)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+    cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(6)}bashful{downarrow}`,{force: true})
 
-    cy.get('body').type('{shift} ', {release: true, force: true})
-    cy.get('.ace_content .ace_line:nth-of-type(6)').click(60, 7, {force: true})
-    cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(6)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type('{shift} bashful',{force: true})
+    cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(7)}bashful{downarrow}`,{force: true})
 
-    cy.get('body').type('{shift} ', {release: true, force: true})
-    cy.get('.ace_content .ace_line:nth-of-type(7)').click(100, 7, {force: true})
-    cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(7)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type('{shift} default',{force: true})
+    cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(12)}default${"{downarrow}".repeat(3)}`,{force: true})
 
-    cy.get('body').type('{shift} ', {release: true, force: true})
-    cy.get('.ace_content .ace_line:nth-of-type(10)').click(100, 7, {force: true})
-    cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(10)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type('{shift} "bash:4"',{force: true})
+    cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(15)}"bash:4"${"{downarrow}".repeat(2)}`,{force: true})
 
-    cy.get('body').type('{shift} ', {release: true, force: true})
-    cy.get('.ace_content .ace_line:nth-of-type(12)').click(95, 7, {force: true})
-    cy.get('body').type('{shift}', {release: false, force: true})
     cy.get('.ace_content .ace_line:nth-of-type(12)').click('right', {force: true})
-    cy.get('textarea.ace_text-input').type(`{shift} bashful
+    cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(6)}bashful
 `,{force: true})
-
     cy.get('textarea.ace_text-input').type(`command:
-`, {force: true})
-    cy.get('textarea.ace_text-input:nth-of-type(1)').first().type(`- "sleep"
-`, {force: true})
-    cy.get('textarea.ace_text-input:nth-of-type(1)').first().type(`"999999"`, {force: true})
+- "sleep"
+"999999"` ,{force: true})
 
     cy.get('.editor-apply button').click()
     cy.get('.resource-info')
