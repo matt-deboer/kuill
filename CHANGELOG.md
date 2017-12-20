@@ -16,7 +16,8 @@ and to avoid extra permissions checks before creating watches
 - Resource fetching now combined into a single fetch, where allowed access is computed on the server side to avoid client-side errors
 in the normal display process
 - Moved from ericchiang/k8s to kubernetes/client-go for better dynamic resource support
-
+- #72: Don't try to follow logs for containers that are not started
+- #74: aggregate resource watches into a single websocket for the client to overcome browser limits 
 
 v0.1-a6 [2017-09-09]
 ---

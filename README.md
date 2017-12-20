@@ -20,10 +20,29 @@ The key differentiators when compared with the existing open source dashboard ar
 
 ---
 
-What does it look like?
+What does it look like? 
 ---
 
-For the impatient, see the [preview](./docs/preview.md) page for few screen-shots and gifs of the current state.
+## Login
+![Login](./docs/screenshots/login.png)
+
+## Overview with Summaries for Errors, Events, and Resource Usage
+![Overview](./docs/screenshots/overview.png)
+
+## Filtered Workloads view
+![Workloads](./docs/screenshots/workloads.png)
+
+## Filtered Nodes View with Heatmap
+![Nodes](./docs/screenshots/nodes.mov.gif)
+
+## Resource
+![Resource](./docs/screenshots/resource.png)
+
+## Multi-container Log Tailing
+![Logs](./docs/screenshots/logs.png)
+
+## Interactive Terminal
+![Terminal](./docs/screenshots/terminal.mov.gif)
 
 ---
 
