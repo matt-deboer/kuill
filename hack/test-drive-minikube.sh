@@ -66,7 +66,7 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
   fi
 
   echo "Creating kube secret for auth proxy certs..."
-  ${MINIKUBE_SUDO} kubectl --context minikube create secret generic auth-proxy-certs --validate=false \
+  ${MINIKUBE_SUDO} kubectl --context minikube create secret generic auth-proxy-certs \
     --from-file  ~/.minikube/certs/auth-proxy -n kube-system
 fi
 

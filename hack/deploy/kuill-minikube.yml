@@ -1,5 +1,5 @@
 kind: List
-api: v1
+apiVersion: v1
 items:
 
 - kind: ServiceAccount
@@ -8,11 +8,10 @@ items:
     name: kuill
     namespace: kube-system
 
-- kind: Role
+- kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
     name: kuill-serviceaccount
-    namespace: kube-system
   rules:
   # ability to list namespaces is required in order
   # to drive self-subject-access-reviews for users
@@ -36,7 +35,7 @@ items:
     verbs: ["get"]
 
 - kind: RoleBinding
-  apiVersion: rbac.authorization.k8s.io/v1alpha1
+  apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
     name: kuill-serviceaccount
     namespace: kube-system
@@ -46,12 +45,12 @@ items:
     - kind: User
       name: auth-proxy
   roleRef:
-    kind: Role
+    kind: ClusterRole
     name: kuill-serviceaccount
     apiGroup: "rbac.authorization.k8s.io"
 
 - kind: RoleBinding
-  apiVersion: rbac.authorization.k8s.io/v1alpha1
+  apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
     name: kuill-discovery
     namespace: kube-system
@@ -66,7 +65,7 @@ items:
     apiGroup: "rbac.authorization.k8s.io"
 
 - kind: Deployment
-  apiVersion: extensions/v1beta1
+  apiVersion: apps/v1beta1
   metadata:
     labels:
       name: kuill
@@ -95,23 +94,23 @@ items:
             mountPath: /certs
             readOnly: true
           env:
-          - name: kuill_PORT
+          - name: KUILL_PORT
             value: "8443"
-          - name: kuill_ANONYMOUS_GROUPS
+          - name: KUILL_ANONYMOUS_GROUPS
             value: system:masters
-          - name: kuill_SERVER_CERT
+          - name: KUILL_SERVER_CERT
             value: /certs/auth-proxy.pem
-          - name: kuill_SERVER_KEY
+          - name: KUILL_SERVER_KEY
             value: /certs/auth-proxy-key.pem
-          - name: kuill_KUBERNETES_CLIENT_CERT
+          - name: KUILL_KUBERNETES_CLIENT_CERT
             value: /certs/auth-proxy.pem
-          - name: kuill_KUBERNETES_CLIENT_KEY
+          - name: KUILL_KUBERNETES_CLIENT_KEY
             value: /certs/auth-proxy-key.pem
-          - name: kuill_KUBERNETES_CLIENT_CA
+          - name: KUILL_KUBERNETES_CLIENT_CA
             value: /certs/ca.pem
-          - name: kuill_VERBOSE
+          - name: KUILL_VERBOSE
             value: "true"
-          - name: kuill_TRACE_REQUESTS
+          - name: KUILL_TRACE_REQUESTS
             value: "true"
           ports:
           - containerPort: 8443
