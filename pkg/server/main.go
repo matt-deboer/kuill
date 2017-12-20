@@ -258,6 +258,12 @@ func main() {
 			EnvVar: envBase + "KUBECONFIG",
 		},
 		cli.BoolFlag{
+			Name: "proxy-authentication",
+			Usage: `When 'true', use authenticating-proxy headers to authenticate the current user to the backend kubernetes API; when false
+			(the default) impersonation headers are used`,
+			EnvVar: envBase + "PROXY_AUTHENTICATION",
+		},
+		cli.BoolFlag{
 			Name:   "trace-requests, T",
 			Usage:  "Log information about all requests",
 			EnvVar: envBase + "TRACE_REQUESTS",
@@ -494,6 +500,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		"extra-headers-prefix":   "string",
 		"trace-requests":         "bool",
 		"trace-websockets":       "bool",
+		"proxy-authentication":   "bool",
 		"authenticated-groups":   "string",
 	})
 
@@ -510,16 +517,28 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		}
 		namespaces := proxy.NewNamespacesProxy(kubeClients)
 		swagger := proxy.NewSwaggerProxy(kubeClients)
-		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces)
 		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
+
+		usernameHeader := flags["username-header"].(string)
+		groupsHeader := flags["group-header"].(string)
+		extraHeaders := flags["extra-headers-prefix"].(string)
+
+		proxyAuthentication := flags["proxy-authentication"].(bool)
+
+		if !proxyAuthentication {
+			// Use impersonation instead
+			usernameHeader = "Impersonate-User"
+			groupsHeader = "Impersonate-Group"
+			extraHeaders = "Impersonate-Extra-"
+		}
 
 		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
 			flags["kubernetes-client-ca"].(string),
 			flags["kubernetes-client-cert"].(string),
 			flags["kubernetes-client-key"].(string),
-			flags["username-header"].(string),
-			flags["group-header"].(string),
-			flags["extra-headers-prefix"].(string),
+			usernameHeader,
+			groupsHeader,
+			extraHeaders,
 			authenticatedGroups,
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),
@@ -530,6 +549,8 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces, apiProxy)
 
 		http.HandleFunc("/proxy/swagger.json", swagger.Serve)
 		http.HandleFunc("/proxy/_/kinds", kinds.Serve)

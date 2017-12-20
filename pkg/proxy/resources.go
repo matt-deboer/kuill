@@ -25,15 +25,17 @@ type ResourcesProxy struct {
 	kindLister      *KindsProxy
 	namespaceLister *NamespaceProxy
 	bearerToken     string
+	kubeProxy       *KubeAPIProxy
 }
 
 // NewResourcesProxy creates  a new ResourcesProxy object
-func NewResourcesProxy(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindsProxy, namespaceLister *NamespaceProxy) *ResourcesProxy {
+func NewResourcesProxy(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindsProxy, namespaceLister *NamespaceProxy, kubeProxy *KubeAPIProxy) *ResourcesProxy {
 	return &ResourcesProxy{
 		authManager:     authManager,
 		kindLister:      kindLister,
 		namespaceLister: namespaceLister,
 		kubeClients:     kubeClients,
+		kubeProxy:       kubeProxy,
 	}
 }
 
@@ -83,9 +85,13 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 	if dynClient == nil {
 		var config = *l.kubeClients.Config
 		l.kubeClients.Config.DeepCopyInto(&config.TLSClientConfig)
-		config.Impersonate = rest.ImpersonationConfig{
-			UserName: authContext.User(),
-			Groups:   authContext.Groups(),
+		if l.kubeProxy.UsesImpersonation() {
+			config.Impersonate = rest.ImpersonationConfig{
+				UserName: authContext.User(),
+				Groups:   authContext.Groups(),
+			}
+		} else {
+			config.WrapTransport = l.kubeProxy.NewAuthenticatingTransportWrapper(authContext)
 		}
 		if strings.Contains(kind.Version, "/") {
 			config.APIPath = "/apis"

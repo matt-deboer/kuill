@@ -221,3 +221,31 @@ func (p *KubeAPIProxy) addAuthHeaders(req *http.Request, authContext auth.Contex
 		req.Header.Add(p.groupHeader, group)
 	}
 }
+
+// UsesImpersonation returns true if the proxy is configured for user impersonation
+func (p *KubeAPIProxy) UsesImpersonation() bool {
+	return p.usernameHeader == "Impersonate-User"
+}
+
+type authenticatingRoundTripper struct {
+	kubeProxy   *KubeAPIProxy
+	authContext auth.Context
+	delegate    http.RoundTripper
+}
+
+func (a *authenticatingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	a.kubeProxy.addAuthHeaders(r, a.authContext)
+	return a.delegate.RoundTrip(r)
+}
+
+// NewAuthenticatingTransportWrapper returns a round tripper wrapping function which returns a
+// wrapping round tripper that will apply the appropriate authentication headers to all requests
+func (p *KubeAPIProxy) NewAuthenticatingTransportWrapper(authContext auth.Context) func(rt http.RoundTripper) http.RoundTripper {
+	return func(rt http.RoundTripper) http.RoundTripper {
+		return &authenticatingRoundTripper{
+			kubeProxy:   p,
+			authContext: authContext,
+			delegate:    rt,
+		}
+	}
+}
