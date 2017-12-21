@@ -1,0 +1,87 @@
+kind: List
+apiVersion: v1
+items:
+
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: kuill
+    namespace: kube-system
+
+- kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kuill-serviceaccount
+  rules:
+  # ability to list namespaces is required in order
+  # to drive self-subject-access-reviews for users
+  # who are not authorized to all namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list"]
+  # the following permissions are used to provide
+  # metrics details (requested from the master 
+  # via nodes/proxy -> status)
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "proxy"]
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["*"]
+  - nonResourceURLs: ["/swagger.json"]
+    verbs: ["get"]
+
+- kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kuill-impersonation
+  rules:
+  - apiGroups: [""]
+    resources: ["users", "groups", "serviceaccounts"]
+    verbs: ["impersonate"]
+
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kuill-impersonation
+  subjects:
+    - kind: ServiceAccount
+      name: kuill
+      namespace: kube-system
+    - kind: User
+      name: auth-proxy
+  roleRef:
+    kind: ClusterRole
+    name: kuill-impersonation
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kuill-serviceaccount
+  subjects:
+    - kind: ServiceAccount
+      name: kuill
+      namespace: kube-system
+    - kind: User
+      name: auth-proxy
+  roleRef:
+    kind: ClusterRole
+    name: kuill-serviceaccount
+    apiGroup: "rbac.authorization.k8s.io"
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: kuill-discovery
+    namespace: kube-system
+  subjects:
+    - kind: ServiceAccount
+      name: kuill
+    - kind: User
+      name: auth-proxy
+  roleRef:
+    kind: ClusterRole
+    name: system:discovery
+    apiGroup: "rbac.authorization.k8s.io"
+

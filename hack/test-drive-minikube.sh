@@ -78,6 +78,22 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
     --from-file  ~/.minikube/certs/auth-proxy -n kube-system
 fi
 
+case $0 in
+  # launched from local file; use the
+  /* )
+    manifest_file="${ROOT}/hack/deploy/kuill-dependencies.yml"
+    echo "Deploying $manifest_file..."
+    cat $manifest_file | kubectl --context minikube apply -f -
+    ;;
+  # launched from url; download manifest also
+  sh )
+    manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-dependencies.yml"
+    echo "Deploying $manifest_url..."
+    curl -sL $manifest_url | kubectl --context minikube apply -f -
+    ;;
+esac
+
+
 if [ "$1" != "nodeploy" ]; then
   case $0 in
     # launched from local file; use the
