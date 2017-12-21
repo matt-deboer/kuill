@@ -165,6 +165,8 @@ Roadmap:
   - [x] Provide better hints/tool-tips to explain what functions are available, and what they mean
   - [ ] Large scale performance testing (1000's of resources)
   - [ ] Mobile testing/fixes/support
+  - [ ] Use Impersonation by default, with configurable option for authenticating-proxy
+  - [ ] Helm Chart for easy trial
 
 - [ ] Overview/Homepage:
   - [ ] Local storage (or cookies) used to remember previous selected namespaces for a given user
