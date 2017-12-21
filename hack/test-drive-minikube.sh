@@ -2,10 +2,7 @@
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 
-echo "Deploying $0..."
-
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
-KUILL_BRANCH=${TRAVIS_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
 status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
@@ -82,10 +79,21 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 fi
 
 if [ "$1" != "nodeploy" ]; then
-  manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/${KUILL_BRANCH}/hack/deploy/kuill-minikube.yml"
-  echo "Deploying $manifest_url..."
-  curl -sL $manifest_url | kubectl --context minikube apply -f -
-
+  case $0 in
+    # launched from local file; use the
+    /* )
+      manifest_file="${ROOT}/hack/deploy/kuill-minikube.yml"
+      echo "Deploying $manifest_file..."
+      cat $manifest_file | kubectl --context minikube apply -f -
+      ;;
+    # launched from url; download manifest also
+    sh )
+      manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml"
+      echo "Deploying $manifest_url..."
+      curl -sL $manifest_url | kubectl --context minikube apply -f -
+      ;;
+  esac
+  
   while ! curl -skL --fail "https://$(minikube ip):30443/"; do sleep 2; done
 
   open "https://$(minikube ip):30443/"
