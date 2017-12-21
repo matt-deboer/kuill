@@ -24,7 +24,7 @@ items:
   # via nodes/proxy -> status)
   - apiGroups: [""]
     resources: ["nodes"]
-    verbs: [list"]
+    verbs: ["list"]
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["proxy"]
