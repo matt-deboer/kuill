@@ -1,4 +1,9 @@
 #!/bin/sh
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)
+ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
+
+echo "Deploying $0..."
+
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 KUILL_BRANCH=${TRAVIS_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
