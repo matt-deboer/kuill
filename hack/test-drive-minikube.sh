@@ -77,8 +77,9 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 fi
 
 if [ "$1" != "nodeploy" ]; then
-  curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/${KUILL_BRANCH}/hack/deploy/kuill-minikube.yml | \
-        kubectl --context minikube apply -f -
+  manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/${KUILL_BRANCH}/hack/deploy/kuill-minikube.yml"
+  echo "Deploying $manifest_url..."
+  curl -sL $manifest_url | kubectl --context minikube apply -f -
 
   while ! curl -skL --fail "https://$(minikube ip):30443/"; do sleep 2; done
 
