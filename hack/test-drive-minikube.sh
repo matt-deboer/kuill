@@ -1,5 +1,6 @@
 #!/bin/sh
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
+KUILL_BRANCH=${TRAVIS_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
 status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
@@ -76,7 +77,7 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 fi
 
 if [ "$1" != "nodeploy" ]; then
-  curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml | \
+  curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/${KUILL_BRANCH}/hack/deploy/kuill-minikube.yml | \
         kubectl --context minikube apply -f -
 
   while ! curl -skL --fail "https://$(minikube ip):30443/"; do sleep 2; done
