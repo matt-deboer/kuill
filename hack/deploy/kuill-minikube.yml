@@ -34,14 +34,14 @@ items:
   - nonResourceURLs: ["/swagger.json"]
     verbs: ["get"]
 
-- kind: RoleBinding
+- kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
     name: kuill-serviceaccount
-    namespace: kube-system
   subjects:
     - kind: ServiceAccount
       name: kuill
+      namespace: kube-system
     - kind: User
       name: auth-proxy
   roleRef:
