@@ -24,10 +24,7 @@ items:
   # via nodes/proxy -> status)
   - apiGroups: [""]
     resources: ["nodes"]
-    verbs: [list"]
-  - apiGroups: [""]
-    resources: ["nodes"]
-    verbs: ["proxy"]
+    verbs: ["list", "proxy"]
   - apiGroups: [""]
     resources: ["nodes/proxy"]
     verbs: ["*"]
@@ -37,7 +34,7 @@ items:
 - kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: kuill-k g
+    name: kuill-impersonation
   rules:
   - apiGroups: [""]
     resources: ["users", "groups", "serviceaccounts"]
@@ -58,14 +55,14 @@ items:
     name: kuill-impersonation
     apiGroup: "rbac.authorization.k8s.io"
 
-- kind: RoleBinding
+- kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
     name: kuill-serviceaccount
-    namespace: kube-system
   subjects:
     - kind: ServiceAccount
       name: kuill
+      namespace: kube-system
     - kind: User
       name: auth-proxy
   roleRef:
