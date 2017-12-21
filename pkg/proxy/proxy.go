@@ -165,7 +165,7 @@ func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, auth
 		if len(r.Header.Get("User-Agent")) == 0 {
 			r.Header.Set("User-Agent", "kuill")
 		}
-		p.traceRequest(r, authContext)
+		p.traceRequest(r, authContext, p.traceWebsockets)
 		p.addAuthHeaders(r, authContext)
 
 		if r.URL.Path == "/proxy/_/multiwatch" {
@@ -191,13 +191,13 @@ func (p *KubeAPIProxy) filterRequest(r *http.Request) {
 	}
 	r.Header.Set("Origin", p.kubernetesURL.String())
 	authContext := r.Context().Value(authContextKey).(auth.Context)
-	p.traceRequest(r, authContext)
+	p.traceRequest(r, authContext, p.traceWebsockets)
 	p.addAuthHeaders(r, authContext)
 }
 
-func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context) {
+func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context, trace bool) {
 
-	if p.traceWebsockets {
+	if trace {
 		lctx := log.WithFields(log.Fields{
 			"method": "ProxyRequest",
 			"req":    r.URL.String(),
@@ -228,13 +228,15 @@ func (p *KubeAPIProxy) UsesImpersonation() bool {
 }
 
 type authenticatingRoundTripper struct {
-	kubeProxy   *KubeAPIProxy
-	authContext auth.Context
-	delegate    http.RoundTripper
+	kubeProxy     *KubeAPIProxy
+	authContext   auth.Context
+	delegate      http.RoundTripper
+	traceRequests bool
 }
 
 func (a *authenticatingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	a.kubeProxy.addAuthHeaders(r, a.authContext)
+	a.kubeProxy.traceRequest(r, a.authContext, a.kubeProxy.traceRequests)
 	return a.delegate.RoundTrip(r)
 }
 
@@ -242,10 +244,14 @@ func (a *authenticatingRoundTripper) RoundTrip(r *http.Request) (*http.Response,
 // wrapping round tripper that will apply the appropriate authentication headers to all requests
 func (p *KubeAPIProxy) NewAuthenticatingTransportWrapper(authContext auth.Context) func(rt http.RoundTripper) http.RoundTripper {
 	return func(rt http.RoundTripper) http.RoundTripper {
+		if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("NewAuthenticatingTransportWrapper created")
+		}
 		return &authenticatingRoundTripper{
-			kubeProxy:   p,
-			authContext: authContext,
-			delegate:    rt,
+			kubeProxy:     p,
+			authContext:   authContext,
+			delegate:      rt,
+			traceRequests: p.traceRequests,
 		}
 	}
 }

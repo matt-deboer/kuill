@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 type ResourcesProxy struct {
@@ -91,6 +92,7 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 				Groups:   authContext.Groups(),
 			}
 		} else {
+			config.AuthProvider = &clientcmdapi.AuthProviderConfig{Name: "kuill"}
 			config.WrapTransport = l.kubeProxy.NewAuthenticatingTransportWrapper(authContext)
 		}
 		if strings.Contains(kind.Version, "/") {
@@ -101,11 +103,11 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 			Group:   kind.Group,
 			Version: kind.Version,
 		}
-
 		dynClient, err = dynamic.NewClient(&config)
 		if err != nil {
 			log.Fatalf("Failed to create dynamic client for config %v; %v", config, err)
 		}
+
 	}
 
 	obj, err := dynClient.Resource(&kind.APIResource, namespace).List(meta_v1.ListOptions{})
@@ -126,6 +128,8 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 						authContext.User(), authContext.Groups(),
 						namespace, kind.Plural, statusErr.ErrStatus.Message)
 				}
+			} else {
+				log.Warnf("Failed to list %s/%s; %v", namespace, kind.Plural, statusErr)
 			}
 		} else {
 			log.Warnf("Error fetching %s (namespace: '%s'); %v", kind.APIResource.Kind, namespace, err)

@@ -291,10 +291,7 @@ func main() {
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
-		kubeClients, err := clients.Create(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
+		kubeClients := setupClients(c)
 
 		sessionTimeout := c.Duration("session-timeout")
 
@@ -486,6 +483,27 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 		log.Infof("Anonymous authenticator disabled")
 	}
 
+}
+
+func setupClients(c *cli.Context) *clients.KubeClients {
+	flags, err := getRequiredFlags(c, map[string]string{
+		"kubernetes-client-ca":   "string",
+		"kubernetes-client-cert": "string",
+		"kubernetes-client-key":  "string",
+	})
+
+	if err != nil {
+		log.Fatalf("Could not create kubernetes client; %v", err)
+	}
+	kubeClients, err := clients.Create(c.String("kubeconfig"),
+		flags["kubernetes-client-ca"].(string),
+		flags["kubernetes-client-cert"].(string),
+		flags["kubernetes-client-key"].(string),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return kubeClients
 }
 
 func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {

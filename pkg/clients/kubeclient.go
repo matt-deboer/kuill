@@ -23,7 +23,7 @@ type KubeClients struct {
 }
 
 // Create builds a new set of kubernetes clients and configuration
-func Create(kubeConfig string) (*KubeClients, error) {
+func Create(kubeConfig string, clientCA, clientCert, clientKey string) (*KubeClients, error) {
 	var config *rest.Config
 	var bearerToken []byte
 	var err error
@@ -42,6 +42,16 @@ func Create(kubeConfig string) (*KubeClients, error) {
 			return nil, fmt.Errorf("Failed to read service account token file %s: %v", serviceAccountTokenFile, err)
 		}
 	}
+
+	config.TLSClientConfig = rest.TLSClientConfig{
+		CAFile:   clientCA,
+		CertFile: clientCert,
+		KeyFile:  clientKey,
+	}
+	config.CAFile = clientCA
+	config.CertFile = clientCert
+	config.KeyFile = clientKey
+
 	stdClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create standard kube client; %v", err)
