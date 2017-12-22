@@ -143,8 +143,7 @@ func (a *AccessAggregator) getAccess(kubeKind *types.KubeKind, namespace, subres
 	}
 
 	if strings.HasPrefix(kubeKind.APIBase, "apis/") {
-		attrs.Group = kubeKind.Group
-		// attrs.Group = strings.Split(kubeKind.APIBase, "/")[1]
+		attrs.Group = strings.Split(kubeKind.APIBase, "/")[1]
 	}
 
 	if len(subresource) > 0 {
@@ -176,6 +175,9 @@ func (a *AccessAggregator) getAccess(kubeKind *types.KubeKind, namespace, subres
 				go a.getAccess(kubeKind, ns, subresource, name, verb,
 					namespaces, results, client, wg)
 			}
+		} else if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Not allowed to '%s' %s in namespace %s; testing namespace access...",
+				verb, kubeKind.Plural, namespace)
 		}
 	} else {
 		results <- Permission{
