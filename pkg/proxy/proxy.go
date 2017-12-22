@@ -44,6 +44,7 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients, authenticatedGroups []str
 			KeepAlive: 30 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 5 * time.Second,
+		TLSClientConfig:     kubeClients.TLSConfig,
 	}
 
 	wsURL, _ := url.Parse(kubeClients.BaseURL.String())
