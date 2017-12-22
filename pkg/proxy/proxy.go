@@ -30,10 +30,9 @@ type KubeAPIProxy struct {
 	multiKindWatchProxy *KubeKindAggregatingWatchProxy
 	traceRequests       bool
 	traceWebsockets     bool
-	authenticatedGroups []string
 }
 
-func NewKubeAPIProxy(kubeClients *clients.KubeClients, authenticatedGroups []string,
+func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 	traceRequests, traceWebsockets bool, kindLister *KindsProxy,
 	namespaceLister *NamespaceProxy, accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
 
@@ -88,7 +87,6 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients, authenticatedGroups []str
 		multiKindWatchProxy: mwp,
 		traceRequests:       traceRequests,
 		traceWebsockets:     traceWebsockets,
-		authenticatedGroups: authenticatedGroups,
 	}
 
 	if traceRequests {

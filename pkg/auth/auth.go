@@ -87,16 +87,18 @@ type Manager struct {
 	mutex                sync.Mutex
 	hmac                 []byte
 	sessionTimeout       time.Duration
+	authenticatedGroups  []string
 }
 
 // NewAuthManager creates a new authentication manager instance
-func NewAuthManager(sessionTimeout time.Duration) (*Manager, error) {
+func NewAuthManager(sessionTimeout time.Duration, authenticatedGroups []string) (*Manager, error) {
 
 	hmc, _ := uuid.NewV4()
 	m := &Manager{
-		authenticators: make(map[string]Authenticator),
-		hmac:           []byte(hmc.String()),
-		sessionTimeout: sessionTimeout,
+		authenticators:      make(map[string]Authenticator),
+		hmac:                []byte(hmc.String()),
+		sessionTimeout:      sessionTimeout,
+		authenticatedGroups: authenticatedGroups,
 	}
 
 	m.loginMethodsResponse, _ = m.buildLoginMethodsResponse()
@@ -243,8 +245,7 @@ func (m *Manager) completeAuthentication(session *SessionToken, w http.ResponseW
 // SessionToken is a wrapper around JWT with methods for easy user/group access
 type SessionToken struct {
 	*jwt.Token
-	claims           jwt.MapClaims
-	useImpersonation bool
+	claims jwt.MapClaims
 }
 
 // User recovers the userID from a session token
@@ -277,6 +278,7 @@ func (s *SessionToken) Groups() []string {
 // NewSessionToken generates a new auth token suitable for storing user session state
 func (m *Manager) NewSessionToken(user string, groups []string, additionalClaims map[string]interface{}) *SessionToken {
 	csrfToken, _ := uuid.NewV4()
+	groups = append(groups, m.authenticatedGroups...)
 	claims := jwt.MapClaims{
 		claimNotBefore: time.Now().Unix(),
 		claimExpires:   time.Now().Add(m.sessionTimeout).Unix(),

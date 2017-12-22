@@ -270,8 +270,13 @@ func main() {
 		kubeClients := setupClients(c)
 
 		sessionTimeout := c.Duration("session-timeout")
+		authenticatedGroupsString := c.String("authenticated-groups")
+		var authenticatedGroups []string
+		if len(authenticatedGroupsString) > 0 {
+			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(authenticatedGroupsString, -1)
+		}
 
-		authManager, err := auth.NewAuthManager(sessionTimeout)
+		authManager, err := auth.NewAuthManager(sessionTimeout, authenticatedGroups)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -485,18 +490,11 @@ func setupClients(c *cli.Context) *clients.KubeClients {
 func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
 
 	flags, err := getRequiredFlags(c, map[string]string{
-		"trace-requests":       "bool",
-		"trace-websockets":     "bool",
-		"authenticated-groups": "string",
+		"trace-requests":   "bool",
+		"trace-websockets": "bool",
 	})
 
 	if err == nil {
-		var authenticatedGroups []string
-		groupsString := flags["authenticated-groups"].(string)
-		if len(groupsString) > 0 {
-			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
-		}
-
 		kinds, err := proxy.NewKindsProxy(kubeClients)
 		if err != nil {
 			log.Fatal(err)
@@ -506,7 +504,6 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
 
 		apiProxy, err := proxy.NewKubeAPIProxy(kubeClients,
-			authenticatedGroups,
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),
 			kinds,
