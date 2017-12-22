@@ -8,7 +8,12 @@ v0.2-b2 [2017-12-22]
 
 - Move entirely to user impersonation; abandon authenticating proxy mode. This allows us to install into existing kube
 clusters without modifications to the apiserver flags, while still maintaining essentially equivalent user-impersonation
-behavior.
+behavior. This means that the following command line flags are no longer valid: `requestheader-username-headers`, `requestheader-group-headers`,
+and `requestheader-extra-headers-prefix`.
+
+**fixes:**
+
+- The `authenticated-groups` flag is now honored properly.
 
 v0.2-b1 [2017-12-18]
 ---
