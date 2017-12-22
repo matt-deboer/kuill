@@ -2,14 +2,14 @@ package proxy
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/matt-deboer/kuill/pkg/clients"
+	"k8s.io/api/authentication/v1"
 
 	"net/http/httputil"
 
@@ -20,14 +20,11 @@ import (
 
 var whitelistedHeaders = []string{"Content-Type"}
 
+const proxyBasePath = "/proxy"
+
 type KubeAPIProxy struct {
-	client              *http.Client
-	usernameHeader      string
-	groupHeader         string
-	extraHeadersPrefix  string
-	kubernetesURL       *url.URL
+	kubeClients         *clients.KubeClients
 	websocketScheme     string
-	proxyBasePath       string
 	reverseProxy        *httputil.ReverseProxy
 	websocketProxy      *WebsocketProxy
 	multiKindWatchProxy *KubeKindAggregatingWatchProxy
@@ -36,48 +33,20 @@ type KubeAPIProxy struct {
 	authenticatedGroups []string
 }
 
-func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientKey,
-	usernameHeader, groupHeader, extraHeadersPrefix string, authenticatedGroups []string,
+func NewKubeAPIProxy(kubeClients *clients.KubeClients, authenticatedGroups []string,
 	traceRequests, traceWebsockets bool, kindLister *KindsProxy,
 	namespaceLister *NamespaceProxy, accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
 
-	// Load our TLS key pair to use for authentication
-	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
-	if err != nil {
-		return nil, err
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 5 * time.Second,
 	}
 
-	// Load our CA certificate
-	clientCACert, err := ioutil.ReadFile(clientCA)
-	if err != nil {
-		return nil, err
-	}
-
-	clientCertPool := x509.NewCertPool()
-	clientCertPool.AppendCertsFromPEM(clientCACert)
-
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		RootCAs:      clientCertPool,
-		// TODO: pass in the 'insecure' as a flag
-		InsecureSkipVerify: true,
-	}
-
-	tlsConfig.BuildNameToCertificate()
-	client := &http.Client{
-		Transport: &http.Transport{TLSClientConfig: tlsConfig},
-	}
-
-	if !strings.HasPrefix(proxyBasePath, "/") {
-		proxyBasePath = "/" + proxyBasePath
-	}
-
-	kubeURL, err := url.Parse(kubernetesURL)
-	if err != nil {
-		return nil, err
-	}
-
-	wsURL, _ := url.Parse(kubernetesURL)
+	wsURL, _ := url.Parse(kubeClients.BaseURL.String())
 	if wsURL.Scheme == "https" {
 		wsURL.Scheme = "wss"
 	} else {
@@ -86,7 +55,7 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 
 	wsp := NewWebsocketProxy(wsURL, traceWebsockets)
 	wsp.Dialer = &websocket.Dialer{
-		TLSClientConfig: tlsConfig,
+		TLSClientConfig: kubeClients.TLSConfig,
 	}
 	wsp.Upgrader = &websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -96,18 +65,12 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 		WriteBufferSize: 1024,
 	}
 	wsp.Director = func(incoming *http.Request, out http.Header) {
-		out.Set(usernameHeader, incoming.Header.Get(usernameHeader))
-		if traceWebsockets {
-			log.Debugf("Director: adding header %s: %s", usernameHeader, incoming.Header.Get(usernameHeader))
+		for k, v := range incoming.Header {
+			if k == v1.ImpersonateUserHeader || k == v1.ImpersonateGroupHeader || strings.HasPrefix(k, v1.ImpersonateUserExtraHeaderPrefix) {
+				out[k] = v
+			}
 		}
-		out.Set(groupHeader, incoming.Header.Get(groupHeader))
-		if traceWebsockets {
-			log.Debugf("Director: adding header %s: %s", groupHeader, incoming.Header.Get(groupHeader))
-		}
-		out.Set("Origin", kubernetesURL)
-		if traceWebsockets {
-			log.Debugf("Director: adding header %s: %s", "Origin", kubernetesURL)
-		}
+		out.Set("Origin", kubeClients.BaseURL.String())
 	}
 
 	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister, namespaceLister, accessAggregator)
@@ -115,16 +78,11 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	mwp.Upgrader = wsp.Upgrader
 	mwp.Director = wsp.Director
 
-	log.Infof("Enabled kubernetes api proxy for %s", kubeURL)
+	log.Infof("Enabled kubernetes api proxy for %v", kubeClients.BaseURL)
 
 	kp := &KubeAPIProxy{
-		client:              client,
-		kubernetesURL:       kubeURL,
-		usernameHeader:      usernameHeader,
-		groupHeader:         groupHeader,
-		extraHeadersPrefix:  extraHeadersPrefix,
-		proxyBasePath:       proxyBasePath,
-		reverseProxy:        httputil.NewSingleHostReverseProxy(kubeURL),
+		kubeClients:         kubeClients,
+		reverseProxy:        httputil.NewSingleHostReverseProxy(kubeClients.BaseURL),
 		websocketProxy:      wsp,
 		multiKindWatchProxy: mwp,
 		traceRequests:       traceRequests,
@@ -140,59 +98,47 @@ func NewKubeAPIProxy(kubernetesURL, proxyBasePath, clientCA, clientCert, clientK
 	}
 
 	kp.reverseProxy.Director = kp.filterRequest
-	kp.reverseProxy.Transport = &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout: 5 * time.Second,
-		TLSClientConfig:     tlsConfig,
-	}
+	kp.reverseProxy.Transport = transport
 
 	return kp, nil
 }
-
-type AuthContextKey string
-
-var authContextKey AuthContextKey = "kuill.authContext"
 
 // ProxyRequest proxies the request
 func (p *KubeAPIProxy) ProxyRequest(w http.ResponseWriter, r *http.Request, authContext auth.Context) {
 
 	if strings.HasPrefix(r.URL.Scheme, "ws") || strings.ToLower(r.Header.Get("Connection")) == "upgrade" {
-		r.Header.Set("Origin", p.kubernetesURL.String())
+		r.Header.Set("Origin", p.kubeClients.BaseURL.String())
 		if len(r.Header.Get("User-Agent")) == 0 {
 			r.Header.Set("User-Agent", "kuill")
 		}
 		p.traceRequest(r, authContext, p.traceWebsockets)
-		p.addAuthHeaders(r, authContext)
+		authContext.Impersonate(r.Header)
 
 		if r.URL.Path == "/proxy/_/multiwatch" {
 			p.multiKindWatchProxy.AggregateWatches(w, r, authContext)
 		} else {
-			r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
-			r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
+			r.URL.Path = strings.Replace(r.URL.Path, proxyBasePath, "", 1)
+			r.URL.RawPath = strings.Replace(r.URL.RawPath, proxyBasePath, "", 1)
 			p.websocketProxy.ServeHTTP(w, r)
 		}
 	} else {
-		p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), authContextKey, authContext)))
+		p.reverseProxy.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), auth.ContextKey, authContext)))
 	}
 }
 
 func (p *KubeAPIProxy) filterRequest(r *http.Request) {
-	r.URL.Path = strings.Replace(r.URL.Path, p.proxyBasePath, "", 1)
-	r.URL.RawPath = strings.Replace(r.URL.RawPath, p.proxyBasePath, "", 1)
-	r.URL.Scheme = p.kubernetesURL.Scheme
-	r.URL.Host = p.kubernetesURL.Host
+	r.URL.Path = strings.Replace(r.URL.Path, proxyBasePath, "", 1)
+	r.URL.RawPath = strings.Replace(r.URL.RawPath, proxyBasePath, "", 1)
+	r.URL.Scheme = p.kubeClients.BaseURL.Scheme
+	r.URL.Host = p.kubeClients.BaseURL.Host
 	if _, ok := r.Header["User-Agent"]; !ok {
 		// explicitly disable User-Agent so it's not set to default value
 		r.Header.Set("User-Agent", "")
 	}
-	r.Header.Set("Origin", p.kubernetesURL.String())
-	authContext := r.Context().Value(authContextKey).(auth.Context)
+	r.Header.Set("Origin", p.kubeClients.BaseURL.String())
+	authContext := r.Context().Value(auth.ContextKey).(auth.Context)
 	p.traceRequest(r, authContext, p.traceWebsockets)
-	p.addAuthHeaders(r, authContext)
+	authContext.Impersonate(r.Header)
 }
 
 func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context, trace bool) {
@@ -208,50 +154,6 @@ func (p *KubeAPIProxy) traceRequest(r *http.Request, authContext auth.Context, t
 			lctx.Warnf("Error dumping request : %v", err)
 		} else {
 			lctx.Infof("Proxying request for %s: %s\n%s", authContext.User(), r.URL, string(data))
-		}
-	}
-}
-
-func (p *KubeAPIProxy) addAuthHeaders(req *http.Request, authContext auth.Context) {
-	req.Header.Add(p.usernameHeader, authContext.User())
-	for _, group := range authContext.Groups() {
-		req.Header.Add(p.groupHeader, group)
-	}
-	for _, group := range p.authenticatedGroups {
-		req.Header.Add(p.groupHeader, group)
-	}
-}
-
-// UsesImpersonation returns true if the proxy is configured for user impersonation
-func (p *KubeAPIProxy) UsesImpersonation() bool {
-	return p.usernameHeader == "Impersonate-User"
-}
-
-type authenticatingRoundTripper struct {
-	kubeProxy     *KubeAPIProxy
-	authContext   auth.Context
-	delegate      http.RoundTripper
-	traceRequests bool
-}
-
-func (a *authenticatingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	a.kubeProxy.addAuthHeaders(r, a.authContext)
-	a.kubeProxy.traceRequest(r, a.authContext, a.kubeProxy.traceRequests)
-	return a.delegate.RoundTrip(r)
-}
-
-// NewAuthenticatingTransportWrapper returns a round tripper wrapping function which returns a
-// wrapping round tripper that will apply the appropriate authentication headers to all requests
-func (p *KubeAPIProxy) NewAuthenticatingTransportWrapper(authContext auth.Context) func(rt http.RoundTripper) http.RoundTripper {
-	return func(rt http.RoundTripper) http.RoundTripper {
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("NewAuthenticatingTransportWrapper created")
-		}
-		return &authenticatingRoundTripper{
-			kubeProxy:     p,
-			authContext:   authContext,
-			delegate:      rt,
-			traceRequests: p.traceRequests,
 		}
 	}
 }

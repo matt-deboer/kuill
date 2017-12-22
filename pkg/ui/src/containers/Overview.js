@@ -15,7 +15,6 @@ import ResourceProblems from '../components/dashboard/ResourceProblems'
 import ResourceCounts from '../components/dashboard/ResourceCounts'
 import NamespaceBarChart from '../components/dashboard/NamespaceBarChart'
 
-import { watchEvents } from '../state/actions/events'
 import { requestResources } from '../state/actions/resources'
 import { requestMetrics } from '../state/actions/metrics'
 import { calculateMetrics } from '../utils/summary-utils'
@@ -42,9 +41,6 @@ const mapStateToProps = function(store) {
 
 const mapDispatchToProps = function(dispatch, ownProps) {
   return {
-    watchEvents: function() {
-      dispatch(watchEvents())
-    },
     requestResources: function() {
       dispatch(requestResources())
     },
@@ -69,7 +65,6 @@ class Overview extends React.Component {
     let { props } = this
     props.requestMetrics()
     props.requestResources()
-    props.watchEvents()
   }
 
   componentWillReceiveProps = (nextProps) => {

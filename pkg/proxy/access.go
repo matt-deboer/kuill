@@ -9,6 +9,7 @@ import (
 
 	"github.com/matt-deboer/kuill/pkg/auth"
 	"github.com/matt-deboer/kuill/pkg/clients"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 	authorizationapi "k8s.io/api/authorization/v1"
 )
@@ -111,7 +112,7 @@ func (a *AccessAggregator) permissionsForResource(kind, namespace, name string, 
 // Permission represents permission to perform a specific action
 // on a kind in a namespace, with an optional subresource
 type Permission struct {
-	Kind        *KubeKind
+	Kind        *types.KubeKind
 	Namespace   string
 	Verb        string
 	Subresource string
@@ -124,7 +125,7 @@ type Permission struct {
 // TODO: we may need to inspect roles and rolebindings directly as the current
 // approach (although prescribed by the kube api) will not scale under a large
 // number of namespaces
-func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, subresource, name, verb string,
+func (a *AccessAggregator) getAccess(kubeKind *types.KubeKind, namespace, resource, subresource, name, verb string,
 	namespaces []string, authContext auth.Context, results chan Permission, wg *sync.WaitGroup) {
 
 	attrs := &authorizationapi.ResourceAttributes{

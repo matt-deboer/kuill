@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 
 	"bytes"
@@ -401,7 +402,7 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 	}
 }
 
-func canWatch(kubeKind *KubeKind) bool {
+func canWatch(kubeKind *types.KubeKind) bool {
 	for _, verb := range kubeKind.Verbs {
 		if verb == "watch" {
 			return true

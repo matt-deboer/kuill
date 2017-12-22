@@ -193,24 +193,6 @@ func main() {
 			EnvVar: envBase + "SAML_AUDIENCE",
 		},
 		cli.StringFlag{
-			Name:   "username-header",
-			Value:  "X-Remote-User",
-			Usage:  "The header name passed to the Kubernetes API containing the user's identity",
-			EnvVar: envBase + "USERNAME_HEADER",
-		},
-		cli.StringFlag{
-			Name:   "group-header",
-			Value:  "X-Remote-Group",
-			Usage:  "The header name passed to the Kubernetes API containing the user's groups",
-			EnvVar: envBase + "GROUP_HEADER",
-		},
-		cli.StringFlag{
-			Name:   "extra-headers-prefix",
-			Value:  "X-Remote-Extra-",
-			Usage:  "The header name prefix passed to the Kubernetes API containing extra user information",
-			EnvVar: envBase + "EXTRA_HEADERS_PREFIX",
-		},
-		cli.StringFlag{
 			Name:   "password-file",
 			Usage:  "A file containing tab-delimited set of [user,password,group...], one per line; for local testing only",
 			EnvVar: envBase + "PASSWORD_FILE",
@@ -256,12 +238,6 @@ func main() {
 			Name:   "kubeconfig",
 			Usage:  "The path to the kubeconfig file; defaults to using in-cluster config",
 			EnvVar: envBase + "KUBECONFIG",
-		},
-		cli.BoolFlag{
-			Name: "proxy-authentication",
-			Usage: `When 'true', use authenticating-proxy headers to authenticate the current user to the backend kubernetes API; when false
-			(the default) impersonation headers are used`,
-			EnvVar: envBase + "PROXY_AUTHENTICATION",
 		},
 		cli.BoolFlag{
 			Name:   "trace-requests, T",
@@ -509,17 +485,9 @@ func setupClients(c *cli.Context) *clients.KubeClients {
 func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
 
 	flags, err := getRequiredFlags(c, map[string]string{
-		"kubernetes-api":         "string",
-		"kubernetes-client-ca":   "string",
-		"kubernetes-client-cert": "string",
-		"kubernetes-client-key":  "string",
-		"username-header":        "string",
-		"group-header":           "string",
-		"extra-headers-prefix":   "string",
-		"trace-requests":         "bool",
-		"trace-websockets":       "bool",
-		"proxy-authentication":   "bool",
-		"authenticated-groups":   "string",
+		"trace-requests":       "bool",
+		"trace-websockets":     "bool",
+		"authenticated-groups": "string",
 	})
 
 	if err == nil {
@@ -537,26 +505,7 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		swagger := proxy.NewSwaggerProxy(kubeClients)
 		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
 
-		usernameHeader := flags["username-header"].(string)
-		groupsHeader := flags["group-header"].(string)
-		extraHeaders := flags["extra-headers-prefix"].(string)
-
-		proxyAuthentication := flags["proxy-authentication"].(bool)
-
-		if !proxyAuthentication {
-			// Use impersonation instead
-			usernameHeader = "Impersonate-User"
-			groupsHeader = "Impersonate-Group"
-			extraHeaders = "Impersonate-Extra-"
-		}
-
-		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
-			flags["kubernetes-client-ca"].(string),
-			flags["kubernetes-client-cert"].(string),
-			flags["kubernetes-client-key"].(string),
-			usernameHeader,
-			groupsHeader,
-			extraHeaders,
+		apiProxy, err := proxy.NewKubeAPIProxy(kubeClients,
 			authenticatedGroups,
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),

@@ -12,6 +12,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/api/authentication/v1"
 )
 
 const (
@@ -23,10 +24,15 @@ const (
 	claimGroups      = "grp"
 )
 
+type contextKey string
+
+var ContextKey contextKey = "kuill.authContext"
+
 // Context is a holder for the currently authenticated user's information
 type Context interface {
 	User() string
 	Groups() []string
+	Impersonate(h http.Header)
 }
 
 // Authenticator is a pluggable interface for authentication providers
@@ -237,12 +243,20 @@ func (m *Manager) completeAuthentication(session *SessionToken, w http.ResponseW
 // SessionToken is a wrapper around JWT with methods for easy user/group access
 type SessionToken struct {
 	*jwt.Token
-	claims jwt.MapClaims
+	claims           jwt.MapClaims
+	useImpersonation bool
 }
 
 // User recovers the userID from a session token
 func (s *SessionToken) User() string {
 	return s.claims[claimUserID].(string)
+}
+
+// Impersonate applies the user and group impersonation
+// headers to the provided headers map
+func (s *SessionToken) Impersonate(h http.Header) {
+	h.Set(v1.ImpersonateUserHeader, s.User())
+	h[v1.ImpersonateGroupHeader] = s.Groups()
 }
 
 // Expires returns the expiration of the token in Unix time, the number of seconds elapsed

@@ -5,9 +5,8 @@ KUILL_PORT=${KUILL_PORT:-8888}
 KUILL_FRONTEND_PORT=${KUILL_FRONTEND_PORT:-3000}
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
-PROXY_AUTHENTICATION=${PROXY_AUTHENTICATION:-true}
-# starts up kuill locally, pointed at the apiserver from minikube
 
+# starts up kuill locally, pointed at the apiserver from minikube
 ${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
 
 kubectl config use-context minikube
@@ -43,16 +42,10 @@ if [ -n "${DISABLE_TLS}" ]; then
   disable_tls="--disable-tls"
 fi
 
-proxy_authentication=""
-if [ "${PROXY_AUTHENTICATION}" == "true" ]; then
-  proxy_authentication="--proxy-authentication"
-fi
-
 echo "Launching kuill..."
 ${ROOT}/bin/kuill \
   --port ${KUILL_PORT} \
   $verbose $disable_tls \
-  $proxy_authentication \
   --server-cert ${ROOT}/certs/minikube/server-cert.pem \
   --server-key ${ROOT}/certs/minikube/server-key.pem \
   --password-file hack/test-users.tsv \

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/matt-deboer/kuill/pkg/clients"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var accessControls = map[string]bool{
@@ -33,62 +33,14 @@ var namespacedCluster = map[string]bool{
 type KindsProxy struct {
 	kubeClients   *clients.KubeClients
 	mutex         sync.RWMutex
-	kinds         map[string]*KubeKind
+	kinds         map[string]*types.KubeKind
 	kindNames     []string
 	kindsResponse []byte
 	frequency     time.Duration
 }
 
-type KubeKind struct {
-	Plural        string `json:"plural"`
-	Name          string `json:"name"`
-	Version       string `json:"version"`
-	ResourceGroup string `json:"resourceGroup"`
-	Abbreviation  string `json:"abbrev"`
-	APIBase       string `json:"base"`
-	meta_v1.APIResource
-}
-
-var possibleNamespace = regexp.MustCompile("([a-z]+-?)+")
-
-// GetPath returns the path for the given kind in the specified namespace;
-// if the namespace value is not recognized as a possible valid namespace, then the
-// path returned is for the resource at the cluster scope
-func (k *KubeKind) GetPath(namespace string) string {
-	path := k.APIBase
-	if possibleNamespace.MatchString(namespace) {
-		path += fmt.Sprintf("/namespaces/%s", namespace)
-	}
-	path += "/" + k.Plural
-	return path
-}
-
-// GetWatchPath returns the watch path for the given kind in the specified namespace;
-// if the namespace value is not recognized as a possible valid namespace, then the
-// path returned is for the resource at the cluster scope
-// If 'watch' is not contained among the verbs for the kind, then "" is returned
-func (k *KubeKind) GetWatchPath(namespace string) string {
-	canWatch := false
-	for _, v := range k.Verbs {
-		if v == "watch" {
-			canWatch = true
-			break
-		}
-	}
-	if !canWatch {
-		return ""
-	}
-
-	path := fmt.Sprintf("%s/watch", k.APIBase)
-	if possibleNamespace.MatchString(namespace) {
-		path += fmt.Sprintf("/namespaces/%s", namespace)
-	}
-	path += "/" + k.Plural
-	return path
-}
-
 type KindList struct {
-	Items []*KubeKind `json:"items"`
+	Items []*types.KubeKind `json:"items"`
 }
 
 // NewKindsProxy creates a new kinds proxy
@@ -105,7 +57,7 @@ func NewKindsProxy(kubeClients *clients.KubeClients) (*KindsProxy, error) {
 
 // GetKind returns the kind mapped to the provided name,
 // or nil if no such kind exists
-func (k *KindsProxy) GetKind(name string) *KubeKind {
+func (k *KindsProxy) GetKind(name string) *types.KubeKind {
 	k.mutex.RLock()
 	defer k.mutex.RUnlock()
 	return k.kinds[name]
@@ -121,7 +73,7 @@ func (k *KindsProxy) doUpdates() {
 // initialize the set of kinds
 func (k *KindsProxy) update() error {
 
-	kinds := make(map[string]*KubeKind)
+	kinds := make(map[string]*types.KubeKind)
 	d := k.kubeClients.Standard.Discovery()
 
 	preferredResourceLists, err := d.ServerPreferredResources()
@@ -143,7 +95,7 @@ func (k *KindsProxy) update() error {
 				} else {
 					apiBase = "api/"
 				}
-				k := &KubeKind{
+				k := &types.KubeKind{
 					APIBase:       apiBase + version,
 					Plural:        apiResource.Name,
 					Name:          apiResource.Kind,

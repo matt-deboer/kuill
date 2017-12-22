@@ -3,21 +3,18 @@ package proxy
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"sync"
 
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
 	"github.com/matt-deboer/kuill/pkg/clients"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 type ResourcesProxy struct {
@@ -78,36 +75,16 @@ AssembleResults:
 	json.NewEncoder(w).Encode(result)
 }
 
-func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces []string,
+func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, namespaces []string,
 	authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup,
 	dynClient *dynamic.Client) {
 
 	var err error
 	if dynClient == nil {
-		var config = *l.kubeClients.Config
-		l.kubeClients.Config.DeepCopyInto(&config.TLSClientConfig)
-		if l.kubeProxy.UsesImpersonation() {
-			config.Impersonate = rest.ImpersonationConfig{
-				UserName: authContext.User(),
-				Groups:   authContext.Groups(),
-			}
-		} else {
-			config.AuthProvider = &clientcmdapi.AuthProviderConfig{Name: "kuill"}
-			config.WrapTransport = l.kubeProxy.NewAuthenticatingTransportWrapper(authContext)
-		}
-		if strings.Contains(kind.Version, "/") {
-			config.APIPath = "/apis"
-		}
-		config.Host = l.kubeClients.Config.Host
-		config.GroupVersion = &schema.GroupVersion{
-			Group:   kind.Group,
-			Version: kind.Version,
-		}
-		dynClient, err = dynamic.NewClient(&config)
+		dynClient, err = l.kubeClients.DynamicClientFor(authContext, kind)
 		if err != nil {
-			log.Fatalf("Failed to create dynamic client for config %v; %v", config, err)
+			log.Fatalf("Failed to create dynamic client for %v, kind %v; %v", authContext, kind, err)
 		}
-
 	}
 
 	obj, err := dynClient.Resource(&kind.APIResource, namespace).List(meta_v1.ListOptions{})
