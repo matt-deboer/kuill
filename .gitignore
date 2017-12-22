@@ -13,3 +13,5 @@ Dockerfile.test
 certs/
 /pkg/ui/cypress/videos/
 /pkg/ui/cypress/screenshots/
+.ruby*
+.rbenv*

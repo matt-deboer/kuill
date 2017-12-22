@@ -14,33 +14,24 @@ addons:
     - openssl
     - procps
     - jq
-
 cache:
   directories:
   - "/pkg/ui/node_modules"
-
 before_install:
 - npm i -g npm@4.2.0
-
 install:
 - go get github.com/golang/dep/cmd/dep
 - dep ensure
 - export CHANGE_MINIKUBE_NONE_USER=true; hack/travis/setup.sh
-
 script:
 - make release
 - upx bin/kuill
-- CHANGE_MINIKUBE_NONE_USER=true
-  MINIKUBE_OPTIONS="--vm-driver none"
-  MINIKUBE_SUDO="sudo"
-  CYPRESS_RECORD_KEY="af06fb10-13c0-443c-8f3e-3b2ea3221ee1"
-  RECORD_ACCEPTANCE=true
+- CHANGE_MINIKUBE_NONE_USER=true MINIKUBE_OPTIONS="--vm-driver none" MINIKUBE_SUDO="sudo"
+  CYPRESS_RECORD_KEY=${CYPRESS_RECORD_KEY} RECORD_ACCEPTANCE=true
   make acceptance
 - make docker
-
 after_failure:
 - echo "Minikube logs:" && sudo minikube logs | grep -v '[auth-proxy]'
-
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -48,12 +39,11 @@ after_deploy:
 - docker push $REPO:$TRAVIS_TAG
 - docker tag $REPO:$TRAVIS_TAG $REPO:latest
 - docker push $REPO:latest
-
 env:
   global:
   - secure: PfV2T/Vu6ic3e4YPFtLIw1DWhQOsZelwwk5e5kN9ngQ3os2o66N2S9VBliuy4dS6sHC+ArYDSEqBwUi2pjlZXomavjgs2QzUeflhr6LNk8mXXR6cIhs71pKJ/uI2eHU8rFgut9FaDowEz2kxdpXKTRchUAjNe7FwF8PCJohZ53GwJyN4Q8QzhcdT2+L7ypWtifCL8ni4RuZylMiSk7DEAIB78ruDhzxwVtoTrvUjlTWjku8zN6xhNT6SFv5aV6FzwXX+A0V7wap8eUTeSgXFXg5MpjZktut7pJ3O1n7bNcvkawrP4btxwLSyMiEi4xo0rOZbmVCScVuaLRlSAQfqbKbntLedJAV7lRqsJFmR8STqpQFDpIbW1uQynAkolcESomTP8dEirIx8PNqgJju7JHDY3HXOMsCywSe4ErxhRb3EmlKnO62X79vLHKI4IrsWjdz6Mtzq8f4P1cqtcDECei90DyYp5O4zva5cTdlkqdYBc1ZFmn0QIEif5fSMMnhf+FT8z6cc4MeqiexZN2KPO9autXWwz2JTEraRnCiZBvOjeVeqejUvK5lKiRutIiNNHsXcXAaI8H/JUfSZW/NJe5ybkOePBOUO00TEVltV9Jrulmqq2UlL3Oz7grsOMliquT5bp2CAuSXnXwU41xWZVaz77Ir+1uuPbkpoliecCf8=
   - secure: JOeNFbN4OCQ1nBGVqmjHWYfDmnlaEQsSBMYuMoZ71jEBYyP1TZALJsv+k0pd263EGS2TshQ7ODSWDfM/Zl3CaEO1sUDhn/hvytd3WoiXz4v/wy/QbfZdRejk0XjNxbU4mAwsRfGv1Z4Mo1Jd1StLEIP7c8PAh5wpDiusW3vwaAnsy5+riz1pxU546RgkJvsoXInp/4EMIDB8QZQ4igIslBlRwwv4Sn4YcIE4khJNl73DgM4r8sxupdfQiProYlRe0zcJRkqVUckHibmUQUiM7YHavqJiKPANzWaM+JQnGCohZmnS6ED1IzYJIGU9STvtgUo2GVOpdlvJNSXqma1+M/noXhFru+bmdc0G8Tqd3sTpCMouD+0iWIRN6mB6LRNy9Rzf5nWqhisv2NU6DGjZNe9V/jQSBX7ZSwOj11aXv8yQLqG7NZw8ioB9jnjxOGZqujoyqrgF+3q2O3F9GyNHtQofXivnp5PLOQ1teUvGjKh2U6DpjEAb1f7kCQh+9//PcuGFOSSEnAsC0/SvkW8gFpQI7x6e0m4jOsV8ZlYOm6aa9K5K3jpH3pB7Mq4gWeyVcKoSog7k2DE5EZ+rI7LLhuv2KQSAdA2caAh6av1AFbFjC6VCqXwYP5mwKAEJq8pEWGlrhsF1P/Nya9LTUXT4cX4naY9154lH0RvWFHrOX0Q=
-
+  - secure: nyPLA0Tnt91+aMaXULkpDeiCm4cVkTOhfx8TYYA4RYldeR31FQ8aIsWvFjYy+khbxaW653W1Lfw44iOGLFmeu9jbhzhaZsIC2+6P2eMVA3ktUXJgNWzfhc9K6w5ALtwn41oDdoWRUM7GTTf9WMnW2MHNeWT4qDc5B+hfsKFBlb6+izMWjMXwlNdiQyUkVwNLBkeUbPltgdZ9eZgvkIPjaljPjIZP+cz4WDqP/SVBhpW/SaoKZLwsmyFMzX5bkUhilPQ+ZrRpwuk91aSfqVb1BSp+Ejmma7ePhRQ74zlcobDBRjOEZuz6rIB0D2szskOUF1/Mqb0ukCiDx9hAnQoUrgZaXwTbx4Nnp+WocVlCHjca60iz2bWfTnqKDol4AEOP/m/hK77bWxJ4qfGrNLbt1f0KMtm/10w5wGZoVxVPA4tN8tsfSwbBotJk7D9pNxsdtZSfYkapTR+YuBUAUxDMKtyokK3TH0eMSm2CBfOObFuMI7AHU86Z1f40UTiD3emobHkCg1pgLjuddJU55PGbtr97LbIkyXkSmyEp/XQDXWOQgn4ZdoAb/9ZY1kjzvskX8ivvzUFPmMkKtKagXACgAmivrY9ijjZ4oRk7jqpWdA0IIiMNCpfve9WPh/q9VAXPKOgBxR7sBIq1inh1Z020M3wZlGn49O7mLwpSg4+c34A=
 deploy:
   provider: releases
   skip_cleanup: true
