@@ -125,6 +125,13 @@ func (k *KubeClients) DynamicClientFor(authContext auth.Context, kind *types.Kub
 	return dynamic.NewClient(&config)
 }
 
+// StandardClientFor creates a new standard client configured for the specified authContext
+func (k *KubeClients) StandardClientFor(authContext auth.Context) (*kubernetes.Clientset, error) {
+	config := k.ConfigForUser(authContext)
+	return kubernetes.NewForConfig(&config)
+}
+
+// ConfigForUser produces a configuration which includes impersonation based on the provided auth context
 func (k *KubeClients) ConfigForUser(authContext auth.Context) rest.Config {
 	var config = *k.Config
 	k.Config.DeepCopyInto(&config.TLSClientConfig)
