@@ -1,6 +1,14 @@
 changelog
 ===
 
+v0.2-b2 [2017-12-22]
+---
+
+**features:**
+
+- Move entirely to user impersonation; abandon authenticating proxy mode. This allows us to install into existing kube
+clusters without modifications to the apiserver flags, while still maintaining essentially equivalent user-impersonation
+behavior.
 
 v0.2-b1 [2017-12-18]
 ---
