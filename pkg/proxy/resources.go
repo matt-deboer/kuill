@@ -3,20 +3,18 @@ package proxy
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"sync"
 
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
 	"github.com/matt-deboer/kuill/pkg/clients"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type ResourcesProxy struct {
@@ -25,15 +23,17 @@ type ResourcesProxy struct {
 	kindLister      *KindsProxy
 	namespaceLister *NamespaceProxy
 	bearerToken     string
+	kubeProxy       *KubeAPIProxy
 }
 
 // NewResourcesProxy creates  a new ResourcesProxy object
-func NewResourcesProxy(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindsProxy, namespaceLister *NamespaceProxy) *ResourcesProxy {
+func NewResourcesProxy(kubeClients *clients.KubeClients, authManager *auth.Manager, kindLister *KindsProxy, namespaceLister *NamespaceProxy, kubeProxy *KubeAPIProxy) *ResourcesProxy {
 	return &ResourcesProxy{
 		authManager:     authManager,
 		kindLister:      kindLister,
 		namespaceLister: namespaceLister,
 		kubeClients:     kubeClients,
+		kubeProxy:       kubeProxy,
 	}
 }
 
@@ -75,30 +75,15 @@ AssembleResults:
 	json.NewEncoder(w).Encode(result)
 }
 
-func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces []string,
+func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, namespaces []string,
 	authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup,
 	dynClient *dynamic.Client) {
 
 	var err error
 	if dynClient == nil {
-		var config = *l.kubeClients.Config
-		l.kubeClients.Config.DeepCopyInto(&config.TLSClientConfig)
-		config.Impersonate = rest.ImpersonationConfig{
-			UserName: authContext.User(),
-			Groups:   authContext.Groups(),
-		}
-		if strings.Contains(kind.Version, "/") {
-			config.APIPath = "/apis"
-		}
-		config.Host = l.kubeClients.Config.Host
-		config.GroupVersion = &schema.GroupVersion{
-			Group:   kind.Group,
-			Version: kind.Version,
-		}
-
-		dynClient, err = dynamic.NewClient(&config)
+		dynClient, err = l.kubeClients.DynamicClientFor(authContext, kind)
 		if err != nil {
-			log.Fatalf("Failed to create dynamic client for config %v; %v", config, err)
+			log.Fatalf("Failed to create dynamic client for %v, kind %v; %v", authContext, kind, err)
 		}
 	}
 
@@ -120,6 +105,8 @@ func (l *ResourcesProxy) fetchKind(kind *KubeKind, namespace string, namespaces 
 						authContext.User(), authContext.Groups(),
 						namespace, kind.Plural, statusErr.ErrStatus.Message)
 				}
+			} else {
+				log.Warnf("Failed to list %s/%s; %v", namespace, kind.Plural, statusErr)
 			}
 		} else {
 			log.Warnf("Error fetching %s (namespace: '%s'); %v", kind.APIResource.Kind, namespace, err)

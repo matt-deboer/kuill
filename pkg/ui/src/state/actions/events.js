@@ -1,6 +1,3 @@
-import { invalidateSession } from './session'
-import { defaultFetchParams } from '../../utils/request-utils'
-
 export var types = {}
 for (let type of [
   'RECEIVE_EVENTS',
@@ -51,36 +48,5 @@ export function setWatch(watch) {
   return {
     type: types.SET_WATCH,
     watch: watch,
-  }
-}
-
-export function watchEvents() {
-  return function(dispatch, getState) {
-    setEventWatches(dispatch, getState)
-  }
-}
-
-async function setEventWatches(dispatch, getState) {
-  
-  let { watch } = getState().events
-  if (!watch) {
-    let eventsUrl = `/proxy/api/v1/events`
-    // Need to fetch current events in order to find latest resourceVersion
-    let result = await fetch(eventsUrl, defaultFetchParams
-        ).then(resp => {
-          if (!resp.ok) {
-            if (resp.status === 401) {
-              dispatch(invalidateSession())
-            }
-          } else {
-            return resp.json()
-          }
-        })
-
-    if (!!result && result.kind === 'EventList') {
-      dispatch(receiveEvents(getState().resources.resources, ...result.items))   
-      // event watch is now handled by MultiResourceWatcher in actions/resources.js
-    }
-
   }
 }

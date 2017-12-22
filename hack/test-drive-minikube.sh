@@ -1,4 +1,7 @@
 #!/bin/sh
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)
+ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
+
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 
 status=$(minikube status)
@@ -7,11 +10,11 @@ if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
    --kubernetes-version v1.8.0 \
     --extra-config apiserver.Authorization.Mode=RBAC \
-    --extra-config apiserver.Authentication.RequestHeader.AllowedNames=auth-proxy \
-    --extra-config apiserver.Authentication.RequestHeader.ClientCAFile=/var/lib/localkube/certs/ca.crt \
-    --extra-config apiserver.Authentication.RequestHeader.UsernameHeaders=X-Remote-User \
-    --extra-config apiserver.Authentication.RequestHeader.GroupHeaders=X-Remote-Group \
-    --extra-config apiserver.Authentication.RequestHeader.ExtraHeaderPrefixes=X-Remote-Extra-
+    --extra-config apiserver.Audit.LogOptions.Path=/var/log/apiserver-audit.log \
+    --extra-config apiserver.Audit.LogOptions.MaxAge=1 \
+    --extra-config apiserver.Audit.LogOptions.MaxSize=50 \
+    --extra-config apiserver.Audit.LogOptions.MaxBackups=5 \
+    --v=4
 fi
 
 minikube update-context
@@ -70,10 +73,38 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
     --from-file  ~/.minikube/certs/auth-proxy -n kube-system
 fi
 
-if [ "$1" != "nodeploy" ]; then
-  curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml | \
-        kubectl --context minikube apply -f -
+case $0 in
+  # launched from local file; use the
+  /* )
+    manifest_file="${ROOT}/hack/deploy/kuill-dependencies.yml"
+    echo "Deploying $manifest_file..."
+    cat $manifest_file | kubectl --context minikube apply -f -
+    ;;
+  # launched from url; download manifest also
+  sh )
+    manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-dependencies.yml"
+    echo "Deploying $manifest_url..."
+    curl -sL $manifest_url | kubectl --context minikube apply -f -
+    ;;
+esac
 
+
+if [ "$1" != "nodeploy" ]; then
+  case $0 in
+    # launched from local file; use the
+    /* )
+      manifest_file="${ROOT}/hack/deploy/kuill-minikube.yml"
+      echo "Deploying $manifest_file..."
+      cat $manifest_file | kubectl --context minikube apply -f -
+      ;;
+    # launched from url; download manifest also
+    sh )
+      manifest_url="https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/deploy/kuill-minikube.yml"
+      echo "Deploying $manifest_url..."
+      curl -sL $manifest_url | kubectl --context minikube apply -f -
+      ;;
+  esac
+  
   while ! curl -skL --fail "https://$(minikube ip):30443/"; do sleep 2; done
 
   open "https://$(minikube ip):30443/"

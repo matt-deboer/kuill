@@ -12,6 +12,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/nu7hatch/gouuid"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/api/authentication/v1"
 )
 
 const (
@@ -23,10 +24,15 @@ const (
 	claimGroups      = "grp"
 )
 
+type contextKey string
+
+var ContextKey contextKey = "kuill.authContext"
+
 // Context is a holder for the currently authenticated user's information
 type Context interface {
 	User() string
 	Groups() []string
+	Impersonate(h http.Header)
 }
 
 // Authenticator is a pluggable interface for authentication providers
@@ -81,16 +87,18 @@ type Manager struct {
 	mutex                sync.Mutex
 	hmac                 []byte
 	sessionTimeout       time.Duration
+	authenticatedGroups  []string
 }
 
 // NewAuthManager creates a new authentication manager instance
-func NewAuthManager(sessionTimeout time.Duration) (*Manager, error) {
+func NewAuthManager(sessionTimeout time.Duration, authenticatedGroups []string) (*Manager, error) {
 
 	hmc, _ := uuid.NewV4()
 	m := &Manager{
-		authenticators: make(map[string]Authenticator),
-		hmac:           []byte(hmc.String()),
-		sessionTimeout: sessionTimeout,
+		authenticators:      make(map[string]Authenticator),
+		hmac:                []byte(hmc.String()),
+		sessionTimeout:      sessionTimeout,
+		authenticatedGroups: authenticatedGroups,
 	}
 
 	m.loginMethodsResponse, _ = m.buildLoginMethodsResponse()
@@ -245,6 +253,13 @@ func (s *SessionToken) User() string {
 	return s.claims[claimUserID].(string)
 }
 
+// Impersonate applies the user and group impersonation
+// headers to the provided headers map
+func (s *SessionToken) Impersonate(h http.Header) {
+	h.Set(v1.ImpersonateUserHeader, s.User())
+	h[v1.ImpersonateGroupHeader] = s.Groups()
+}
+
 // Expires returns the expiration of the token in Unix time, the number of seconds elapsed
 // since January 1, 1970 UTC.
 func (s *SessionToken) Expires() int64 {
@@ -263,6 +278,7 @@ func (s *SessionToken) Groups() []string {
 // NewSessionToken generates a new auth token suitable for storing user session state
 func (m *Manager) NewSessionToken(user string, groups []string, additionalClaims map[string]interface{}) *SessionToken {
 	csrfToken, _ := uuid.NewV4()
+	groups = append(groups, m.authenticatedGroups...)
 	claims := jwt.MapClaims{
 		claimNotBefore: time.Now().Unix(),
 		claimExpires:   time.Now().Add(m.sessionTimeout).Unix(),

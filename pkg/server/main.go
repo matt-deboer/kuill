@@ -193,24 +193,6 @@ func main() {
 			EnvVar: envBase + "SAML_AUDIENCE",
 		},
 		cli.StringFlag{
-			Name:   "username-header",
-			Value:  "X-Remote-User",
-			Usage:  "The header name passed to the Kubernetes API containing the user's identity",
-			EnvVar: envBase + "USERNAME_HEADER",
-		},
-		cli.StringFlag{
-			Name:   "group-header",
-			Value:  "X-Remote-Group",
-			Usage:  "The header name passed to the Kubernetes API containing the user's groups",
-			EnvVar: envBase + "GROUP_HEADER",
-		},
-		cli.StringFlag{
-			Name:   "extra-headers-prefix",
-			Value:  "X-Remote-Extra-",
-			Usage:  "The header name prefix passed to the Kubernetes API containing extra user information",
-			EnvVar: envBase + "EXTRA_HEADERS_PREFIX",
-		},
-		cli.StringFlag{
 			Name:   "password-file",
 			Usage:  "A file containing tab-delimited set of [user,password,group...], one per line; for local testing only",
 			EnvVar: envBase + "PASSWORD_FILE",
@@ -285,14 +267,16 @@ func main() {
 		serverCert := requiredString(c, "server-cert")
 		serverKey := requiredString(c, "server-key")
 
-		kubeClients, err := clients.Create(c.String("kubeconfig"))
-		if err != nil {
-			log.Fatal(err)
-		}
+		kubeClients := setupClients(c)
 
 		sessionTimeout := c.Duration("session-timeout")
+		authenticatedGroupsString := c.String("authenticated-groups")
+		var authenticatedGroups []string
+		if len(authenticatedGroupsString) > 0 {
+			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(authenticatedGroupsString, -1)
+		}
 
-		authManager, err := auth.NewAuthManager(sessionTimeout)
+		authManager, err := auth.NewAuthManager(sessionTimeout, authenticatedGroups)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -482,45 +466,44 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 
 }
 
-func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
-
+func setupClients(c *cli.Context) *clients.KubeClients {
 	flags, err := getRequiredFlags(c, map[string]string{
-		"kubernetes-api":         "string",
 		"kubernetes-client-ca":   "string",
 		"kubernetes-client-cert": "string",
 		"kubernetes-client-key":  "string",
-		"username-header":        "string",
-		"group-header":           "string",
-		"extra-headers-prefix":   "string",
-		"trace-requests":         "bool",
-		"trace-websockets":       "bool",
-		"authenticated-groups":   "string",
+	})
+
+	if err != nil {
+		log.Fatalf("Could not create kubernetes client; %v", err)
+	}
+	kubeClients, err := clients.Create(c.String("kubeconfig"),
+		flags["kubernetes-client-ca"].(string),
+		flags["kubernetes-client-cert"].(string),
+		flags["kubernetes-client-key"].(string),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return kubeClients
+}
+
+func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.KubeClients) {
+
+	flags, err := getRequiredFlags(c, map[string]string{
+		"trace-requests":   "bool",
+		"trace-websockets": "bool",
 	})
 
 	if err == nil {
-		var authenticatedGroups []string
-		groupsString := flags["authenticated-groups"].(string)
-		if len(groupsString) > 0 {
-			authenticatedGroups = regexp.MustCompile(`\s*,\s*`).Split(groupsString, -1)
-		}
-
 		kinds, err := proxy.NewKindsProxy(kubeClients)
 		if err != nil {
 			log.Fatal(err)
 		}
 		namespaces := proxy.NewNamespacesProxy(kubeClients)
 		swagger := proxy.NewSwaggerProxy(kubeClients)
-		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces)
 		access := proxy.NewAccessProxy(kubeClients, authManager, kinds, namespaces)
 
-		apiProxy, err := proxy.NewKubeAPIProxy(flags["kubernetes-api"].(string), "/proxy",
-			flags["kubernetes-client-ca"].(string),
-			flags["kubernetes-client-cert"].(string),
-			flags["kubernetes-client-key"].(string),
-			flags["username-header"].(string),
-			flags["group-header"].(string),
-			flags["extra-headers-prefix"].(string),
-			authenticatedGroups,
+		apiProxy, err := proxy.NewKubeAPIProxy(kubeClients,
 			flags["trace-requests"].(bool),
 			flags["trace-websockets"].(bool),
 			kinds,
@@ -530,6 +513,8 @@ func setupProxy(c *cli.Context, authManager *auth.Manager, kubeClients *clients.
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		resources := proxy.NewResourcesProxy(kubeClients, authManager, kinds, namespaces, apiProxy)
 
 		http.HandleFunc("/proxy/swagger.json", swagger.Serve)
 		http.HandleFunc("/proxy/_/kinds", kinds.Serve)

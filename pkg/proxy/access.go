@@ -7,8 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/matt-deboer/kuill/pkg/auth"
 	"github.com/matt-deboer/kuill/pkg/clients"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 	authorizationapi "k8s.io/api/authorization/v1"
 )
@@ -78,14 +81,18 @@ func (a *AccessAggregator) permissionsForResource(kind, namespace, name string, 
 	kubeKind := a.kindLister.GetKind(kind)
 	podKind := a.kindLister.GetKind("Pod")
 	permissions := make(chan Permission, 5)
+	client, err := a.kubeClients.StandardClientFor(authContext)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to generate client for auth context %v; %v", authContext, err)
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(5)
-	go a.getAccess(kubeKind, namespace, kubeKind.Plural, "", name, "get", namespaces, authContext, permissions, &wg)
-	go a.getAccess(kubeKind, namespace, kubeKind.Plural, "", name, "put", namespaces, authContext, permissions, &wg)
-	go a.getAccess(kubeKind, namespace, kubeKind.Plural, "", name, "delete", namespaces, authContext, permissions, &wg)
-	go a.getAccess(podKind, namespace, "pods", "log", "", "get", namespaces, authContext, permissions, &wg)
-	go a.getAccess(podKind, namespace, "pods", "exec", "", "get", namespaces, authContext, permissions, &wg)
+	go a.getAccess(kubeKind, namespace, "", name, "get", namespaces, permissions, client, &wg)
+	go a.getAccess(kubeKind, namespace, "", name, "put", namespaces, permissions, client, &wg)
+	go a.getAccess(kubeKind, namespace, "", name, "delete", namespaces, permissions, client, &wg)
+	go a.getAccess(podKind, namespace, "log", "", "get", namespaces, permissions, client, &wg)
+	go a.getAccess(podKind, namespace, "exec", "", "get", namespaces, permissions, client, &wg)
 	go func() {
 		wg.Wait()
 		close(permissions)
@@ -111,7 +118,7 @@ func (a *AccessAggregator) permissionsForResource(kind, namespace, name string, 
 // Permission represents permission to perform a specific action
 // on a kind in a namespace, with an optional subresource
 type Permission struct {
-	Kind        *KubeKind
+	Kind        *types.KubeKind
 	Namespace   string
 	Verb        string
 	Subresource string
@@ -124,13 +131,13 @@ type Permission struct {
 // TODO: we may need to inspect roles and rolebindings directly as the current
 // approach (although prescribed by the kube api) will not scale under a large
 // number of namespaces
-func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, subresource, name, verb string,
-	namespaces []string, authContext auth.Context, results chan Permission, wg *sync.WaitGroup) {
+func (a *AccessAggregator) getAccess(kubeKind *types.KubeKind, namespace, subresource, name, verb string,
+	namespaces []string, results chan Permission, client *kubernetes.Clientset, wg *sync.WaitGroup) {
 
 	attrs := &authorizationapi.ResourceAttributes{
 		Group:     "",
 		Namespace: namespace,
-		Resource:  resource,
+		Resource:  kubeKind.Plural,
 		Verb:      verb,
 		Version:   "*",
 	}
@@ -147,35 +154,32 @@ func (a *AccessAggregator) getAccess(kubeKind *KubeKind, namespace, resource, su
 		attrs.Name = name
 	}
 
-	result, err := a.kubeClients.Standard.Authorization().SubjectAccessReviews().Create(
-		&authorizationapi.SubjectAccessReview{
-			Spec: authorizationapi.SubjectAccessReviewSpec{
-				User:               authContext.User(),
-				Groups:             authContext.Groups(),
+	result, err := client.Authorization().SelfSubjectAccessReviews().Create(
+		&authorizationapi.SelfSubjectAccessReview{
+			Spec: authorizationapi.SelfSubjectAccessReviewSpec{
 				ResourceAttributes: attrs,
 			},
 		})
 
 	if err != nil {
 		log.Errorf("Error while testing access to %s %s %s in namespace '%s'; %v",
-			verb, resource, subresource, namespace, err)
+			verb, kubeKind.Plural, subresource, namespace, err)
 	} else if !result.Status.Allowed {
 		if namespace == "" {
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Not allowed to '%s' %s at the cluster scope; testing namespace access...",
-					verb, resource)
+					verb, kubeKind.Plural)
 			}
 			wg.Add(len(namespaces))
 			for _, ns := range namespaces {
-				go a.getAccess(kubeKind, ns, resource, subresource, name, verb,
-					namespaces, authContext, results, wg)
+				go a.getAccess(kubeKind, ns, subresource, name, verb,
+					namespaces, results, client, wg)
 			}
+		} else if log.GetLevel() >= log.DebugLevel {
+			log.Debugf("Not allowed to '%s' %s in namespace %s; testing namespace access...",
+				verb, kubeKind.Plural, namespace)
 		}
 	} else {
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("User %s %v has access to '%s' %s/%s/%s",
-				authContext.User(), authContext.Groups(), verb, kubeKind.Kind, namespace, name)
-		}
 		results <- Permission{
 			Kind:        kubeKind,
 			Verb:        verb,

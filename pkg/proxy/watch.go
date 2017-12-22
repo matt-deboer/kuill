@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/matt-deboer/kuill/pkg/auth"
+	"github.com/matt-deboer/kuill/pkg/types"
 	log "github.com/sirupsen/logrus"
 
 	"bytes"
@@ -159,7 +160,6 @@ WatchKinds:
 			readFirstPath = true
 			// Connect to the backend URL, also pass the headers we get from the requst
 			// together with the Forwarded headers we prepared above.
-
 			backendURL := w.Backend(kindPath, resourceVersion).String()
 			if backendURL == "" {
 				log.Error("Backend URL is nil")
@@ -185,10 +185,10 @@ WatchKinds:
 					}
 				}
 				if log.GetLevel() >= log.DebugLevel {
-					log.Warnf("Couldn't dial to remote backend url %s: %s %s %s", backendURL, err, status, body)
+					log.Warnf("Couldn't dial to remote backend url %s: %v; status: '%s', body: '%s'", backendURL, err, status, body)
 				}
-				if strings.Contains(err.Error(), "Forbidden") && !strings.Contains(backendURL, "/namespaces/") {
-					parts := strings.Split(backendURL, "/watch/")
+				if strings.Contains(status, "Forbidden") && !strings.Contains(backendURL, "/namespaces/") {
+					parts := strings.Split(kindPath, "/watch/")
 					go func() {
 						for _, namespace := range namespaces {
 							path := fmt.Sprintf("%s/watch/namespaces/%s/%s", parts[0], namespace, parts[1])
@@ -402,7 +402,7 @@ func (w *KubeKindAggregatingWatchProxy) writeMessages(socket *websocket.Conn, ou
 	}
 }
 
-func canWatch(kubeKind *KubeKind) bool {
+func canWatch(kubeKind *types.KubeKind) bool {
 	for _, verb := range kubeKind.Verbs {
 		if verb == "watch" {
 			return true

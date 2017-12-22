@@ -5,8 +5,8 @@ KUILL_PORT=${KUILL_PORT:-8888}
 KUILL_FRONTEND_PORT=${KUILL_FRONTEND_PORT:-3000}
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
-# starts up kuill locally, pointed at the apiserver from minikube
 
+# starts up kuill locally, pointed at the apiserver from minikube
 ${SCRIPT_DIR}/test-drive-minikube.sh nodeploy
 
 kubectl config use-context minikube

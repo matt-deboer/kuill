@@ -9,7 +9,7 @@ import { arraysEqual, objectEmpty } from '../../comparators'
 import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
 // import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import MultiResourceWatcher from '../../utils/MultiResourceWatcher'
-import { watchEvents, selectEventsFor, reconcileEvents } from './events'
+import { selectEventsFor, reconcileEvents, receiveEvents } from './events'
 import { addError } from './errors'
 import { defaultFetchParams, createPost, createPatch } from '../../utils/request-utils'
 import { doRequest } from './requests'
@@ -489,17 +489,26 @@ async function fetchResources(dispatch, getState, force, filter) {
       )
 
     let resources = {}
+    let events = []
+
     if ('lists' in result) {
       for (let list of result.lists) {
         let listKind = list.kind.replace(/List$/,'')
-        let kubeKind = kubeKinds[listKind]
-        if (entryFilter(kubeKind)) {
-          var items = list.items
-          if (!!items) {
-            for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
-              var resource = items[j]
-              resource.key = keyForResource(resource)
-              resources[resource.key] = resource
+        if (listKind === 'Event') {
+          for (let resource of list.items) {
+            resource.key = keyForResource(resource)
+            events.push(resource)
+          }
+        } else {
+          let kubeKind = kubeKinds[listKind]
+          if (entryFilter(kubeKind)) {
+            var items = list.items
+            if (!!items) {
+              for (var j=0, itemsLen = items.length; j < itemsLen; ++j) {
+                var resource = items[j]
+                resource.key = keyForResource(resource)
+                resources[resource.key] = resource
+              }
             }
           }
         }
@@ -512,8 +521,7 @@ async function fetchResources(dispatch, getState, force, filter) {
     }
     
     dispatch(receiveResources(resources))
-    dispatch(reconcileEvents(resources))
-    dispatch(watchEvents(resources))
+    dispatch(receiveEvents(resources, ...events))
     dispatch(requestMetrics(resources))
     watchResources(dispatch, getState)
   }
