@@ -148,11 +148,9 @@ func (a *AccessAggregator) getAccess(kubeKind *types.KubeKind, namespace, resour
 		attrs.Name = name
 	}
 
-	result, err := a.kubeClients.Standard.Authorization().SubjectAccessReviews().Create(
-		&authorizationapi.SubjectAccessReview{
-			Spec: authorizationapi.SubjectAccessReviewSpec{
-				User:               authContext.User(),
-				Groups:             authContext.Groups(),
+	result, err := a.kubeClients.Standard.Authorization().SelfSubjectAccessReviews().Create(
+		&authorizationapi.SelfSubjectAccessReview{
+			Spec: authorizationapi.SelfSubjectAccessReviewSpec{
 				ResourceAttributes: attrs,
 			},
 		})
