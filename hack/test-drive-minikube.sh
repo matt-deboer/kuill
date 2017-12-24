@@ -8,7 +8,7 @@ status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
   ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
-   --kubernetes-version v1.8.0 --bootstrapper kubeadm --v=4
+   --kubernetes-version v1.8.0 --v=4
 fi
 
 minikube update-context
