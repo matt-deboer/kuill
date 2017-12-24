@@ -509,20 +509,22 @@ function updateRelatedResources(state, resource, remove) {
     // Endpoints(Service) <==> Pod
     if (resource.subsets) {
       for (let subset of resource.subsets) {
-        for (let addr of subset.addresses) {
-          if ('targetRef' in addr) {
-            let ref = addr.targetRef
-            let refKey = `${ref.kind}/${ref.namespace}/${ref.name}`
-            let target = state.resources[refKey]
-            let serviceKey = `Service/${resource.metadata.namespace}/${resource.metadata.name}`
-            if (target) {
-              target.related = target.related || {}
-              target.related[serviceKey] = true
-            }
-            let service = state.resources[serviceKey]
-            if (service) {
-              service.related = service.related || {}
-              service.related[refKey] = true
+        if ('addresses' in subset) {
+          for (let addr of subset.addresses) {
+            if ('targetRef' in addr) {
+              let ref = addr.targetRef
+              let refKey = `${ref.kind}/${ref.namespace}/${ref.name}`
+              let target = state.resources[refKey]
+              let serviceKey = `Service/${resource.metadata.namespace}/${resource.metadata.name}`
+              if (target) {
+                target.related = target.related || {}
+                target.related[serviceKey] = true
+              }
+              let service = state.resources[serviceKey]
+              if (service) {
+                service.related = service.related || {}
+                service.related[refKey] = true
+              }
             }
           }
         }
