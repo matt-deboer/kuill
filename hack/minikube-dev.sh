@@ -49,10 +49,6 @@ ${ROOT}/bin/kuill \
   --server-cert ${ROOT}/certs/minikube/server-cert.pem \
   --server-key ${ROOT}/certs/minikube/server-key.pem \
   --password-file hack/test-users.tsv \
-  --kubernetes-client-ca ${ROOT}/certs/minikube/ca.pem \
-  --kubernetes-client-cert ${ROOT}/certs/minikube/server-cert.pem \
-  --kubernetes-client-key ${ROOT}/certs/minikube/server-key.pem \
-  --kubernetes-api $apiserver \
   --anonymous-groups system:masters \
   --kubeconfig ~/.kube/config
 

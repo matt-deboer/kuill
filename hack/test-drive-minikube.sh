@@ -8,13 +8,7 @@ status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
   ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
-   --kubernetes-version v1.8.0 \
-    --extra-config apiserver.Authorization.Mode=RBAC \
-    --extra-config apiserver.Audit.LogOptions.Path=/var/log/apiserver-audit.log \
-    --extra-config apiserver.Audit.LogOptions.MaxAge=1 \
-    --extra-config apiserver.Audit.LogOptions.MaxSize=50 \
-    --extra-config apiserver.Audit.LogOptions.MaxBackups=5 \
-    --v=4
+   --kubernetes-version v1.8.0 --bootstrapper kubeadm --v=4
 fi
 
 minikube update-context
