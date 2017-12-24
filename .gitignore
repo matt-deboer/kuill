@@ -15,3 +15,4 @@ certs/
 /pkg/ui/cypress/screenshots/
 .ruby*
 .rbenv*
+.DS_Store
