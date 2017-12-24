@@ -9,7 +9,7 @@ if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
   ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
     --extra-config apiserver.Authorization.Mode=RBAC \
-   --kubernetes-version v1.8.0 --v=4
+    --kubernetes-version v1.8.0 --v=4
 fi
 
 minikube update-context

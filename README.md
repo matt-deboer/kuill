@@ -63,10 +63,10 @@ TL;DR ? -> clone the repo, and run: &nbsp; <code>hack/test-drive-minikube.sh</co
 TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/test-drive-minikube.sh)"</code>
 </div>
 
-1. Start a new `minikube` cluster (if you don't already have one)
+1. Start a new `minikube` cluster with RBAC enabled (if you don't already have one)
 
     ```sh
-    minikube start
+    minikube start --extra-config apiserver.Authorization.Mode=RBAC
     ```
 
 1. Generate certificates for `kuill` using the minikube cluster ca (and a little help from the `cfssl` docker image)
