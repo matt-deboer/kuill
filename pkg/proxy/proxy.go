@@ -2,11 +2,14 @@ package proxy
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	kube_transport "k8s.io/client-go/transport"
 
 	"github.com/matt-deboer/kuill/pkg/clients"
 	"k8s.io/api/authentication/v1"
@@ -36,6 +39,16 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 	traceRequests, traceWebsockets bool, kindLister *KindsProxy,
 	namespaceLister *NamespaceProxy, accessAggregator *AccessAggregator) (*KubeAPIProxy, error) {
 
+	transportConfig, err := kubeClients.Config.TransportConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to resolve transport config; %v", err)
+	}
+
+	tlsConfig, err := kube_transport.TLSConfigFor(transportConfig)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to resolve TLS config; %v", err)
+	}
+
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -43,6 +56,7 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 			KeepAlive: 30 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 5 * time.Second,
+		TLSClientConfig:     tlsConfig,
 	}
 
 	wsURL, _ := url.Parse(kubeClients.BaseURL.String())
@@ -67,6 +81,12 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 			}
 		}
 		out.Set("Origin", kubeClients.BaseURL.String())
+	}
+	wsp.Dialer = &websocket.Dialer{
+		HandshakeTimeout: 5 * time.Second,
+		TLSClientConfig:  tlsConfig,
+		ReadBufferSize:   1024,
+		WriteBufferSize:  1024,
 	}
 
 	mwp := NewKubeKindAggregatingWatchProxy(wsURL, traceWebsockets, kindLister, namespaceLister, accessAggregator)
