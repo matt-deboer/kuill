@@ -1,6 +1,14 @@
 changelog
 ===
 
+v0.2-b3 [2017-12-24]
+---
+
+**fixes:**
+
+- Removed unnecessary additional options related to client certificates; now, the TLS config from kube client is also used for the proxy
+- Made `server-cert` and `server-key` flags optional/ignored when `disable-tls` is specified
+
 v0.2-b2 [2017-12-22]
 ---
 
