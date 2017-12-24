@@ -66,27 +66,6 @@ func main() {
 			EnvVar: envBase + "SERVER_KEY",
 		},
 		cli.StringFlag{
-			Name:   "kubernetes-api",
-			Usage:  "The kubernetes API endpoint to contact",
-			Value:  "https://kubernetes.default",
-			EnvVar: envBase + "KUBERNETES_API",
-		},
-		cli.StringFlag{
-			Name:   "kubernetes-client-cert",
-			Usage:  "The PEM-encoded cert file used to authenticate the client to the kubernetes API",
-			EnvVar: envBase + "KUBERNETES_CLIENT_CERT",
-		},
-		cli.StringFlag{
-			Name:   "kubernetes-client-key",
-			Usage:  "The PEM-encoded key file used to authenticate the client to the kubernetes API",
-			EnvVar: envBase + "KUBERNETES_CLIENT_KEY",
-		},
-		cli.StringFlag{
-			Name:   "kubernetes-client-ca",
-			Usage:  "The PEM-encoded ca cert used to identify the remote kubernetes server cert",
-			EnvVar: envBase + "KUBERNETES_CLIENT_CA",
-		},
-		cli.StringFlag{
 			Name:   "public-url",
 			Usage:  "The public-facing URL for this app, used to compose callbacks for IDPs",
 			EnvVar: envBase + "PUBLIC_URL",
@@ -262,10 +241,14 @@ func main() {
 		}
 
 		port := requiredInt(c, "port")
-		disableTLS := c.Bool("disable-tls")
 		redirectPort := requiredInt(c, "redirect-port")
-		serverCert := requiredString(c, "server-cert")
-		serverKey := requiredString(c, "server-key")
+		disableTLS := c.Bool("disable-tls")
+		var serverCert string
+		var serverKey string
+		if !disableTLS {
+			serverCert = requiredString(c, "server-cert")
+			serverKey = requiredString(c, "server-key")
+		}
 
 		kubeClients := setupClients(c)
 
@@ -467,20 +450,7 @@ func setupAuthenticators(c *cli.Context, authManager *auth.Manager) {
 }
 
 func setupClients(c *cli.Context) *clients.KubeClients {
-	flags, err := getRequiredFlags(c, map[string]string{
-		"kubernetes-client-ca":   "string",
-		"kubernetes-client-cert": "string",
-		"kubernetes-client-key":  "string",
-	})
-
-	if err != nil {
-		log.Fatalf("Could not create kubernetes client; %v", err)
-	}
-	kubeClients, err := clients.Create(c.String("kubeconfig"),
-		flags["kubernetes-client-ca"].(string),
-		flags["kubernetes-client-cert"].(string),
-		flags["kubernetes-client-key"].(string),
-	)
+	kubeClients, err := clients.Create(c.String("kubeconfig"))
 	if err != nil {
 		log.Fatal(err)
 	}
