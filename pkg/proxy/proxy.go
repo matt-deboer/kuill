@@ -43,7 +43,6 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 			KeepAlive: 30 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 5 * time.Second,
-		TLSClientConfig:     kubeClients.TLSConfig,
 	}
 
 	wsURL, _ := url.Parse(kubeClients.BaseURL.String())
@@ -54,9 +53,6 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 	}
 
 	wsp := NewWebsocketProxy(wsURL, traceWebsockets)
-	wsp.Dialer = &websocket.Dialer{
-		TLSClientConfig: kubeClients.TLSConfig,
-	}
 	wsp.Upgrader = &websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
