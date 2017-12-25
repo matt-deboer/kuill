@@ -81,6 +81,9 @@ func NewKubeAPIProxy(kubeClients *clients.KubeClients,
 			}
 		}
 		out.Set("Origin", kubeClients.BaseURL.String())
+		if len(kubeClients.BearerToken) > 0 {
+			out.Set("Authorization", fmt.Sprintf("Bearer %s", string(kubeClients.BearerToken)))
+		}
 	}
 	wsp.Dialer = &websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
