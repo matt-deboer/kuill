@@ -1,6 +1,13 @@
 changelog
 ===
 
+v0.2-b4 [2017-12-24]
+---
+
+**fixes:**
+
+- Add bearer token to proxy requests
+
 v0.2-b3 [2017-12-24]
 ---
 
