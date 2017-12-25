@@ -104,7 +104,7 @@ class ClusterPage extends React.Component {
           style={{background: 'white', height: 'calc(100vh - 112px)', width: 'calc(100vw - 50px)'}}
           tabItemContainerStyle={styles.tabs}
           tabTemplateStyle={{whiteSpace: 'normal'}}
-          contentContainerStyle={{overflow: 'hidden'}}
+          contentContainerStyle={{overflow: 'hidden', height: 'calc(100vh - 160px)'}}
           inkBarStyle={styles.tabsInkBar}
           value={activeTab}
           className={'tabs cluster'}
