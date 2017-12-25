@@ -22,6 +22,14 @@ spec:
           env:
           - name: KUILL_DISABLE_TLS
             value: "true"
+          - name: KUILL_VERBOSE
+            value: "{{ .Values.config.verbose }}"
+          - name: KUILL_TRACE_REQUESTS
+            value: "{{ .Values.config.traceRequests }}"
+          - name: KUILL_TRACE_WEBSOCKETS
+            value: "{{ .Values.config.traceWebsockets }}"
+          - name: KUILL_ANONYMOUS_GROUPS
+            value: {{ .Values.config.anonymousGroups }}
           - name: KUILL_PORT
             value: "{{ .Values.service.internalPort }}"
           ports:

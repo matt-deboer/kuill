@@ -11,7 +11,12 @@ service:
   type: ClusterIP
   externalPort: 80
   internalPort: 8080
-config: {}
+config:
+  anonymousGroups: 'system:authenticated'
+
+  verbose: false
+  traceRequests: false
+  traceWebsockets: false
 
 ingress:
   enabled: false
