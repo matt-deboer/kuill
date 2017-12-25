@@ -69,34 +69,6 @@ TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -s
     minikube start --extra-config apiserver.Authorization.Mode=RBAC
     ```
 
-1. Generate certificates for `kuill` using the minikube cluster ca (and a little help from the `cfssl` docker image)
-
-    ```sh
-    mkdir -p ~/.minikube/certs/auth-proxy
-    ```
-    ```sh
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.key' > ~/.minikube/certs/auth-proxy/ca.key
-    ```
-    ```sh
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.crt' > ~/.minikube/certs/auth-proxy/ca.crt
-    ```
-    ```sh
-    docker run --rm \
-      -v ~/.minikube/certs/auth-proxy:/certs/auth-proxy \
-      -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
-      -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
-        echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
-        cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /ca-config.json - | \
-        cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && rm -f ca.key && mv ca.crt ca.pem'
-    ```
-
-1. Create a secret containing the certs (for use by `kuill`)
-
-    ```sh
-    kubectl --context minikube create secret generic auth-proxy-certs \
-      --from-file  ~/.minikube/certs/auth-proxy -n kube-system
-    ```
-
 1. Deploy `kuill`
 
     ```sh
