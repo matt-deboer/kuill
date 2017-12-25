@@ -154,6 +154,9 @@ func (p *KubeAPIProxy) filterRequest(r *http.Request) {
 		r.Header.Set("User-Agent", "")
 	}
 	r.Header.Set("Origin", p.kubeClients.BaseURL.String())
+	if len(p.kubeClients.BearerToken) > 0 {
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", string(p.kubeClients.BearerToken)))
+	}
 	authContext := r.Context().Value(auth.ContextKey).(auth.Context)
 	p.traceRequest(r, authContext, p.traceWebsockets)
 	authContext.Impersonate(r.Header)
