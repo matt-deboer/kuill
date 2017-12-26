@@ -24,25 +24,25 @@ What does it look like?
 ---
 
 ## Login
-![Login](./docs/screenshots/login.png)
+![Login](./docs/screenshots/login2.png)
 
 ## Overview with Summaries for Errors, Events, and Resource Usage
-![Overview](./docs/screenshots/overview.png)
+![Overview](./docs/screenshots/overview2.png)
 
 ## Filtered Workloads view
-![Workloads](./docs/screenshots/workloads.png)
+![Workloads](./docs/screenshots/workloads2.png)
 
 ## Resource
-![Resource](./docs/screenshots/resource.png)
+![Resource](./docs/screenshots/resource2.png)
 
 ## Related resources view
-![Nodes](./docs/screenshots/related.png)
+![Nodes](./docs/screenshots/related2.png)
 
 ## Multi-container Log Tailing
-![Logs](./docs/screenshots/logs.png)
+![Logs](./docs/screenshots/logs2.png)
 
 ## Interactive Terminal
-![Terminal](./docs/screenshots/terminal.mov.gif)
+![Terminal](./docs/screenshots/terminal2.mov.gif)
 
 ---
 
