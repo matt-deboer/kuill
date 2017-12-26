@@ -27,22 +27,22 @@ What does it look like?
 ![Login](./docs/screenshots/login.png)
 
 ## Overview with Summaries for Errors, Events, and Resource Usage
-![Overview](./docs/screenshots/overview2.png)
+![Overview](./docs/screenshots/overview.png)
 
 ## Filtered Workloads view
-![Workloads](./docs/screenshots/workloads2.png)
+![Workloads](./docs/screenshots/workloads.png)
 
 ## Resource
-![Resource](./docs/screenshots/resource2.png)
+![Resource](./docs/screenshots/resource.png)
 
 ## Related resources view
 ![Nodes](./docs/screenshots/related.png)
 
 ## Multi-container Log Tailing
-![Logs](./docs/screenshots/logs2.png)
+![Logs](./docs/screenshots/logs.png)
 
 ## Interactive Terminal
-![Terminal](./docs/screenshots/terminal2.mov.gif)
+![Terminal](./docs/screenshots/terminal.mov.gif)
 
 ---
 
