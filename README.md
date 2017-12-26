@@ -32,14 +32,14 @@ What does it look like?
 ## Filtered Workloads view
 ![Workloads](./docs/screenshots/workloads2.png)
 
-## Filtered Nodes View with Heatmap
-![Nodes](./docs/screenshots/nodes.mov.gif)
-
 ## Resource
 ![Resource](./docs/screenshots/resource2.png)
 
+## Related resources view
+![Nodes](./docs/screenshots/related.png)
+
 ## Multi-container Log Tailing
-![Logs](./docs/screenshots/logs.png)
+![Logs](./docs/screenshots/logs2.png)
 
 ## Interactive Terminal
 ![Terminal](./docs/screenshots/terminal2.mov.gif)
