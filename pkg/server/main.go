@@ -243,13 +243,13 @@ func main() {
 		port := requiredInt(c, "port")
 		redirectPort := requiredInt(c, "redirect-port")
 		disableTLS := c.Bool("disable-tls")
+
 		var serverCert string
 		var serverKey string
 		if !disableTLS {
 			serverCert = requiredString(c, "server-cert")
 			serverKey = requiredString(c, "server-key")
 		}
-
 		kubeClients := setupClients(c)
 
 		sessionTimeout := c.Duration("session-timeout")

@@ -24,6 +24,7 @@ const defaultRelatedFilters = ['status:!disabled']
 const mapStateToProps = function(store) {
   return { 
     resource: store.resources.resource,
+    resources: store.resources.resources,
     fetching: store.requests.fetching,
     user: store.session.user,
     editor: store.resources.editor,
@@ -123,6 +124,7 @@ class WorkloadInfo extends React.Component {
       resource: props.resource,
       editor: props.editor,
       logPodContainers: props.logPodContainers,
+      readyContainers: this.filterReadyContainers(props.logPodContainers, props.resources),
     }
     this.logFollowers = {}
     this.events = []
@@ -134,40 +136,25 @@ class WorkloadInfo extends React.Component {
 
   watchLogs = () => {
     let { props } = this
-    if (!!this.state.resource
-        && !!this.state.resource.status
-        && !!this.state.resource.status.containerStatuses
-        && !!props.logPodContainers) {
-
-      
+    if (!!this.state.resource && !!props.logPodContainers) {
 
       let oldFollowers = this.logFollowers
       this.logFollowers = {}
-      for (let key of props.logPodContainers) {
+      for (let key of this.state.readyContainers) {
         let lf = oldFollowers[key]
         let [pod, cnt] = key.split('/')
         if (lf) {
           this.logFollowers[key] = lf
           delete oldFollowers[key]
         } else {
-          let containerIndex = -1
-          for (let i=0, len=this.state.resource.spec.containers.length; i < len; ++i) {
-            if (this.state.resource.spec.containers[i].name === cnt) {
-              containerIndex = i
-              break
-            }
-          }
-          let containerStatus = this.state.resource.status.containerStatuses[containerIndex]
-          if (containerStatus.ready) {
-            // Add new follower
-            this.logFollowers[key] = new LogFollower({
-              logs: this.logs,
-              namespace: this.state.resource.metadata.namespace,
-              pod: pod,
-              container: cnt,
-              dispatch: props.dispatch,
-            })
-          }
+          // Add new follower
+          this.logFollowers[key] = new LogFollower({
+            logs: this.logs,
+            namespace: this.state.resource.metadata.namespace,
+            pod: pod,
+            container: cnt,
+            dispatch: props.dispatch,
+          })
         }
       }
       
@@ -200,6 +187,11 @@ class WorkloadInfo extends React.Component {
         editor: props.editor,
       })
     }
+    if (props.resourceRevision !== this.props.resourceRevision) {
+      this.setState({
+        readyContainers: this.filterReadyContainers(props.logPodContainers, props.resources),
+      })
+    }
     this.ensureResource(props)
     this.watchLogs()
   }
@@ -217,7 +209,8 @@ class WorkloadInfo extends React.Component {
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
         || this.props.logPodContainers !== nextProps.logPodContainers
-
+        || this.props.resourceRevision !== nextProps.resourceRevision
+        || this.state.readyContainers !== nextState.readyContainers
     )
     return shouldUpdate
   }
@@ -242,9 +235,30 @@ class WorkloadInfo extends React.Component {
     this.props.cancelEditor()
   }
 
-  onLogsActivated = () => {
-    // this.watchLogs()
+  filterReadyContainers = (logPodContainers, resources) => {
+    let readyContainers = []
+    if (!!logPodContainers && !!this.props.resource) {
+      for (let lpc of logPodContainers) {
+        let [podName, containerName] = lpc.split('/')
+        let pod = resources[`Pod/${this.props.resource.metadata.namespace}/${podName}`]
+        let containerIndex = -1
+        for (let i=0, len=pod.spec.containers.length; i < len; ++i) {
+          if (pod.spec.containers[i].name === containerName) {
+            containerIndex = i
+            break
+          }
+        }
+        if (pod.status.containerStatuses && containerIndex < pod.status.containerStatuses.length) {
+          let containerStatus = pod.status.containerStatuses[containerIndex]
+          if (containerStatus.ready) {
+            readyContainers.push(lpc)
+          }
+        }
+      }
+    }
+    return readyContainers
   }
+
 
   render() {
 
@@ -272,7 +286,6 @@ class WorkloadInfo extends React.Component {
             resource={this.state.resource}
             logs={logs}
             events={events}
-            onLogsActivated={this.onLogsActivated.bind(this)}
             activeTab={activeTab}
             />
       }

@@ -1,0 +1,78 @@
+kind: List
+apiVersion: v1
+items:
+
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: {{ template "kuill.fullname" . }}-sa
+    namespace: {{ .Release.Namespace }}
+    labels:
+      app: {{ template "kuill.name" . }}
+      chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+
+- kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: {{ template "kuill.fullname" . }}-cr
+    labels:
+      app: {{ template "kuill.name" . }}
+      chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+  rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "proxy"]
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - nonResourceURLs: ["/swagger.json"]
+    verbs: ["get"]  
+
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: {{ template "kuill.fullname" . }}-crb
+    labels:
+      app: {{ template "kuill.name" . }}
+      chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+  subjects:
+    - kind: ServiceAccount
+      name: {{ template "kuill.fullname" . }}-sa
+      namespace: {{ .Release.Namespace }}
+  roleRef:
+    kind: ClusterRole
+    name: {{ template "kuill.fullname" . }}-cr
+    apiGroup: "rbac.authorization.k8s.io"
+
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1beta1
+  metadata:
+    name: {{ template "kuill.fullname" . }}-discovery-rb
+    namespace: {{ .Release.Namespace }}
+    labels:
+      app: {{ template "kuill.name" . }}
+      chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+  subjects:
+    - kind: ServiceAccount
+      name: {{ template "kuill.fullname" . }}-sa
+      namespace: {{ .Release.Namespace }}
+  roleRef:
+    kind: ClusterRole
+    name: system:discovery
+    apiGroup: "rbac.authorization.k8s.io"
+

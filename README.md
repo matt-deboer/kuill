@@ -11,12 +11,12 @@ A multitenant UI for kubernetes.
 Goal
 ---
 
-To provide a multi-tennant Kubernetes UI experience (inasmuch as Kubernetes is multi-tennant) capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
+To provide a multi-tennant* UI for Kubernetes capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
 that make up their applications.
 
-### Why create another dashboard? Why should I use this one?
+### Why create another dashboard?
 
-The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations, combined with the proxying of all requests as the logged-in user (as opposed to executing under a shared service account). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
+The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations like SAML 2 and OpenID+Connect, combined with the proxying of all requests as the logged-in user (via user-impersonation). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
 
 ---
 
@@ -32,11 +32,11 @@ What does it look like?
 ## Filtered Workloads view
 ![Workloads](./docs/screenshots/workloads.png)
 
-## Filtered Nodes View with Heatmap
-![Nodes](./docs/screenshots/nodes.mov.gif)
-
 ## Resource
 ![Resource](./docs/screenshots/resource.png)
+
+## Related resources view
+![Nodes](./docs/screenshots/related.png)
 
 ## Multi-container Log Tailing
 ![Logs](./docs/screenshots/logs.png)
@@ -56,45 +56,10 @@ Prerequisites:
 - `minikube`
 - `docker`
 
-<div style="padding: 10px; background-color: rgba(99,99,99,0.5);">
-TL;DR ? -> clone the repo, and run: &nbsp; <code>hack/test-drive-minikube.sh</code>
-</div>
-<div style="padding: 10px; background-color: #7a612e;">
-TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/test-drive-minikube.sh)"</code>
-</div>
-
 1. Start a new `minikube` cluster with RBAC enabled (if you don't already have one)
 
     ```sh
     minikube start --extra-config apiserver.Authorization.Mode=RBAC
-    ```
-
-1. Generate certificates for `kuill` using the minikube cluster ca (and a little help from the `cfssl` docker image)
-
-    ```sh
-    mkdir -p ~/.minikube/certs/auth-proxy
-    ```
-    ```sh
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.key' > ~/.minikube/certs/auth-proxy/ca.key
-    ```
-    ```sh
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.crt' > ~/.minikube/certs/auth-proxy/ca.crt
-    ```
-    ```sh
-    docker run --rm \
-      -v ~/.minikube/certs/auth-proxy:/certs/auth-proxy \
-      -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
-      -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
-        echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
-        cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /ca-config.json - | \
-        cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && rm -f ca.key && mv ca.crt ca.pem'
-    ```
-
-1. Create a secret containing the certs (for use by `kuill`)
-
-    ```sh
-    kubectl --context minikube create secret generic auth-proxy-certs \
-      --from-file  ~/.minikube/certs/auth-proxy -n kube-system
     ```
 
 1. Deploy `kuill`
