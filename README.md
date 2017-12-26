@@ -11,12 +11,12 @@ A multitenant UI for kubernetes.
 Goal
 ---
 
-To provide a multi-tennant Kubernetes UI experience (inasmuch as Kubernetes is multi-tennant) capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
+To provide a multi-tennant* UI for Kubernetes capable of integrating with popular enterprise authentication mechanisms, and that helps the casual user come up to speed quickly on the components
 that make up their applications.
 
-### Why create another dashboard? Why should I use this one?
+### Why create another dashboard?
 
-The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations, combined with the proxying of all requests as the logged-in user (as opposed to executing under a shared service account). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
+The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations like SAML 2 and OpenID+Connect, combined with the proxying of all requests as the logged-in user (via user-impersonation). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
 
 ---
 
@@ -27,22 +27,22 @@ What does it look like?
 ![Login](./docs/screenshots/login.png)
 
 ## Overview with Summaries for Errors, Events, and Resource Usage
-![Overview](./docs/screenshots/overview.png)
+![Overview](./docs/screenshots/overview2.png)
 
 ## Filtered Workloads view
-![Workloads](./docs/screenshots/workloads.png)
+![Workloads](./docs/screenshots/workloads2.png)
 
 ## Filtered Nodes View with Heatmap
 ![Nodes](./docs/screenshots/nodes.mov.gif)
 
 ## Resource
-![Resource](./docs/screenshots/resource.png)
+![Resource](./docs/screenshots/resource2.png)
 
 ## Multi-container Log Tailing
 ![Logs](./docs/screenshots/logs.png)
 
 ## Interactive Terminal
-![Terminal](./docs/screenshots/terminal.mov.gif)
+![Terminal](./docs/screenshots/terminal2.mov.gif)
 
 ---
 
@@ -55,13 +55,6 @@ Prerequisites:
 
 - `minikube`
 - `docker`
-
-<div style="padding: 10px; background-color: rgba(99,99,99,0.5);">
-TL;DR ? -> clone the repo, and run: &nbsp; <code>hack/test-drive-minikube.sh</code>
-</div>
-<div style="padding: 10px; background-color: #7a612e;">
-TL;DR, and also super-trusting of strangers ? run: &nbsp; <code>sh -c "$(curl -sL https://raw.githubusercontent.com/matt-deboer/kuill/master/hack/test-drive-minikube.sh)"</code>
-</div>
 
 1. Start a new `minikube` cluster with RBAC enabled (if you don't already have one)
 
