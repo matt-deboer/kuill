@@ -1,5 +1,5 @@
 
-![](./docs/logo.png) 
+![](./docs/screenshots/logo.png) 
 ===
 (_pronounced "kwill"_)
 
