@@ -18,30 +18,28 @@ that make up their applications.
 
 The key differentiators when compared with the existing open source dashboard are built-in support for enterprise SSO integrations like SAML 2 and OpenID+Connect, combined with the proxying of all requests as the logged-in user (via user-impersonation). See [this discussion](https://github.com/kubernetes/dashboard/issues/574#issuecomment-282360783) for details surrounding the trade-offs involved in running the existing dashboard in a multi-tenant environment.
 
----
 
-What does it look like? 
----
+### What does it look like? 
 
-## Login
+#### Login
 ![Login](./docs/screenshots/login2.png)
 
-## Overview with Summaries for Errors, Events, and Resource Usage
+#### Overview with Summaries for Errors, Events, and Resource Usage
 ![Overview](./docs/screenshots/overview2.png)
 
-## Filtered Workloads view
+#### Filtered Workloads view
 ![Workloads](./docs/screenshots/workloads2.png)
 
-## Resource
+#### Resource
 ![Resource](./docs/screenshots/resource2.png)
 
-## Related resources view
+#### Related resources view
 ![Nodes](./docs/screenshots/related2.png)
 
-## Multi-container Log Tailing
+#### Multi-container Log Tailing
 ![Logs](./docs/screenshots/logs2.png)
 
-## Interactive Terminal
+#### Interactive Terminal
 ![Terminal](./docs/screenshots/terminal2.mov.gif)
 
 ---
