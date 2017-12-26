@@ -1,30 +1,44 @@
 changelog
 ===
 
-v0.2-b5 [2017-12-26]
+v0.2-b5 
 ---
+
+2017-12-26
 
 **fixes:**
 
 - Fix to log-tailing behavior for deployments/replicasets/etc.
 
-v0.2-b4 [2017-12-24]
 ---
+
+v0.2-b4 
+---
+
+2017-12-24
 
 **fixes:**
 
 - Add bearer token to proxy requests
 
-v0.2-b3 [2017-12-24]
 ---
+
+v0.2-b3 
+---
+
+2017-12-24
 
 **fixes:**
 
 - Removed unnecessary additional options related to client certificates; now, the TLS config from kube client is also used for the proxy
 - Made `server-cert` and `server-key` flags optional/ignored when `disable-tls` is specified
 
-v0.2-b2 [2017-12-22]
 ---
+
+v0.2-b2
+---
+
+_2017-12-22_
 
 **features:**
 
@@ -37,8 +51,12 @@ and `requestheader-extra-headers-prefix`.
 
 - The `authenticated-groups` flag is now honored properly.
 
-v0.2-b1 [2017-12-18]
 ---
+
+v0.2-b1 
+---
+
+2017-12-18
 
 **features:**
 
@@ -54,8 +72,12 @@ in the normal display process
 - #72: Don't try to follow logs for containers that are not started
 - #74: aggregate resource watches into a single websocket for the client to overcome browser limits 
 
-v0.1-a6 [2017-09-09]
 ---
+
+v0.1-a6 
+---
+
+2017-09-09
 
 **features:**
 
