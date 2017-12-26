@@ -1,6 +1,13 @@
 changelog
 ===
 
+v0.2-b5 [2017-12-26]
+---
+
+**fixes:**
+
+- Fix to log-tailing behavior for deployments/replicasets/etc.
+
 v0.2-b4 [2017-12-24]
 ---
 
