@@ -4,6 +4,7 @@
 (_pronounced "kwill"_)
 
 [![Build Status](https://travis-ci.org/matt-deboer/kuill.svg?branch=master)](https://travis-ci.org/matt-deboer/kuill)
+[![Cypress Dashboard](https://img.shields.io/badge/cypress-dashboard-brightgreen.svg)](https://dashboard.cypress.io/#/projects/ss59sy/runs)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/kuill.svg)](https://hub.docker.com/r/mattdeboer/kuill/)
 
 A multitenant UI for kubernetes.
