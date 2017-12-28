@@ -664,12 +664,19 @@ function doSetFilterNames(state, filterNames) {
 
 
 function doSetGlobalFilters(state, selectedNamespaces, selectedKinds, kubeKinds) {
-  let globalFilters = {}
+  let globalFilters = state.globalFilters
   if (Object.keys(selectedNamespaces).length > 0) {
     globalFilters['namespace'] = {...selectedNamespaces}
+  } else {
+    delete globalFilters['namespace']
   }
-  if (Object.keys(selectedKinds).length > 0) {
-    globalFilters['kind'] = {...selectedKinds}
+
+  if (selectedKinds != undefined) {
+    if (Object.keys(selectedKinds).length > 0) {
+      globalFilters['kind'] = {...selectedKinds}
+    } else {
+      delete globalFilters['kind']
+    }
   }
 
   let newState = { ...state, 

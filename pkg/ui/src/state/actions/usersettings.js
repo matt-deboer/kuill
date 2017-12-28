@@ -9,9 +9,14 @@ for (let type of [
 }
 
 export function selectNamespaces(namespaces) {
-  return {
-    type: types.SELECT_NAMESPACES,
-    namespaces: namespaces,
+  return function(dispatch, getState) {
+    
+    dispatch({
+      type: types.SELECT_NAMESPACES,
+      namespaces: namespaces,
+    })
+
+    dispatch(applyGlobalFilters(namespaces))
   }
 }
 

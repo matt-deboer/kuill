@@ -131,7 +131,7 @@ export function applyGlobalFilters(namespaces, kinds) {
     dispatch({
       type: types.PUT_GLOBAL_FILTERS,
       namespaces: namespaces,
-      kinds: kinds,
+      kinds: kinds, 
       kubeKinds: kubeKinds,
     })
   }

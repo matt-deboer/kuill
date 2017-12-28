@@ -148,7 +148,9 @@ function applyFiltersToResource(filters, resource) {
     ) {
       match = true
     } else if (field === 'namespace') {
-      match = true
+      if (resource.metadata.namespace && resource.metadata.namespace in values) {
+        match = true
+      }
     } else if ( (resource.metadata[field] in values)
     || (resource[field] in values)
     || ('labels' in resource.metadata && resource.metadata.labels[field] in values)) {
