@@ -1,5 +1,6 @@
 import { requestNamespaces } from './resources'
 import { requestSwagger } from './apimodels'
+import { routerActions } from 'react-router-redux'
 import AccessEvaluator from '../../utils/AccessEvaluator'
 import LinkGenerator from '../../utils/LinkGenerator'
 
@@ -56,8 +57,11 @@ export function logout() {
 
 // reflect that the server-side session is expired
 export function invalidateSession() {
-  return {
-    type: types.INVALIDATE,
+  return async function (dispatch, getState) {
+    dispatch({
+      type: types.INVALIDATE,
+    })
+    dispatch(routerActions.push('/'))
   }
 }
 
