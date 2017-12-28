@@ -1,5 +1,16 @@
 changelog
 ===
+v0.2-b6
+---
+
+2017-12-27
+
+**fixes:**
+
+- Fix to regression in applying global filters for namespaces
+- Fix to namespace barchart which was displaying an 'undefined' namespace
+
+---
 
 v0.2-b5 
 ---
