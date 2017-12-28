@@ -6,7 +6,7 @@ import { selectTerminalFor } from './terminal'
 import { routerActions } from 'react-router-redux'
 import queryString from 'query-string'
 import { arraysEqual, objectEmpty } from '../../comparators'
-import { keyForResource, isResourceOwnedBy, sameResource } from '../../utils/resource-utils'
+import { keyForResource, isResourceOwnedBy, sameResource, resourceMatchesParams } from '../../utils/resource-utils'
 // import ResourceKindWatcher from '../../utils/ResourceKindWatcher'
 import MultiResourceWatcher from '../../utils/MultiResourceWatcher'
 import { selectEventsFor, reconcileEvents, receiveEvents } from './events'
@@ -491,7 +491,7 @@ async function fetchResources(dispatch, getState, force, filter) {
     let resources = {}
     let events = []
 
-    if ('lists' in result) {
+    if ('lists' in result && !!result.lists) {
       for (let list of result.lists) {
         let listKind = list.kind.replace(/List$/,'')
         if (listKind === 'Event') {
@@ -555,10 +555,8 @@ async function fetchResource(dispatch, getState, namespace, kind, name) {
   await fetchResources(dispatch, getState)
   
   let currentResource = getState().resources.resource
-  if (!currentResource 
-      || currentResource.metadata.namespace !== namespace
-      || currentResource.kind !== kind
-      || currentResource.metadata.name !== name) {
+  if (!currentResource || 
+    !resourceMatchesParams(currentResource, {name: name, kind: kind, namespace: namespace}, true)) {
     
     dispatch({
       type: types.SELECT_RESOURCE,

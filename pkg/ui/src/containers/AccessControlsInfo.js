@@ -124,13 +124,12 @@ class AccessControlsInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!!props.user && !resourceMatchesParams(props.resource, params)) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params, true)) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
 
   componentWillReceiveProps = (props) => {
-    // this.ensureResource(this.props)
     if (!sameResource(this.state.resource,props.resource)
       || (props.editor.contents !== this.props.editor.contents)
       || (props.resource && this.state.resource )
@@ -140,11 +139,12 @@ class AccessControlsInfo extends React.Component {
         editor: props.editor,
       })
     }
+    this.ensureResource(props)
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
     let shouldUpdate = !sameResource(this.state.resource, nextProps.resource)
-        || this.props.isFetching !== nextProps.isFetching
+        || this.props.fetching !== nextProps.fetching
         || this.props.user !== nextProps.user
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location

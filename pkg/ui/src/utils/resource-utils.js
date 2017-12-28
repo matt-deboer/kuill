@@ -28,13 +28,13 @@ export function sameResource(res1, res2) {
  * @param {*} resource 
  * @param {*} params 
  */
-export function resourceMatchesParams(resource, params) {
+export function resourceMatchesParams(resource, params, ignoreNotFound) {
     return (!!resource === !!params) 
     && (!resource
         || (resource.kind === params.kind
             && (resource.metadata.namespace || '~') === (params.namespace || '~')
             && resource.metadata.name === params.name
-            && !resource.notFound)
+            && (ignoreNotFound || !resource.notFound))
         )
 }
 
