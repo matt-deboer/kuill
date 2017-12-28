@@ -26,7 +26,7 @@ The key differentiators when compared with the existing open source dashboard ar
 ![Login](./docs/screenshots/login2.png)
 
 #### Overview with Summaries for Errors, Events, and Resource Usage
-![Overview](./docs/screenshots/overview2.png)
+![Overview](./docs/screenshots/overview3.png)
 
 #### Filtered Workloads view
 ![Workloads](./docs/screenshots/workloads2.png)
@@ -35,7 +35,7 @@ The key differentiators when compared with the existing open source dashboard ar
 ![Resource](./docs/screenshots/resource2.png)
 
 #### Related resources view
-![Nodes](./docs/screenshots/related2.png)
+![Nodes](./docs/screenshots/related3.png)
 
 #### Multi-container Log Tailing
 ![Logs](./docs/screenshots/logs2.png)
