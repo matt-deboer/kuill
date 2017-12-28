@@ -1,5 +1,6 @@
 changelog
 ===
+
 v0.2-b6
 ---
 
