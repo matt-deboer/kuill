@@ -671,7 +671,7 @@ function doSetGlobalFilters(state, selectedNamespaces, selectedKinds, kubeKinds)
     delete globalFilters['namespace']
   }
 
-  if (selectedKinds != undefined) {
+  if (selectedKinds !== undefined) {
     if (Object.keys(selectedKinds).length > 0) {
       globalFilters['kind'] = {...selectedKinds}
     } else {
