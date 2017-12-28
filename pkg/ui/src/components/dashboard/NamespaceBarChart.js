@@ -91,18 +91,20 @@ class NamespaceBarChart extends React.PureComponent {
     let max = {cpu: -100, memory: -100, volumes: -100}
     
     for (let ns in countsByNamespace) {
-      if (ns in namespaceMetrics) {
-        let metrics = namespaceMetrics[ns]
-        for (let m of ['cpu','memory','volumes']) {
-          let u = 100 * metrics[m].ratio
-          max[m] = Math.max(u, max[m])
-          items[m] = items[m] || []
-          items[m].push({name: ns, value: u})
-        }
-      } else {
-        for (let m of ['cpu','memory','volumes']) {
-          items[m] = items[m] || []
-          items[m].push({name: ns, value: 0})
+      if (!!ns) {
+        if (ns in namespaceMetrics) {
+          let metrics = namespaceMetrics[ns]
+          for (let m of ['cpu','memory','volumes']) {
+            let u = 100 * metrics[m].ratio
+            max[m] = Math.max(u, max[m])
+            items[m] = items[m] || []
+            items[m].push({name: ns, value: u})
+          }
+        } else {
+          for (let m of ['cpu','memory','volumes']) {
+            items[m] = items[m] || []
+            items[m].push({name: ns, value: 0})
+          }
         }
       }
     }

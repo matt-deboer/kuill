@@ -563,8 +563,8 @@ function updatePodCount(state, resource) {
 function updateResourceCounts(state, resource) {
   state.countsByKind[resource.kind] = state.countsByKind[resource.kind] || 0
   state.countsByKind[resource.kind]++
-  state.countsByNamespace[resource.metadata.namespace] = state.countsByNamespace[resource.metadata.namespace] || 0 
-  state.countsByNamespace[resource.metadata.namespace]++
+  state.countsByNamespace[resource.metadata.namespace || ""] = state.countsByNamespace[resource.metadata.namespace || ""] || 0 
+  state.countsByNamespace[resource.metadata.namespace || ""]++
 }
 
 /**
