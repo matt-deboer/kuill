@@ -1,6 +1,19 @@
 changelog
 ===
 
+v0.2-b7
+---
+
+2017-12-28
+
+**fixes:**
+
+- #76: Loading spinner hangs when requesting url for a resource user is not permitted to get 
+- #77: Logout should reset URL to the application root
+- #25: Resources created outside of dashboard do not auto update the resource list
+
+---
+
 v0.2-b6
 ---
 
