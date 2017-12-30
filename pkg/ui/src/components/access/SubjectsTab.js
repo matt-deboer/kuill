@@ -1,6 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { withRouter } from 'react-router-dom' 
+import { withRouter } from 'react-router-dom'
+import { routerActions } from 'react-router-redux'
 import queryString from 'query-string'
 import FilterBox from '../FilterBox'
 import PermissionsPane from '../configuration-pane/PermissionsPane'
@@ -12,8 +13,25 @@ const mapStateToProps = function(store) {
   }
 }
 
-const mapDispatchToProps = function(dispatch) {
+const mapDispatchToProps = function(dispatch, ownProps) {
   return {
+    setSubject: function(subject, index=-1) {
+      
+      let { location } = ownProps
+
+      let search = queryString.parse(location.search)
+      if (index > -1) {
+        delete search.subject
+      } else {
+        search.subject = subject
+      }
+
+      dispatch(routerActions.push({
+        pathname: location.pathname,
+        search: queryString.stringify(search),
+        hash: location.hash,
+      }))
+    }
   }
 }
 
@@ -29,30 +47,20 @@ class SubjectsTab extends React.PureComponent {
     }
   }
 
-  addSubject = (subject) => {
-    if (this.state.selection.length === 0) {
-      // let selection = this.state.selection.slice(0)
-      // selection.push(subject)
-      this.setState({
-        selection: [subject],
-      })
-    }
-  }
-
-  removeSubject = (subject, index) => {
-    // let selection = this.state.selection.slice(0)
-    // selection.splice(index, 1)
-    this.setState({
-      selection: [],
-    })
-  }
-
   componentWillReceiveProps = (props) => {
-    let query = queryString.parse(this.props.location.search)
+    let query = queryString.parse(props.location.search)
     this.setState({
       subjects: this.filterServiceAccounts(props.autocomplete),
       selection: ('subject' in query ? [query.subject] : []),
     })
+  }
+
+  shouldComponentUpdate = (props, state) => {
+    let shouldUpdate = (this.state.selection.length !== state.selection.length)
+      || (this.state.selection[0] !== state.selection[0])
+      || (Object.keys(this.state.subjects).length !== Object.keys(state.subjects).length)
+      || (this.props.location.search !== props.location.search)
+    return shouldUpdate
   }
 
   filterServiceAccounts = (subjects) => {
@@ -123,8 +131,8 @@ class SubjectsTab extends React.PureComponent {
         
         <FilterBox
           className={'subjects'}
-          addFilter={this.addSubject} 
-          removeFilter={this.removeSubject}
+          addFilter={this.props.setSubject} 
+          removeFilter={this.props.setSubject}
           filterNames={this.state.selection}
           autocomplete={this.state.subjects}
           floatingLabelText={'user or group...'}
