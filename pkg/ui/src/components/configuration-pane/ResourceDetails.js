@@ -78,6 +78,7 @@ let kinds = {
         ['Parallelism:', spec.parallelism],
         ['Completions:', spec.completions],
         ['Start Time:', status.startTime],
+        ['Completion Time:', status.completionTime],
       ]
     }
   },
