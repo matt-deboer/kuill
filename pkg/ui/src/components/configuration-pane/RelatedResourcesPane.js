@@ -448,6 +448,7 @@ class RelatedResourcesPane extends React.PureComponent {
           columns={this.columns}
           data={this.state.relatedResources}
           height={`calc(100vh - ${props.contentTop + 177}px)`}
+          revision={props.resourceRevision}
           multiSelectable={true}
           onRowSelection={this.handleRowSelection}
           onCellClick={this.handleCellClick}
