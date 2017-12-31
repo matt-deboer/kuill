@@ -55,6 +55,7 @@ export const containerStatus = {
   'error': <IconStatusError style={{
     marginLeft: -1, height: 21, width: 21, color: '#F44336', display: 'table-cell',}} className={'status error'} data-rh={`status: error`}/>,
   'none': <IconStatusNone style={{...styles.small, color: 'rgba(0, 0,0, 0.3)'}} className={'status none'} data-rh={`status: none`}/>,
+  'complete': <IconStatusNone style={{...styles.small, color: 'rgba(0, 0,0, 0.3)'}} className={'status complete'} data-rh={`status: complete`}/>,
   'timed out': <IconStatusTimedOut style={{
     marginLeft: -1, width: 21, height: 21, color: '#FFC107', display: 'table-cell',}} className={'status timed-out'} data-rh={`status: timed out`}/>,
 }
@@ -82,6 +83,7 @@ export const resourceStatus = {
   'error': <IconStatusError style={{
     marginLeft: -1, height: 32, width: 32, color: '#F44336', display: 'table-cell',}} className={'status error'} data-rh={`status: error`}/>,
   'none': <IconStatusNone style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} className={'status none'} data-rh={`status: none`}/>,
+  'complete': <IconStatusNone style={{...styles.size, color: 'rgba(0, 0,0, 0.3)'}} className={'status complete'} data-rh={`status: complete`}/>,
   'timed out': <IconStatusTimedOut style={{
     marginLeft: -1, width: 32, height: 32, color: '#FFC107', display: 'table-cell',}} className={'status timed-out'} data-rh={`status: timed out`}/>,
 }
