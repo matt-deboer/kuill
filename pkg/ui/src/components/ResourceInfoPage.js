@@ -317,7 +317,6 @@ class ResourceInfoPage extends React.Component {
         name: 'terminal',
         component: AsyncTerminalViewer,
         icon: <IconTerminal/>,
-        props: {logs: logs},
       })
     }
 
