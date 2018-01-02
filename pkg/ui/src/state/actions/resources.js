@@ -120,6 +120,7 @@ export function putResource(newResource, isNew) {
         }
         selectAllForResource(dispatch, resources, resource, pods)
       }
+      return resources[newResource.key]
     }
   }
 }
@@ -654,12 +655,9 @@ async function createResourceFromContents(dispatch, getState, contents) {
     if (!resp.ok) {
       if (resp.status === 401) {
         dispatch(invalidateSession())
-      } else {
-        dispatch(addError(null,'error',`Failed to create resource: ${resp.statusText}`))
       }
-    } else {
-      return resp.json()
     }
+    return resp.json()
   }).then(json => {
     if (!!json) {
       if (json.code) {
@@ -668,7 +666,8 @@ async function createResourceFromContents(dispatch, getState, contents) {
         let resource = json
         resource.key = keyForResource(resource)
         dispatch(putResource(resource, true))
-        return getState().resources.resources[resource.key]
+        resource = getState().resources.resources[resource.key]
+        return resource
       }
     }
   })
@@ -711,7 +710,7 @@ async function removeResources(dispatch, getState, resources) {
   let results = await Promise.all(requests)
   for (let i=0, len=results.length; i < len; ++i) {
     let result = results[i]
-    if (result.status && result.status !== 404) {
+    if (result.code && result.code !== 404) {
       dispatch(addError(result,'error',`${result.code} ${result.reason}; ${result.message}`))
     } else {
       dispatch({

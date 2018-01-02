@@ -293,7 +293,7 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
   resource.key = keyForResource(resource)
   if (resource.key in state.resources) {
     let existing = state.resources[resource.key]
-    if (existing.isDeleted) {
+    if (existing.isDeleted && !isNew) {
       return state
     }
   } else if (!isNew && resource.kind !== 'Pod') {
