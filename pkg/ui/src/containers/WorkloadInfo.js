@@ -100,6 +100,8 @@ const mapDispatchToProps = function(dispatch, ownProps) {
       let query = queryString.parse(location.search)
       if (query.view !== tab && tab === 'related') {
         query.filters = defaultRelatedFilters
+      } else {
+        delete query.filters
       }
       query.view = tab
       
@@ -171,13 +173,14 @@ class WorkloadInfo extends React.Component {
     let { params } = props.match
     if (editing && !props.editor.contents) {
       props.editResource(params.namespace, params.kind, params.name)
-    } else if (!!props.user && !resourceMatchesParams(props.resource, params)) {
+    } else if (!!props.user && !resourceMatchesParams(props.resource, params) && (!props.resource || !props.resource.notFound)) {
       props.requestResource(params.namespace, params.kind, params.name)
     }
   }
 
   componentWillReceiveProps = (props) => {
     
+    let ensure = false
     if (!sameResourceVersion(this.state.resource,props.resource)
       || (props.editor.contents !== this.props.editor.contents)
       || (props.resource && this.state.resource && props.resource.metadata.resourceVersion )
@@ -186,14 +189,16 @@ class WorkloadInfo extends React.Component {
         resource: props.resource,
         editor: props.editor,
       })
+      ensure = true
     }
     if (props.resourceRevision !== this.props.resourceRevision) {
       this.setState({
         readyContainers: this.filterReadyContainers(props.logPodContainers, props.resources),
       })
+      ensure = true
     }
-    this.ensureResource(props)
-    this.watchLogs()
+    ensure && this.ensureResource(props)
+    // this.watchLogs()
   }
 
   componentDidUpdate = () => {
@@ -205,11 +210,12 @@ class WorkloadInfo extends React.Component {
     let shouldUpdate = (this.props.resourceRevision !== nextProps.resourceRevision
         || !sameResourceVersion(this.state.resource,nextProps.resource)
         || this.props.user !== nextProps.user
+        || this.props.fetching !== nextProps.fetching
         || this.state.editor.contents !== nextProps.editor.contents
         || this.props.location !== nextProps.location
         || this.props.events !== nextProps.events
         || this.props.logPodContainers !== nextProps.logPodContainers
-        || this.props.resourceRevision !== nextProps.resourceRevision
+        || (this.props.resourceRevision !== nextProps.resourceRevision && !this.props.resource.notFound)
         || this.state.readyContainers !== nextState.readyContainers
     )
     return shouldUpdate
@@ -250,7 +256,7 @@ class WorkloadInfo extends React.Component {
         }
         if (pod.status.containerStatuses && containerIndex < pod.status.containerStatuses.length) {
           let containerStatus = pod.status.containerStatuses[containerIndex]
-          if (containerStatus.ready) {
+          if (containerStatus.ready || containerStatus.state.terminated) {
             readyContainers.push(lpc)
           }
         }
@@ -271,9 +277,9 @@ class WorkloadInfo extends React.Component {
     let activeTab = query.view || 'config'
 
     if (!!this.state.resource) {
-      if (this.state.resource.notFound && !fetching) {
+      if ((this.state.resource.notFound && !fetching) || this.state.resource.isDeleted) {
         resourceNotFound = <ResourceNotFoundPage resourceGroup={'workloads'} {...this.props.match.params}/>
-      } else {
+      } else if (!this.state.resource.notFound) {
         resourceInfoPage = 
           <ResourceInfoPage
             removeResource={props.removeResource}

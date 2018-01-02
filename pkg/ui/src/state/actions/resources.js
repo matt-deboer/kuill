@@ -373,7 +373,7 @@ export function requestResource(namespace, kind, name) {
 export function createResource(contents) {
   return async function (dispatch, getState) {
       let resource = null
-      await doRequest(dispatch, getState, 'resources.create', async () => {
+      await doRequest(dispatch, getState, async () => {
         resource = await createResourceFromContents(dispatch, getState, contents)
       })
       // let workloads = getState().resources
@@ -391,15 +391,17 @@ export function removeResource(...resourcesToRemove) {
       
       let { resources, resource } = getState().resources
       let updateSelected = false
+
       for (let toBeRemoved of resourcesToRemove) {
         if (isResourceOwnedBy(resources, toBeRemoved, resource)
-        || isResourceOwnedBy(resources, resource, toBeRemoved)) {
+        || isResourceOwnedBy(resources, resource, toBeRemoved)
+        || sameResource(resource, toBeRemoved)) {
           updateSelected = true
           break
         }
       }
 
-      await doRequest(dispatch, getState, 'resources.delete', async () => {
+      await doRequest(dispatch, getState, async () => {
         await removeResources(dispatch, getState, resourcesToRemove)
       })
 
@@ -678,6 +680,7 @@ async function removeResources(dispatch, getState, resources) {
   let kubeKinds = getState().apimodels.kinds
   let resourcesToRemove = []
   for (let r of resources) {
+    r.key = keyForResource(r)
     if (r.key in knownResources) {
       resourcesToRemove.push(r)
     }
@@ -694,7 +697,7 @@ async function removeResources(dispatch, getState, resources) {
         if (!resp.ok) {
           if (resp.status === 401) {
             dispatch(invalidateSession())
-          } else {
+          } else if (resp.status !== 404) {
             dispatch(addError(resp,'error',`Failed to remove ${resourcesToRemove[index].key}: ${resp.statusText}`,
               'Try Again', () => { dispatch(requestResources()) } ))
           }
@@ -708,7 +711,7 @@ async function removeResources(dispatch, getState, resources) {
   let results = await Promise.all(requests)
   for (let i=0, len=results.length; i < len; ++i) {
     let result = results[i]
-    if (result.code && result.code !== 404) {
+    if (result.status && result.status !== 404) {
       dispatch(addError(result,'error',`${result.code} ${result.reason}; ${result.message}`))
     } else {
       dispatch({

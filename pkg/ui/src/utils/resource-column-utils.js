@@ -57,7 +57,9 @@ export function renderResourceCell(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(2)
+          if (count) {
+            return (total / count).toFixed(2)
+          }
         }
       }
       return ''
@@ -86,7 +88,9 @@ export function renderResourceCell(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(1)
+          if (count) {
+            return (total / count).toFixed(1)
+          }
         }
       }
       return ''
@@ -115,7 +119,9 @@ export function renderResourceCell(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(1)
+          if (count) {
+            return (total / count).toFixed(1)
+          }
         }
       }
       return ''
@@ -171,7 +177,9 @@ export function getResourceCellValue(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(2)
+          if (count) {
+            return (total / count).toFixed(2)
+          }
         }
       }
       return -1
@@ -200,7 +208,9 @@ export function getResourceCellValue(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(1)
+          if (count) {
+            return (total / count).toFixed(1)
+          }
         }
       }
       return -1
@@ -229,7 +239,9 @@ export function getResourceCellValue(column, resource, podMetrics) {
               }
             }
           }
-          return (total / count).toFixed(1)
+          if (count) {
+            return (total / count).toFixed(1)
+          }
         }
       }
       return -1

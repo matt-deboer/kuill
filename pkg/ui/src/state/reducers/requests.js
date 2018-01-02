@@ -13,10 +13,7 @@ export default (state = initialState, action) => {
       return doSetFetching(state, action.name, action.request)
 
     case types.DONE_FETCHING:
-      return {...state, 
-        fetching: false,
-        fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
-      }
+      return doClearFetching(state, action.name)
 
     default:
       return state;
@@ -35,6 +32,15 @@ function doSetFetching(state, name, request) {
     newState.fetchBackoff = !!newState.fetchError ? incrementBackoff(newState.fetchBackoff) : decrementBackoff(newState.fetchBackoff)
   }
 
+  return newState
+}
+
+function doClearFetching(state, name) {
+  let newState = {...state, 
+    fetching: {...state.fetching},
+    fetchBackoff: !!state.fetchError ? incrementBackoff(state.fetchBackoff) : decrementBackoff(state.fetchBackoff),
+  }
+  delete newState.fetching[name]
   return newState
 }
 

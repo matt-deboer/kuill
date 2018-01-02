@@ -224,7 +224,6 @@ class NewResource extends React.Component {
         lineHeight: '24px',
         marginRight: 5,
         fontSize: 14,
-        // fontWeight: 600,
         display: 'inline-block',
         color: white,
       },

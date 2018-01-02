@@ -429,7 +429,7 @@ class ResourceInfoPage extends React.Component {
         <ConfirmationDialog 
           open={this.state.suspendOpen}
           title={'Suspend Resource(s):'}
-          message={`Are you sure you want to suspend the following resource (by scaling to 0 replicas)?`}
+          message={`Are you sure you want to suspend the following resource?`}
           resources={[this.props.resource]}
           onRequestClose={this.handleRequestCloseSuspend}
           onConfirm={this.handleConfirmSuspend}

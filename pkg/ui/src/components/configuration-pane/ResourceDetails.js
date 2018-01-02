@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { toHumanizedAge } from '../../converters'
+import cronstrue from 'cronstrue'
 
 let kinds = {
   Deployment: {
@@ -58,8 +59,8 @@ let kinds = {
   CronJob: {
     getData: ({status, spec, metadata }) => {
       return [
-        ['Created:', `${metadata.creationTimestamp} (${toHumanizedAge(metadata.creationTimestamp)} ago)`],
-        ['Schedule:', spec.schedule],
+        ['Created:', `${metadata.creationTimestamp} ( ${toHumanizedAge(metadata.creationTimestamp)} ago )`],
+        ['Schedule:', `${spec.schedule} ( ${cronstrue.toString(spec.schedule)} )`],
         ['Concurrency Policy:', spec.concurrencyPolicy],
         ['Suspend', spec.suspend],
         // ['Starting Deadline Seconds:', spec.startingDeadlineSeconds || '<unset>'],

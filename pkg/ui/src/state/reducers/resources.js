@@ -170,7 +170,7 @@ function doFilterAll(state, resources) {
  * @param {*} problemResources 
  * @param {*} possibleFilters 
  */
-function registerOwned(state, resource) {
+function registerOwned(state, resource, remove) {
   if ('ownerReferences' in resource.metadata) {
     for (let ref of resource.metadata.ownerReferences) {
       let resolved = false
@@ -178,20 +178,23 @@ function registerOwned(state, resource) {
       let owner = state.resources[ownerKey]
       if (!!owner) {
         let owned = owner.owned = owner.owned || {}
-        owned[resource.key] = resource
+        if (remove) {
+          delete owned[resource.key]
+        } else {
+          owned[resource.key] = resource
 
-        // problemResources can depend on descendents' status summaries
-        owner.statusSummary = statusForResource(owner)
-        if (!!owner.statusSummary && 'error warning timed out'.includes(owner.statusSummary)) {
-          state.problemResources[owner.key] = owner
-        } else if (owner.key in state.problemResources) {
-          delete state.problemResources[owner.key]
+          // problemResources can depend on descendents' status summaries
+          owner.statusSummary = statusForResource(owner)
+          if (!!owner.statusSummary && 'error warning timed out'.includes(owner.statusSummary)) {
+            state.problemResources[owner.key] = owner
+          } else if (owner.key in state.problemResources) {
+            delete state.problemResources[owner.key]
+          }
+          state.autocomplete.workloads[`status:${owner.statusSummary}`]=true
+
+          resolved = true
+          registerOwned(state, owner)
         }
-        state.autocomplete.workloads[`status:${owner.statusSummary}`]=true
-
-        resolved = true
-        registerOwned(state, owner)
-
       }
       if (!resolved) {
         state.unresolvedOwnership[ownerKey] = state.unresolvedOwnership[ownerKey] || []
@@ -319,10 +322,22 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     ++newState.resourceRevision
   }
 
+  let existing = state.resources[resource.key]
+  if (sameResource(existing, resource) && existing.owned) {
+    resource.owned = {}
+    for (let ownedKey in existing.owned) {
+      let owned = state.resources[ownedKey]
+      if (!!owned && !owned.isDeleted) {
+        resource.owned[ownedKey] = owned
+      }
+    }
+  }
+
   if (sameResource(newState.resource, resource)) {
     newState = doSelectResource(newState, 
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
+
 
   newState.resources = {...newState.resources}
   newState.resources[resource.key] = resource
@@ -344,7 +359,9 @@ function doRemoveResource(state, resource) {
     // delete resources[resource.key]
     let r = resources[resource.key]
     r.isDeleted = true
+    r.notFound = true
     r.isFiltered = true
+    registerOwned(state, r, true)
 
     let podsByNode = {...state.podsByNode}
     if (resource.kind === 'Pod') {
@@ -546,6 +563,25 @@ function updateRelatedResources(state, resource, remove) {
             resource.related[refKey] = true
           }
         }
+      }
+    }
+  } else if (resource.kind === 'Pod') {
+    let ns = resource.metadata.namespace
+    for (let vol of resource.spec.volumes) {
+      let type, refKey
+      if (!!vol.secret) {
+        type = 'Secret'
+        refKey = `${type}/${ns}/${vol.secret.secretName}`
+      } else if (!!vol.configMap) {
+        type = 'ConfigMap'
+        refKey = `${type}/${ns}/${vol.configMap.name}`
+      } else if (!!vol.persistentVolumeClaim) {
+        type = 'PersistentVolumeClaim'
+        refKey = `${type}/${ns}/${vol.persistentVolumeClaim.claimName}`
+      }
+      if (!!refKey) {
+        resource.related = resource.related || {}
+        resource.related[refKey] = true
       }
     }
   } 

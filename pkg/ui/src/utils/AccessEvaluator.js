@@ -27,20 +27,57 @@ export default class AccessEvaluator {
     return this.getObjectPermissions(resource)
       .then(permissions => {
         // TODO: what about StatefulSet and DaemonSet?
-        let replicas = (resource.status && (resource.status.readyReplicas || resource.status.replicas || resource.status.numberReady)) || -1
+        let replicas = (resource.status && (
+          resource.status.readyReplicas || 
+          resource.status.replicas || 
+          resource.status.numberReady ||
+          (typeof resource.status.active === 'number' && resource.status.active) ||
+          (resource.status.active && resource.status.active.length)
+        )) || -1
+
         return {
           get: !!permissions.get,
           edit: !!permissions.put,
           delete: !!permissions.delete,
-          logs: !!permissions.logs && (replicas > 0 || resource.kind === 'Pod'),
-          terminal: !!permissions.exec && (replicas > 0 || resource.kind === 'Pod'),
-          detach: !!permissions.put && resource.kind === 'Pod' 
-            && resource.metadata.annotations 
-            && !(detachedOwnerRefsAnnotation in resource.metadata.annotations),
+          logs: this.canViewLogs(permissions, resource, replicas),
+          terminal: this.canViewTerminal(permissions, resource, replicas),
+          detach: this.canDetach(permissions, resource),
           scale: !!permissions.put && replicas >= 0,
-          suspend: !!permissions.put && replicas > 0,
+          suspend: this.canSuspend(permissions, resource, replicas),
         }
       })
+  }
+
+  canViewLogs = (permissions, resource, replicas) => {
+    return !!permissions.logs && (
+      replicas > 0 || 
+      resource.kind === 'Pod' ||
+      (resource.status && (
+        resource.status.completionTime || 
+        resource.status.lastScheduleTime)
+      )
+    )
+  }
+
+  canViewTerminal = (permissions, resource, replicas) => {
+    return !!permissions.exec && (
+      replicas > 0 || 
+      (resource.kind === 'Pod' && resource.statusSummary !== 'complete')
+    )
+  }
+
+  canDetach = (permissions, resource) => {
+    return !!permissions.put && 
+      resource.kind === 'Pod' && 
+      resource.metadata.annotations && 
+      (!!resource.metadata.annotations && !(detachedOwnerRefsAnnotation in resource.metadata.annotations))
+  }
+
+  canSuspend = (permissions, resource, replicas) => {
+    return (!!permissions.put && 
+      replicas > 0 || 
+      (resource.spec && 'suspend' in resource.spec && !resource.spec.suspend)
+    )
   }
 
   getObjectPermissions = async (resource) => {

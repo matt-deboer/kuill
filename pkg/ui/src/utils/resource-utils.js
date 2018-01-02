@@ -266,6 +266,7 @@ export function statusForResource(resource) {
                 let ready = false
                 let scheduled = false
                 let initialized = false
+                let completed = false
                 for (let cond of resource.status.conditions) {
                     if (cond.type === 'Initialized') {
                         initialized = (cond.status === 'True')
@@ -273,6 +274,7 @@ export function statusForResource(resource) {
                         scheduled = (cond.status === 'True')
                     } else if (cond.type === 'Ready') {
                         ready = (cond.status === 'True')
+                        completed = (cond.status === 'False' && cond.reason === 'PodCompleted')
                     }
                 }
                 if (ready && scheduled && initialized) {
@@ -295,6 +297,8 @@ export function statusForResource(resource) {
                         }
                     }
                     return 'ok'
+                } else if (completed) {
+                    return 'complete'
                 } else if (ready || scheduled) {
                     return 'scaling up'
                 }
@@ -309,8 +313,6 @@ export function statusForResource(resource) {
                 return 'scaling down'
             }
             break
-        case 'Service': case 'Endpoints': case 'Secret':
-            return 'none'
         case 'ReplicationController':
             if (resource.status.readyReplicas === resource.spec.replicas) {
                 return 'ok'
@@ -389,7 +391,21 @@ export function statusForResource(resource) {
                 }
             }
             return status
-            
+        case 'Job':
+            let jobStatus = 'ok'
+            if (resource.status.conditions) {
+                for (let cond of resource.status.conditions) {
+                    switch(cond.type) {
+                        case 'Complete': 
+                            if (cond.status === 'True') {
+                                jobStatus = 'complete'
+                            }
+                            break
+                        default:
+                    }
+                }
+            }
+            return jobStatus
         default:
             //return 'unknown'
             return ''

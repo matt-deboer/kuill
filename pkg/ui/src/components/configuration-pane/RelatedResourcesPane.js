@@ -19,11 +19,11 @@ import './PodsForNodePane.css'
 const mapStateToProps = function(store) {
   return {
     resources: store.resources.resources,
+    resourceRevision: store.resources.resourceRevision,
     podsByEndpoint: store.resources.podsByEndpoint,
     accessEvaluator: store.session.accessEvaluator,
     linkGenerator: store.session.linkGenerator,
     maxResourceVersionByKind: store.resources.maxResourceVersionByKind,
-    resourceRevision: store.resources.revision,
     podMetrics: store.metrics.pod,
     filterNames: store.resources.filterNames,
     autocomplete: store.resources.autocomplete.workloads,
@@ -408,7 +408,8 @@ class RelatedResourcesPane extends React.PureComponent {
   }
 
   shouldComponentUpdate = (nextProps, nextState) => {
-    return nextState.actionsOpen !== this.state.actionsOpen
+    let shouldUpdate = nextProps.resource !== this.props.resource
+        || nextState.actionsOpen !== this.state.actionsOpen
         || nextProps.resourceRevision !== this.props.resourceRevision
         || nextProps.contentTop !== this.props.contentTop
         || nextState.relatedResources !== this.state.relatedResources
@@ -417,6 +418,7 @@ class RelatedResourcesPane extends React.PureComponent {
         || nextState.deleteOpen !== this.state.deleteOpen
         || nextState.detachOpen !== this.state.detachOpen
         || nextState.selectedResources !== this.state.selectedResources
+    return shouldUpdate
   }
 
   render() {
