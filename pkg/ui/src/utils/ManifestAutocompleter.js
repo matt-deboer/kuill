@@ -133,6 +133,9 @@ export default class ManifestAutocompleter {
     if (k) {
       // this is truly terrible :( we may need to just make the definition part of KubeKinds,
       let base = k.version.split(/\//g).map(b=>b.split(/[.]/)[0]).join('.')
+      if (!base.includes('.')) {
+        base = 'core.' + base
+      }
       let fqName = `io.k8s.api.${base}.${kind}`
       let def = this.swagger.definitions[fqName]
       if (def.$ref) {
