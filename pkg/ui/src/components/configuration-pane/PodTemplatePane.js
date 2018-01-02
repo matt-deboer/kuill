@@ -65,7 +65,8 @@ class PodTemplatePane extends React.Component {
     let { props } = this
     let { resource, linkGenerator } = props
 
-    let {status, spec, metadata } = resource.spec.template
+    let template = resource.spec.template || resource.spec.jobTemplate.spec.template
+    let {status, spec, metadata } = template
 
     return (
       <div style={{
@@ -131,15 +132,15 @@ class PodTemplatePane extends React.Component {
               />
               <CardText>
                 <div className="row" style={{marginLeft: 0, marginRight: 0}}>
-                  {resource.spec.template.spec.initContainers && 
-                    resource.spec.template.spec.initContainers.map(container => {
+                  {template.spec.initContainers && 
+                    template.spec.initContainers.map(container => {
                       return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
                         <ContainerPanel key={container.name} container={container}
                           namespace={resource.metadata.namespace} isInit={true}/>
                       </div>
                     })
                   }
-                  {resource.spec.template.spec.containers.map(container => {
+                  {template.spec.containers.map(container => {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
                       <ContainerPanel key={container.name} container={container} 
                         namespace={resource.metadata.namespace}

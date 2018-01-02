@@ -277,6 +277,13 @@ class ResourceInfoPage extends React.Component {
           icon: <IconPodTemplate/>,
           props: {resource: resource, linkGenerator: linkGenerator},
         })
+      } else if (resource.spec && resource.spec.jobTemplate) {
+        tabs.push({
+          name: 'job template',
+          component: PodTemplatePane,
+          icon: <IconPodTemplate/>,
+          props: {resource: resource, linkGenerator: linkGenerator},
+        })
       }
 
       if (resource.kind === 'Node') {
