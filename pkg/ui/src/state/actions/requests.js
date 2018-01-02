@@ -21,7 +21,7 @@ export async function doRequest(dispatch, getState, name, request) {
   
   let storeHandle = (typeof name === 'string')
   let requestHandle = storeHandle && getState().requests.fetching[name]
-  let newRequest = !requestHandle
+  let newRequest = !!request && !requestHandle
   if (!storeHandle) {
     requestHandle = name()
   }
