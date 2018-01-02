@@ -74,7 +74,7 @@ export default class AccessEvaluator {
   }
 
   canSuspend = (permissions, resource, replicas) => {
-    return (!!permissions.put && 
+    return !!permissions.put && (
       replicas > 0 || 
       (resource.spec && 'suspend' in resource.spec && !resource.spec.suspend)
     )
