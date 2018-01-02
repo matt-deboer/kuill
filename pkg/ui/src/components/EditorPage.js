@@ -70,13 +70,15 @@ const styles = {
     bottom: 120,
     right: 48,
     fontSize: 14,
-    padding: 10,
+    padding: '10px 10px 10px 18px',
     borderRadius: 2,
   },
   clearError: {
-    position: 'absolute',
+    position: 'relative',
+    float: 'right',
     top: 0, 
-    right: 0
+    right: 0,
+    margin: '-8px -8px 0 0',
   },
 }
 
