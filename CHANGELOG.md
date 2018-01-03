@@ -1,5 +1,22 @@
 changelog
 ===
+v0.2-b8
+---
+
+2018-01-02
+
+**features:**
+
+- #40: CronJob support
+
+**fixes:**
+
+- #80: Related resources tab doesn't update properly for ChronJobs
+- #81: Logs and Terminal handling is incorrect for completed pods
+- #82: Resources that become deleted while being viewed are not handled properly
+
+
+---
 
 v0.2-b7
 ---
