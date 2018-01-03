@@ -217,6 +217,7 @@ export function eventsForResource(events, resource) {
  * @param {*} resource 
  */
 export function statusForResource(resource) {
+    var status
     // TODO: can this be replaced with direct querys to kube status API?
     switch(resource.kind) {
         case 'ReplicaSet':
@@ -360,7 +361,7 @@ export function statusForResource(resource) {
                 return 'scaling up'
             }
         case 'Node':
-            let status = 'scaling up'
+            status = 'scaling up'
             for (let cond of resource.status.conditions) {
                 switch(cond.type) {
                     case 'DiskPressure': 
@@ -392,20 +393,38 @@ export function statusForResource(resource) {
             }
             return status
         case 'Job':
-            let jobStatus = 'ok'
+            status = 'ok'
             if (resource.status.conditions) {
                 for (let cond of resource.status.conditions) {
                     switch(cond.type) {
                         case 'Complete': 
                             if (cond.status === 'True') {
-                                jobStatus = 'complete'
+                                status = 'complete'
                             }
                             break
                         default:
                     }
                 }
             }
-            return jobStatus
+            return status
+        case 'CronJob':
+            status = 'ok'
+            if (resource.owned) {
+                let jobKeys = Object.keys(resource.owned)
+                jobKeys.sort()
+                jobKeys.reverse()
+                for (let jobKey of jobKeys) {
+                    let job = resource.owned[jobKey]
+                    switch(job.statusSummary) {
+                        case 'complete':
+                        case 'ok':
+                            break
+                        default:
+                            status = 'warning'
+                    }
+                }
+            }
+            return status
         default:
             //return 'unknown'
             return ''
