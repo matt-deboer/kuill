@@ -247,17 +247,19 @@ class WorkloadInfo extends React.Component {
       for (let lpc of logPodContainers) {
         let [podName, containerName] = lpc.split('/')
         let pod = resources[`Pod/${this.props.resource.metadata.namespace}/${podName}`]
-        let containerIndex = -1
-        for (let i=0, len=pod.spec.containers.length; i < len; ++i) {
-          if (pod.spec.containers[i].name === containerName) {
-            containerIndex = i
-            break
+        if (!!pod) {
+          let containerIndex = -1
+          for (let i=0, len=pod.spec.containers.length; i < len; ++i) {
+            if (pod.spec.containers[i].name === containerName) {
+              containerIndex = i
+              break
+            }
           }
-        }
-        if (pod.status.containerStatuses && containerIndex < pod.status.containerStatuses.length) {
-          let containerStatus = pod.status.containerStatuses[containerIndex]
-          if (containerStatus.ready || containerStatus.state.terminated) {
-            readyContainers.push(lpc)
+          if (pod.status.containerStatuses && containerIndex < pod.status.containerStatuses.length) {
+            let containerStatus = pod.status.containerStatuses[containerIndex]
+            if (containerStatus.ready || containerStatus.state.terminated) {
+              readyContainers.push(lpc)
+            }
           }
         }
       }
