@@ -149,4 +149,32 @@ context('Cluster Admin', function(){
 
   })
 
+  // it('can create a new cronjob', function() {
+  //   cy.get('#goto-workloads').click()
+  //   cy.get('.workloads-page')
+
+  //   cy.get('div.new-workload > button').click()
+  //   // cy.get('button.selected-template').click()
+  //   // cy.get('.selected-template-item.CronJob').click()
+  //   cy.get('.replace-with-template').click()
+
+  //   cy.get('.ace_content .ace_line:nth-of-type(4)').click('right', {force: true})
+  //   cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(7)}chronic{downarrow}`,{force: true})
+
+  //   cy.get('.ace_content .ace_line:nth-of-type(5)').click('right', {force: true})
+  //   cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(12)}default${"{downarrow}".repeat(2)}`,{force: true})
+    
+  //   cy.get('.ace_content .ace_line:nth-of-type(7)').click('right', {force: true})
+  //   // cy.get('textarea.ace_text-input').type(`{leftarrow}${"{backspace}".repeat(11)}`,{force: true})
+  //   cy.get('textarea.ace_text-input').type(`{leftarrow}${"{backspace}".repeat(11)}*/1 * * * *${"{downarrow}".repeat(9)}`,{force: true})
+
+  //   cy.get('.ace_content .ace_line:nth-of-type(16)').click('right', {force: true})
+  //   cy.get('textarea.ace_text-input').type(`${"{backspace}".repeat(7)}chronic{downarrow}`,{force: true})
+
+  //   cy.get('.editor-apply button').click()
+  //   cy.get('.resource-info')
+  //   cy.get('.resource-status .status.ok', {timeout: 90000})
+
+  // })
+
 })
