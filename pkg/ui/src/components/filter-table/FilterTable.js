@@ -186,6 +186,10 @@ export default class FilterTable extends React.PureComponent {
     let dataRows =
         this.state.data.map((row, rowIndex) => {
           let id = props.getCellValue(props.idColumn, row)
+          if (!id) {
+            console.warn(`missing '${props.idColumn}' value for row: ${JSON.stringify(row)}`)
+            id = `$$row_${rowIndex}`
+          }
           return (
             <TableRow key={id} 
               hovered={props.hoveredRow === rowIndex} 
