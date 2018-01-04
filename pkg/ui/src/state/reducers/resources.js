@@ -300,7 +300,9 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     return state
   }
 
-  let newState = {...state}
+  let newState = {...state, resources: {...state.resources}}
+  newState.resources[resource.key] = resource
+
   updateRelatedResources(newState, resource)
   if (resource.kind in excludedKinds) {
     return newState
@@ -333,18 +335,11 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     }
   }
 
-  newState.resources[resource.key] = resource
   if (sameResource(newState.resource, resource)) {
-    newState.resources = resource
     newState = doSelectResource(newState, 
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
 
-
-  newState.resources = {...newState.resources}
-  if (newState.resource && newState.resource.key === resource.key) {
-    newState.resource = resource
-  }
 
   if (!applyFilters(newState.globalFilters, newState.filters, resource)) {
     updateAutocomplete(newState, resource, resourceGroup)
