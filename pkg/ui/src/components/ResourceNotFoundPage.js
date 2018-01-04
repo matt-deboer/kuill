@@ -7,9 +7,7 @@ import { routerActions } from 'react-router-redux'
 import {Card, CardHeader, CardText} from 'material-ui/Card'
 import FilterChip from './FilterChip'
 import { withRouter } from 'react-router-dom'
-import RaisedButton from 'material-ui/RaisedButton'
 import KindAbbreviation from './KindAbbreviation'
-import IconAdd from 'material-ui/svg-icons/content/add'
 import Chip from 'material-ui/Chip'
 
 const mapStateToProps = function(store) {
@@ -80,14 +78,6 @@ class ResourceNotFoundPage extends React.Component {
             avatar={<KindAbbreviation text={this.kubeKind.abbrev} color={this.kubeKind.color}/>}
             titleStyle={{fontSize: '24px', fontWeight: 600, paddingLeft: 10}}
           >
-            <RaisedButton
-              label="Create it"
-              labelPosition="before"
-              onTouchTap={this.props.createResource}
-              icon={<IconAdd/>}
-              style={{position: 'absolute', right: 20, top: 20}}
-              primary={true}
-            />
           </CardHeader>
           <CardText style={{
               borderTop: `4px solid ${blueA400}`, 
