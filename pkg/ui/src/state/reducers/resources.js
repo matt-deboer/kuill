@@ -333,14 +333,15 @@ function doUpdateResource(state, resource, isNew, kubeKinds) {
     }
   }
 
+  newState.resources[resource.key] = resource
   if (sameResource(newState.resource, resource)) {
+    newState.resources = resource
     newState = doSelectResource(newState, 
       resource.metadata.namespace, resource.kind, resource.metadata.name)
   }
 
 
   newState.resources = {...newState.resources}
-  newState.resources[resource.key] = resource
   if (newState.resource && newState.resource.key === resource.key) {
     newState.resource = resource
   }
@@ -356,7 +357,6 @@ function doRemoveResource(state, resource) {
   
   if (resource.key in state.resources) {
     let resources = { ...state.resources }
-    // delete resources[resource.key]
     let r = resources[resource.key]
     r.isDeleted = true
     r.notFound = true
@@ -377,8 +377,14 @@ function doRemoveResource(state, resource) {
     }
     updateRelatedResources(state, resource, true)
 
+    let selected = state.resource
+    if (resource.key === selected.key) {
+      selected = null
+    }
+
     return { ...state,
       countsByKind: countsByKind,
+      resource: selected,
       resources: resources,
       podCount: (state.podCount - 1),
       podsByNode: podsByNode,
