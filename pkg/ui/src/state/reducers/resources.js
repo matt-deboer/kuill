@@ -378,7 +378,7 @@ function doRemoveResource(state, resource) {
     updateRelatedResources(state, resource, true)
 
     let selected = state.resource
-    if (resource.key === selected.key) {
+    if (!!selected && resource.key === selected.key) {
       selected = null
     }
 
