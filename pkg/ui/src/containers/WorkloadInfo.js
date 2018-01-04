@@ -9,7 +9,7 @@ import ResourceInfoPage from '../components/ResourceInfoPage'
 import ResourceNotFoundPage from '../components/ResourceNotFoundPage'
 import LoadingSpinner from '../components/LoadingSpinner'
 import LogFollower from '../utils/LogFollower'
-import { sameResourceVersion, resourceMatchesParams } from '../utils/resource-utils'
+import { sameResourceVersion, resourceMatchesParams, validResource } from '../utils/resource-utils'
 import queryString from 'query-string'
 import Loadable from 'react-loadable'
 import LoadingComponentStub from '../components/LoadingComponentStub'
@@ -247,7 +247,7 @@ class WorkloadInfo extends React.Component {
       for (let lpc of logPodContainers) {
         let [podName, containerName] = lpc.split('/')
         let pod = resources[`Pod/${this.props.resource.metadata.namespace}/${podName}`]
-        if (!!pod) {
+        if (validResource(pod)) {
           let containerIndex = -1
           for (let i=0, len=pod.spec.containers.length; i < len; ++i) {
             if (pod.spec.containers[i].name === containerName) {

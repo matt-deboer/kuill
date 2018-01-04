@@ -21,6 +21,16 @@ export function sameResource(res1, res2) {
 }
 
 /**
+ * Returns true if the provided resource is an object and does not represent
+ * a missing or deleted resource
+ * 
+ * @param {any} resource 
+ */
+export function validResource(resource) {
+    return !!resource && !resource.notFound && !resource.isDeleted
+}
+
+/**
  * Returns true if the resource provided and the
  * query parameter specification both represent the same
  * kubernetes object.
