@@ -393,13 +393,22 @@ export function statusForResource(resource) {
             }
             return status
         case 'Job':
-            status = 'ok'
+            status = 'scaling up'
             if (resource.status.conditions) {
                 for (let cond of resource.status.conditions) {
                     switch(cond.type) {
                         case 'Complete': 
                             if (cond.status === 'True') {
                                 status = 'complete'
+                            }
+                            break
+                        case 'Failed':
+                            if (cond.status === 'True') {
+                                if (cond.reason === 'DeadlineExceeded') {
+                                    status = 'timed out'
+                                } else {
+                                    status = 'error'
+                                }
                             }
                             break
                         default:
@@ -413,15 +422,39 @@ export function statusForResource(resource) {
                 let jobKeys = Object.keys(resource.owned)
                 jobKeys.sort()
                 jobKeys.reverse()
-                for (let jobKey of jobKeys) {
-                    let job = resource.owned[jobKey]
-                    switch(job.statusSummary) {
-                        case 'complete':
-                        case 'ok':
+                let job = resource.owned[jobKeys[0]]
+                switch(job.statusSummary) {
+                    case 'complete':
+                    case 'ok':
+                        break
+                    case 'scaling up':
+                        // the most recent job is still scaling up
+                        // so we go to the next most recent job
+                        // if it was success, then the cj is ok
+                        // if it was failure, then the cj is warning
+                        if (jobKeys.length > 1) {
+                            job = resource.owned[jobKeys[1]]
+                            if (job.statusSummary === 'ok' || job.statusSummary === 'complete') {
+                                status = 'ok'
+                            } else {
+                                status = 'warning'
+                            }
+                        } else {
+                            status = 'scaling up'
                             break
-                        default:
-                            status = 'warning'
-                    }
+                        }
+                        break
+                    default:
+                        status = 'error'
+                        for (let i=1; i < jobKeys.length && i < 3; ++i) {
+                            job = resource.owned[jobKeys[i]]
+                            if (job.statusSummary === 'complete' || job.statusSummary === 'ok') {
+                                status = 'warning'
+                                break
+                            } else if (job.statusSummary === 'scaling up') {
+                                status = 'scaling up'
+                            }
+                        }
                 }
             }
             return status
