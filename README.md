@@ -131,7 +131,7 @@ Run `make minidev` locally to:
 1. Spin up (if not already started) a `minikube` setup similar to the test-drive script above.
 1. Start a local HMR web dev environment
 
-Code away--PR's welcome!
+Code away--PRs welcome!
 
 ---
 
