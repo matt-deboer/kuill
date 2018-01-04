@@ -1,5 +1,17 @@
 changelog
 ===
+v0.2-b9
+---
+
+2018-01-04
+
+**fixes:**
+
+- fix to status display for job and cronjob
+- fix for deleting/recreating the same resource
+
+---
+
 v0.2-b8
 ---
 
