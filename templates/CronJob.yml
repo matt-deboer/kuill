@@ -5,8 +5,11 @@ metadata:
   namespace: ${namespace}
 spec:
   schedule: "*/5 * * * *"
+  concurrencyPolicy: Replace
   jobTemplate:
     spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 90
       template:
         spec:
           containers:
