@@ -12,7 +12,7 @@ service:
   externalPort: 80
   internalPort: 8080
 config:
-  anonymousGroups: 'system:authenticated'
+  anonymousGroups: 'system:masters'
 
   verbose: false
   traceRequests: false
