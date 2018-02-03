@@ -112,6 +112,8 @@ items:
             value: "8443"
           - name: KUILL_DISABLE_TLS
             value: "true"
+          - name: KUILL_ANONYMOUS_GROUPS
+            value: "system:masters"
           ports:
           - containerPort: 8443
             name: http
