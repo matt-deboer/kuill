@@ -85,10 +85,6 @@ items:
     name: system:discovery
     apiGroup: "rbac.authorization.k8s.io"
 
-kind: List
-apiVersion: v1
-items:
-
 - kind: Deployment
   apiVersion: apps/v1beta1
   metadata:
@@ -107,27 +103,18 @@ items:
           name: kuill
           service: kuill
       spec:
-        volumes:
-        - name: auth-proxy-certs
-          secret:
-            secretName: auth-proxy-certs
+        serviceAccount: kuill
         containers:
         - image: mattdeboer/kuill
           name: kuill
-          volumeMounts: 
-          - name: auth-proxy-certs
-            mountPath: /certs
-            readOnly: true
           env:
           - name: KUILL_PORT
             value: "8443"
-          - name: KUILL_SERVER_CERT
-            value: /certs/auth-proxy.pem
-          - name: KUILL_SERVER_KEY
-            value: /certs/auth-proxy-key.pem
+          - name: KUILL_DISABLE_TLS
+            value: "true"
           ports:
           - containerPort: 8443
-            name: https
+            name: http
         
 - kind: Service
   apiVersion: v1

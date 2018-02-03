@@ -74,7 +74,7 @@ Prerequisites:
 1. View it in your browser
 
     ```sh
-    open "https://$(minikube ip):30443/"
+    open "http://$(minikube ip):30443/"
     ```
 
 ---
