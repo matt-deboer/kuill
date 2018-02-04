@@ -15,6 +15,7 @@ spec:
         app: {{ template "kuill.name" . }}
         release: {{ .Release.Name }}
     spec:
+      serviceAccount: {{ template "kuill.fullname" . }}-sa
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
