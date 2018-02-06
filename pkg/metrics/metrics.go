@@ -191,7 +191,10 @@ func safeDivideFloat(dividend, divisor float64) float64 {
 func convertSummary(summary *KubeletStatsSummary, node v1.Node, summaries *Summaries) (*Summary, map[string]*Summary) {
 
 	summaryByNs := make(map[string]*Summary)
-	networkSeconds := uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Unix())
+	networkSeconds := uint64(0)
+	if summary.Node.Network != nil {
+		networkSeconds = uint64(summary.Node.Network.Time.Unix() - summary.Node.StartTime.Unix())
+	}
 	volCapacityBytes := uint64(0)
 	volUsageBytes := uint64(0)
 	for _, podStats := range summary.Pods {
