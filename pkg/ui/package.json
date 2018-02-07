@@ -78,7 +78,7 @@
     "release": "npm install && npm run build",
     "test:acceptance": "jest test/acceptance",
     "cypress:open": "cypress open",
-    "cypress:run": "DEBUG=cypress:* cypress run --record ${RECORD_ACCEPTANCE}"
+    "cypress:run": "cypress run --record ${RECORD_ACCEPTANCE}"
   },
   "proxy": {
     "/auth": {
