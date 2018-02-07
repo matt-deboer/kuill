@@ -20,6 +20,7 @@ items:
           name: kuill
           service: kuill
       spec:
+        serviceAccount: kuill-serviceaccount
         volumes:
         - name: auth-proxy-certs
           secret:
