@@ -9,6 +9,7 @@ import {
 } from 'material-ui/Table'
 import sizeMe from 'react-sizeme'
 
+import AnnotationsPanel from './AnnotationsPanel'
 import ContainerPanel from './ContainerPanel'
 import Volumes from './Volumes'
 import yaml from 'js-yaml'
@@ -124,33 +125,36 @@ class PodTemplatePane extends React.Component {
           </Card>
         </div>
         <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <Card style={{...styles.cards, marginTop: -15}}>
-              <CardHeader 
-                style={styles.cardHeader}
-                title={'containers'}
-                titleStyle={styles.cardHeaderTitle}
-              />
-              <CardText>
-                <div className="row" style={{marginLeft: 0, marginRight: 0}}>
-                  {template.spec.initContainers && 
-                    template.spec.initContainers.map(container => {
-                      return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
-                        <ContainerPanel key={container.name} container={container}
-                          namespace={resource.metadata.namespace} isInit={true}/>
-                      </div>
-                    })
-                  }
-                  {template.spec.containers.map(container => {
+          <Card style={styles.cards}>
+            <CardHeader 
+              style={styles.cardHeader}
+              title={'containers'}
+              titleStyle={styles.cardHeaderTitle}
+            />
+            <CardText>
+              <div className="row" style={{marginLeft: 0, marginRight: 0}}>
+                {template.spec.initContainers && 
+                  template.spec.initContainers.map(container => {
                     return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
-                      <ContainerPanel key={container.name} container={container} 
-                        namespace={resource.metadata.namespace}
-                        />
+                      <ContainerPanel key={container.name} container={container}
+                        namespace={resource.metadata.namespace} isInit={true}/>
                     </div>
-                  })}
-                </div>
-              </CardText>
-            </Card>
-          </div>
+                  })
+                }
+                {template.spec.containers.map(container => {
+                  return <div key={container.name} className="col-xs-12 col-sm-6 col-md-6 col-lg-6" style={{marginBottom: 15, paddingLeft: 0}}>
+                    <ContainerPanel key={container.name} container={container} 
+                      namespace={resource.metadata.namespace}
+                      />
+                  </div>
+                })}
+              </div>
+            </CardText>
+          </Card>
+        </div>
+        <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <AnnotationsPanel annotations={template.spec.metadata && template.spec.metadata.annotations} />
+        </div>
       </div>
     )
   }
