@@ -16,3 +16,4 @@ certs/
 .ruby*
 .rbenv*
 .DS_Store
+.vendor-new/

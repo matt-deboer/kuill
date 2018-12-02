@@ -23,9 +23,13 @@ build: clean
 pkg/ui/build:
 	cd pkg/ui && npm run release
 
-release-ui: pkg/ui/build
-	@go get github.com/jteeuwen/go-bindata/...
-	go-bindata -o pkg/server/ui.go -prefix "pkg/ui/build" pkg/ui/build/...
+bin/go-bindata:
+	@ mkdir -p bin \
+	 && cd bin && wget https://bin.equinox.io/a/49t7LH1Gqh9/github-com-kevinburke-go-bindata-go-bindata-linux-amd64.tar.gz \
+	 && tar xvf github-com-kevinburke-go-bindata-go-bindata-linux-amd64.tar.gz 
+
+release-ui: pkg/ui/build bin/go-bindata
+	bin/go-bindata -o pkg/server/ui.go -prefix "pkg/ui/build" pkg/ui/build/...
 
 release: clean release-ui
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build \

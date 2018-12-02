@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var possibleNamespace = regexp.MustCompile("([a-z]+-?)+")
@@ -29,6 +30,11 @@ func (k *KubeKind) GetPath(namespace string) string {
 	}
 	path += "/" + k.Plural
 	return path
+}
+
+// GetResource returns this KubeKind as a GroupVersionResource
+func (k *KubeKind) GetResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{Group: k.ResourceGroup, Version: k.Version, Resource: k.Name}
 }
 
 // GetWatchPath returns the watch path for the given kind in the specified namespace;

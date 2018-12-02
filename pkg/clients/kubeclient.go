@@ -75,7 +75,7 @@ func Create(kubeConfig string) (*KubeClients, error) {
 
 // DynamicClientFor creates a new dynamic client configured for the specified
 // authContext and kind
-func (k *KubeClients) DynamicClientFor(authContext auth.Context, kind *types.KubeKind) (*dynamic.Client, error) {
+func (k *KubeClients) DynamicClientFor(authContext auth.Context, kind *types.KubeKind) (dynamic.Interface, error) {
 
 	config := k.ConfigForUser(authContext)
 	if strings.Contains(kind.Version, "/") {
@@ -85,7 +85,7 @@ func (k *KubeClients) DynamicClientFor(authContext auth.Context, kind *types.Kub
 		Group:   kind.Group,
 		Version: kind.Version,
 	}
-	return dynamic.NewClient(&config)
+	return dynamic.NewForConfig(&config)
 }
 
 // StandardClientFor creates a new standard client configured for the specified authContext

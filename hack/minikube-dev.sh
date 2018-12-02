@@ -28,7 +28,7 @@ while [ "$(kubectl get deploy -n kube-system kube-dns -o json | jq '.status.read
 
 UI_PID=""
 if [ "${CI}" != "true" ]; then
-  PORT=${KUILL_FRONTEND_PORT} make -s -C ${ROOT} start-ui &
+  PORT=${KUILL_FRONTEND_PORT} make -s -C ${ROOT} start-ui &>/dev/null &
   UI_PID=$!
 fi
 

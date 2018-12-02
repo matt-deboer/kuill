@@ -2,14 +2,14 @@
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 
+KUBE_VERSION=${KUBE_VERSION:-v1.10.0}
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 
 status=$(minikube status)
 if [ -z "$(echo $status | grep 'minikube: Running')" ]; then
   echo "Launching minikube cluster..."
   ${MINIKUBE_SUDO} minikube start ${MINIKUBE_OPTIONS} \
-    --extra-config apiserver.Authorization.Mode=RBAC \
-    --kubernetes-version v1.8.0 --v=4
+    --kubernetes-version ${KUBE_VERSION} --v=4
 fi
 
 minikube update-context
@@ -19,7 +19,6 @@ until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do
   printf "Waiting for minikube: %s" "$(kubectl get nodes -o jsonpath="$JSONPATH" 2>&1)"
   sleep 2; 
 done
-
 
 echo "Waiting for minikube apiserver..."
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')

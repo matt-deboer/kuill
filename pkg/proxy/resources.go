@@ -77,7 +77,7 @@ AssembleResults:
 
 func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, namespaces []string,
 	authContext auth.Context, lists chan *unstructured.UnstructuredList, wg *sync.WaitGroup,
-	dynClient *dynamic.Client) {
+	dynClient dynamic.Interface) {
 
 	var err error
 	if dynClient == nil {
@@ -87,7 +87,7 @@ func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, names
 		}
 	}
 
-	obj, err := dynClient.Resource(&kind.APIResource, namespace).List(meta_v1.ListOptions{})
+	ul, err := dynClient.Resource(kind.GetResource()).Namespace(namespace).List(meta_v1.ListOptions{})
 	if err != nil {
 		if statusErr, ok := err.(*errors.StatusError); ok {
 			if statusErr.ErrStatus.Code == 403 {
@@ -111,12 +111,10 @@ func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, names
 		} else {
 			log.Warnf("Error fetching %s (namespace: '%s'); %v", kind.APIResource.Kind, namespace, err)
 		}
-	} else if ul, ok := obj.(*unstructured.UnstructuredList); ok && ul.IsList() {
+	} else {
 		if len(ul.Items) > 0 {
 			lists <- ul
 		}
-	} else {
-		log.Warnf("Received unexpected result (%T): %v", obj, obj)
 	}
 	wg.Done()
 }
