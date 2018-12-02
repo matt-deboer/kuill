@@ -274,7 +274,7 @@ func main() {
 
 		addr := fmt.Sprintf(":%d", port)
 
-		log.Infof("%s!@%s listening on %s", version.Name, version.Version, addr)
+		log.Infof("%s@%s listening on %s", version.Name, version.Version, addr)
 		if disableTLS {
 			log.Warnf("TLS is disabled; server is running in an insecure configuration")
 			log.Fatal(http.ListenAndServe(addr, nil))
