@@ -100,9 +100,11 @@ func (m *Provider) summarize() *Summaries {
 			aggregates["Cluster:memTotalBytes"] += convertedSummary.Memory.Total
 			aggregates["Cluster:usageNanoCores"] += nodeSummary.Node.CPU.UsageNanoCores
 			aggregates["Cluster:memUsageBytes"] += nodeSummary.Node.Memory.UsageBytes
-			aggregates["Cluster:networkTxBytes"] += nodeSummary.Node.Network.TxBytes
-			aggregates["Cluster:networkRxBytes"] += nodeSummary.Node.Network.RxBytes
-			aggregates["Cluster:networkSeconds"] += uint64(nodeSummary.Node.Network.Time.Sub(nodeSummary.Node.StartTime).Seconds())
+			if nodeSummary.Node.Network != nil {
+				aggregates["Cluster:networkTxBytes"] += nodeSummary.Node.Network.TxBytes
+				aggregates["Cluster:networkRxBytes"] += nodeSummary.Node.Network.RxBytes
+				aggregates["Cluster:networkSeconds"] += uint64(nodeSummary.Node.Network.Time.Sub(nodeSummary.Node.StartTime).Seconds())
+			}
 			aggregates["Cluster:fsCapacityBytes"] += nodeSummary.Node.Fs.CapacityBytes
 			aggregates["Cluster:fsUsedBytes"] += nodeSummary.Node.Fs.UsedBytes
 
@@ -239,7 +241,7 @@ func convertSummary(summary *KubeletStatsSummary, node v1.Node, summaries *Summa
 		summary.Node.Fs = &FsStats{}
 	}
 
-	return &Summary{
+	result := &Summary{
 		CPU: newSummaryStat(
 			summary.Node.CPU.UsageNanoCores/1000000,
 			uint64(totalCPUCores*1000),
@@ -256,21 +258,26 @@ func convertSummary(summary *KubeletStatsSummary, node v1.Node, summaries *Summa
 			volUsageBytes,
 			volCapacityBytes,
 			"bytes"),
-		NetRx: newSummaryStat(
-			safeDivideInt(summary.Node.Network.RxBytes, networkSeconds),
-			1,
-			"bytes/sec"),
-		NetTx: newSummaryStat(
-			safeDivideInt(summary.Node.Network.TxBytes, networkSeconds),
-			1,
-			"bytes/sec"),
 		Pods: &SummaryStat{
 			Usage: 0,
 		},
 		Containers: &SummaryStat{
 			Usage: 0,
 		},
-	}, summaryByNs
+	}
+	if summary.Node.Network != nil {
+		result.NetRx = newSummaryStat(
+			safeDivideInt(summary.Node.Network.RxBytes, networkSeconds),
+			1,
+			"bytes/sec")
+		result.NetTx = newSummaryStat(
+			safeDivideInt(summary.Node.Network.TxBytes, networkSeconds),
+			1,
+			"bytes/sec")
+	}
+
+	return result, summaryByNs
+
 }
 
 func safeDivide(dividend, divisor uint64) uint64 {
