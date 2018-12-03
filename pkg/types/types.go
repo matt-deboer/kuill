@@ -34,7 +34,7 @@ func (k *KubeKind) GetPath(namespace string) string {
 
 // GetResource returns this KubeKind as a GroupVersionResource
 func (k *KubeKind) GetResource() schema.GroupVersionResource {
-	return schema.GroupVersionResource{Group: k.ResourceGroup, Version: k.Version, Resource: k.Name}
+	return schema.GroupVersionResource{Group: k.APIResource.Group, Version: k.Version, Resource: k.Name}
 }
 
 // GetWatchPath returns the watch path for the given kind in the specified namespace;

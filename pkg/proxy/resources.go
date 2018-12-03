@@ -87,7 +87,9 @@ func (l *ResourcesProxy) fetchKind(kind *types.KubeKind, namespace string, names
 		}
 	}
 
-	ul, err := dynClient.Resource(kind.GetResource()).Namespace(namespace).List(meta_v1.ListOptions{})
+	// TODO: need to figure out the right combination for resource here...
+	resource := kind.GetResource()
+	ul, err := dynClient.Resource(resource).Namespace(namespace).List(meta_v1.ListOptions{})
 	if err != nil {
 		if statusErr, ok := err.(*errors.StatusError); ok {
 			if statusErr.ErrStatus.Code == 403 {
