@@ -57,7 +57,7 @@ function doReceiveEvents(state, resources, events) {
     if (!('type' in event)) {
       event.type = guessEventType(event)
     }
-    let object = event.object.involvedObject
+    let object = event.object.involvedObject || event.object
     event.key = keyForResource(object)
     
     if (event.key in resources) {
