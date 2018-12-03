@@ -14,7 +14,7 @@ apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0]
 echo "Kube apiserver is at ${apiserver}"
 
 echo "Waiting for kubernetes-api at ${apiserver}..."
-while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
+while ! curl -skL --fail "${apiserver}/healthz" >/dev/null; do sleep 2; done
 
 echo "Pulling certificates for use by kuill..."
 ${SCRIPT_DIR}/get-certs.sh "minikube"
