@@ -22,12 +22,12 @@ done
 
 echo "Waiting for minikube apiserver..."
 apiserver=$(kubectl config view --flatten --minify -o json | jq -r '.clusters[0].cluster.server')
-while ! curl -skL --fail "${apiserver}/healthz"; do sleep 2; done
+while ! curl -skL --fail "${apiserver}/healthz" >/dev/null; do sleep 2; done
 
 echo "Creating cluster role binding for kube-system serviceaccount"
 kubectl create clusterrolebinding kube-system-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 
-if ! kubectl --context minikube get secret auth-proxy-certs; then
+if ! kubectl --context minikube get secret auth-proxy-certs 2>/dev/null; then
 
   mkdir -p ~/.minikube/certs/auth-proxy && rm -rf ~/.minikube/certs/auth-proxy/*
 
@@ -38,8 +38,8 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
   else
     echo "Copying minikube certs from vm..."
     while ! minikube ssh 'true'; do sleep 5; done
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.key' > ~/.minikube/certs/auth-proxy/ca.key
-    minikube ssh 'sudo cat /var/lib/localkube/certs/ca.crt' > ~/.minikube/certs/auth-proxy/ca.crt
+    minikube ssh 'sudo cat /var/lib/minikube/certs/ca.key' > ~/.minikube/certs/auth-proxy/ca.key
+    minikube ssh 'sudo cat /var/lib/minikube/certs/ca.crt' > ~/.minikube/certs/auth-proxy/ca.crt
   fi
 
   echo "Certs in ~/.minikube/certs/auth-proxy/ :"
@@ -47,12 +47,12 @@ if ! kubectl --context minikube get secret auth-proxy-certs; then
 
 
   echo "Generating auth proxy certs..."
-  docker run --rm \
+  docker run --rm -u "$(id -u $USER):$(id -g $USER)" \
     -v ~/.minikube/certs/auth-proxy:/certs/auth-proxy \
     -w /certs/auth-proxy --entrypoint sh cfssl/cfssl \
-    -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /ca-config.json && \
+    -c 'echo "{\"signing\":{\"default\":{\"expiry\":\"43800h\",\"usages\":[\"signing\",\"key encipherment\",\"server auth\",\"client auth\"]}}}" > /tmp/ca-config.json && \
       echo "{\"CN\":\"auth-proxy\",\"hosts\":[\"\"],\"key\":{\"algo\":\"rsa\",\"size\":2048}}" | \
-      cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /ca-config.json - | \
+      cfssl gencert -ca /certs/auth-proxy/ca.crt -ca-key /certs/auth-proxy/ca.key -config /tmp/ca-config.json - | \
       cfssljson -bare auth-proxy - && rm -f auth-proxy.csr && rm -f ca.key && mv ca.crt ca.pem'
 
   echo "Certs in ~/.minikube/certs/auth-proxy/ (after generation):"
