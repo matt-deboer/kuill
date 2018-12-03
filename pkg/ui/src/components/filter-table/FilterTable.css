@@ -22,7 +22,7 @@ table.filter-table {
 
 .filter-table-root > div > div:nth-child(2)::-webkit-scrollbar-thumb {
   border-radius: 7px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0);
   -webkit-box-shadow: inset -1 -1 0px rgba(0, 0, 0, 0.05);
   background-color: rgba(0, 0, 0, 0.1);
   background-clip: padding-box;

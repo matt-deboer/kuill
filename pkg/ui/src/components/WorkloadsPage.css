@@ -20,13 +20,13 @@ table.filter-table.workloads tr {
   pointer-events: none; }
 
 .actions-popover:after {
-  border-color: transparent;
+  border-color: rgba(0, 0, 0, 0);
   border-right-color: #BBB;
   border-width: 20px;
   margin-top: -20px; }
 
 .actions-popover:before {
-  border-color: transparent;
+  border-color: rgba(0, 0, 0, 0);
   border-right-color: #000000;
   border-width: 21px;
   margin-top: -21px; }
