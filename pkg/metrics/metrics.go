@@ -402,6 +402,7 @@ func (m *Provider) readNodeSummary(path string) *KubeletStatsSummary {
 	if err == nil {
 		if resp.StatusCode != http.StatusOK {
 			log.Errorf("Failed to read node summary response from '%s'; %s: %v", path, resp.Status, err)
+			return nil
 		}
 		b, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
