@@ -2,7 +2,7 @@
 SCRIPT_DIR=$(cd $(dirname $0) && pwd)
 ROOT=$(cd ${SCRIPT_DIR}/.. && pwd)
 
-KUBE_VERSION=${KUBE_VERSION:-v1.10.0}
+KUBE_VERSION=${KUBE_VERSION:-v1.10.11}
 MINIKUBE_OPTIONS=${MINIKUBE_OPTIONS:-}
 
 status=$(minikube status)
