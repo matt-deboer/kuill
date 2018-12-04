@@ -48,6 +48,7 @@ require (
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/cobra v0.0.3 // indirect
 	github.com/spf13/pflag v1.0.3
+	github.com/stretchr/testify v1.2.2
 	github.com/urfave/cli v0.0.0-20181029213200-b67dcf995b6a
 	golang.org/x/arch v0.0.0-20180920145803-b19384d3c130 // indirect
 	golang.org/x/crypto v0.0.0-20181127143415-eb0de9b17e85

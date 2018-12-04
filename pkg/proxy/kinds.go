@@ -127,15 +127,19 @@ func (k *KindsProxy) update() error {
 	return nil
 }
 
-var camelcasePattern = regexp.MustCompile(`([A-Z])(?:[a-z])`)
+var camelcasePattern = regexp.MustCompile(`([A-Z])(?:[a-z])?`)
 
 func toAbbreviation(kind string) string {
 	firstLetters := camelcasePattern.FindAllStringSubmatch(kind, -1)
 	var abbrev string
 	if len(firstLetters) > 1 {
 		abbrev = firstLetters[0][1] + strings.ToLower(firstLetters[1][1])
-	} else {
+	} else if len(firstLetters) > 0 {
 		abbrev = firstLetters[0][0]
+	} else if len(kind) > 1 {
+		abbrev = strings.Title(kind[0:2])
+	} else {
+		abbrev = strings.Title(kind)
 	}
 	return abbrev
 }
