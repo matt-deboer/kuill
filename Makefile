@@ -18,7 +18,7 @@ test:
 	go test -v -cover -run=$(RUN) $(TEST)
 
 build: clean
-	@go build -v -o bin/$(TARGET) -ldflags "$(LD_FLAGS)+local_changes" ./pkg/server
+	@GO111MODULE=on go build -v -o bin/$(TARGET) -ldflags "$(LD_FLAGS)+local_changes" ./pkg/server
 
 pkg/ui/build:
 	cd pkg/ui && npm run release
@@ -32,7 +32,7 @@ release-ui: pkg/ui/build bin/go-bindata
 	bin/go-bindata -o pkg/server/ui.go -prefix "pkg/ui/build" pkg/ui/build/...
 
 release: clean release-ui
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build \
+	GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build \
 		-a -tags netgo \
 		-a -installsuffix cgo \
     -ldflags "$(LD_FLAGS)" \
